@@ -1,0 +1,46 @@
+html {
+  --scrollbarBG: #9aa4a8;
+  --thumbBG: #6f7d85;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+body {
+  scrollbar-width: thin;
+  scrollbar-color: var(--thumbBG) var(--scrollbarBG);
+}
+body, h1, h2, h3, h4, h5, h6 {
+  font-family: 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif!important;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--thumbBG);
+  border-radius: 6px;
+}
+
+body, #root {
+  min-height: 100vh;
+  height: 100%;
+}
+
+.app-codeview {
+  &, .CodeMirror {
+    width: 100%;
+    height: 100vh;
+  }
+
+  position: relative;
+  z-index: 1;
+}
+
+.app-toolbar {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  
+  z-index: 2;
+}

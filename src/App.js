@@ -4,8 +4,8 @@ import { Alert, Button, Dropdown, Icon, Loader, Panel } from "rsuite";
 import { createContext, useMemo, useState } from "react";
 import ModalOptions from "./modals/ModalOptions";
 import useCookie from "./useCookie";
-import JsConfuser, { debugTransformations } from "./js-confuser/index.ts";
-import Presets from "./js-confuser/presets.ts";
+import JsConfuser, { debugTransformations } from "js-confuser";
+import Presets from "./presets";
 import ModalConfig from "./modals/ModalConfig";
 
 const acorn = require("acorn");

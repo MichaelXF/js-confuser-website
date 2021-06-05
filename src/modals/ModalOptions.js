@@ -122,18 +122,40 @@ export default function Options({ show, onHide }) {
               data={[
                 {
                   preset: "Low",
-                  performance: "-5% to -10%",
-                  sample: <a href=''>Sample</a>,
+                  performance: "30%",
+                  sample: (
+                    <a
+                      href='https://github.com/MichaelXF/js-confuser/blob/master/samples/low.js'
+                      target='_blank'
+                    >
+                      Sample
+                    </a>
+                  ),
                 },
+
                 {
                   preset: "Medium",
-                  performance: "-20% to -30%",
-                  sample: <a href=''>Sample</a>,
+                  performance: "52%",
+                  sample: (
+                    <a
+                      href='https://github.com/MichaelXF/js-confuser/blob/master/samples/medium.js'
+                      target='_blank'
+                    >
+                      Sample
+                    </a>
+                  ),
                 },
                 {
                   preset: "High",
-                  performance: "-50% to -70%",
-                  sample: <a href=''>Sample</a>,
+                  performance: "98%",
+                  sample: (
+                    <a
+                      href='https://github.com/MichaelXF/js-confuser/blob/master/samples/high.js'
+                      target='_blank'
+                    >
+                      Sample
+                    </a>
+                  ),
                 },
               ]}
             >

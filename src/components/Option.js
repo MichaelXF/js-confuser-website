@@ -1,146 +1,245 @@
 import { useState, useMemo } from "react";
-import { Button, Checkbox, DatePicker, Dropdown, Input, InputNumber, Tag, TagGroup, Toggle, Animation } from 'rsuite';
-import './Option.scss';
+import {
+  Button,
+  Checkbox,
+  DatePicker,
+  Dropdown,
+  Input,
+  InputNumber,
+  Tag,
+  TagGroup,
+  Toggle,
+  Animation,
+} from "rsuite";
+import "./Option.scss";
 
-const toTitleCase = (camelCase) => camelCase
-  .replace(/([A-Z])/g, (match) => ` ${match}`)
-  .replace(/^./, (match) => match.toUpperCase()).trim();
+const toTitleCase = (camelCase) =>
+  camelCase
+    .replace(/([A-Z])/g, (match) => ` ${match}`)
+    .replace(/^./, (match) => match.toUpperCase())
+    .trim();
 
-export default function Option({name, displayName, type = "probability", modes, initialValue = false, onChange}){
-
-  var displayName = displayName || toTitleCase(name);
+export default function Option({
+  name,
+  displayName,
+  type = "probability",
+  modes,
+  initialValue = false,
+  onChange,
+}) {
+  var displayName = displayName || toTitleCase(name + "");
 
   var [value, setValue] = useState(initialValue);
-  var [percentEditor, setPercentEditor] = useState(typeof initialValue === "number");
+  var [percentEditor, setPercentEditor] = useState(
+    typeof initialValue === "number"
+  );
 
   var [adding, setAdding] = useState("/domain\\.com/");
 
-  function updateValue(newValue){
-
-    if ( newValue === undefined ) {
+  function updateValue(newValue) {
+    if (newValue === undefined) {
       throw new Error("undefined from " + type + " '" + name + "'");
     }
 
-    if ( newValue !== value ) {
+    if (newValue !== value) {
       setValue(newValue);
       onChange(newValue);
     }
   }
 
-
-  if ( type == "probability" ) {
-
-    if ( !modes ) {
-      if ( percentEditor ) {
-        return <div className="option option-checkbox">
-          <div className="flex">
-          <Checkbox onChange={()=>{
-            updateValue(false);
-            setPercentEditor(false);
-          }} indeterminate={true}> {displayName}</Checkbox>
-          <InputNumber step={2} min={0} max={100} className="ml-2" defaultValue={value*100} style={{width: "120px"}} onChange={(value)=>{
-            updateValue(value/100);
-          }} postfix="%"/>
+  if (type == "probability") {
+    if (!modes) {
+      if (percentEditor) {
+        return (
+          <div className='option option-checkbox'>
+            <div className='flex'>
+              <Checkbox
+                onChange={() => {
+                  updateValue(false);
+                  setPercentEditor(false);
+                }}
+                indeterminate={true}
+              >
+                {" "}
+                {displayName}
+              </Checkbox>
+              <InputNumber
+                step={2}
+                min={0}
+                max={100}
+                className='ml-2'
+                defaultValue={value * 100}
+                style={{ width: "120px" }}
+                onChange={(value) => {
+                  updateValue(value / 100);
+                }}
+                postfix='%'
+              />
+            </div>
           </div>
-        </div>;
+        );
       }
-      return <div className="option option-checkbox">
-        <div className="flex">
-          <Checkbox onChange={(_value, checked)=>updateValue(checked)} defaultChecked={value}> {displayName}</Checkbox>
-          <Button onClick={()=>{
-            updateValue(1);
-            setPercentEditor(true);
-          }} className="ml-2" size="sm" appearance="link" >Percent (%)</Button>
+      return (
+        <div className='option option-checkbox'>
+          <div className='flex'>
+            <Checkbox
+              onChange={(_value, checked) => updateValue(checked)}
+              defaultChecked={value}
+            >
+              {" "}
+              {displayName}
+            </Checkbox>
+            <Button
+              onClick={() => {
+                updateValue(1);
+                setPercentEditor(true);
+              }}
+              className='ml-2'
+              size='sm'
+              appearance='link'
+            >
+              Percent (%)
+            </Button>
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div className='option'>
+          <p>{displayName}</p>
+          <Dropdown
+            className='my-1'
+            title={toTitleCase(value + "") || "Choose one"}
+          >
+            {modes.map((x) => {
+              return (
+                <Dropdown.Item
+                  onSelect={() => {
+                    updateValue(x);
+                  }}
+                >
+                  {toTitleCase(x)}
+                </Dropdown.Item>
+              );
+            })}
+          </Dropdown>
+        </div>
+      );
+    }
+  }
+  if (type == "date") {
+    return (
+      <div className='option'>
+        <div className='flex items-center mt-3'>
+          <p className='mr-2'>{displayName}</p>
+
+          <DatePicker
+            value={value}
+            onChange={(date) => {
+              updateValue(date);
+            }}
+          />
         </div>
       </div>
-      
-    } else {
-
-      return <div className="option">
-        <p>{displayName}</p>
-        <Dropdown className="mt-2" title={toTitleCase(value || "") || "Choose one"}>
-          {modes.map(x=>{
-            return <Dropdown.Item onSelect={()=>{
-              updateValue(x)
-            }}>{toTitleCase(x)}</Dropdown.Item>
-          })}
-        </Dropdown>
-      </div>;
-    }
-
-  } if ( type == "date") {
-
-    return <div className="option">
-      <div className="flex items-center mt-3">
-
-        <p className="mr-2">{displayName}</p>
-
-        <DatePicker value={value} onChange={(date)=>{
-        updateValue(date);
-        }}/>
-
+    );
+  } else if (type == "boolean") {
+    return (
+      <div className='option option-checkbox'>
+        <Checkbox
+          onChange={(_value, checked) => updateValue(checked)}
+          defaultChecked={initialValue}
+        >
+          {" "}
+          {displayName}
+        </Checkbox>
       </div>
-    </div>;
-
-  } else if ( type == "boolean") {
-
-    return <div className="option option-checkbox"><Checkbox onChange={(_value, checked)=>updateValue(checked)} defaultChecked={initialValue}> {displayName}</Checkbox></div>
-    
-  } else if ( type == "number") {
-    return <div className="option">
-      <p>{displayName}</p>
-      <InputNumber onChange={updateValue} />
-    </div>
-  } else if ( type == "regex[]") {
-
+    );
+  } else if (type == "number") {
+    return (
+      <div className='option'>
+        <p>{displayName}</p>
+        <InputNumber onChange={updateValue} />
+      </div>
+    );
+  } else if (type == "regex[]") {
     var valid = adding.startsWith("/");
 
-    return <div className="option mb-3">
-
-      <div className="flex">
-        <p className="mb-1">{displayName}</p>
-        <small className="ml-auto">
-          <a href="https://regexr.com/" target="_blank">Learn Regex</a>
-        </small>
-      </div>
-    
-      
-      <div className="mb-2">
-        <div className="flex items-center">
-          <Input placeholder="/^domain.com$/g" defaultValue={adding} onChange={setAdding}></Input>
-          <Button appearance="primary" className="ml-2 flex-shrink-0" onClick={()=>{
-            if( !value ) {
-              value = [];
-            }
-            value.push(adding);
-            updateValue([...value]);
-          }}
-          >Add Regex</Button>
+    return (
+      <div className='option mb-3'>
+        <div className='flex'>
+          <p className='mb-1'>{displayName}</p>
+          <small className='ml-auto'>
+            <a href='https://regexr.com/' target='_blank'>
+              Learn Regex
+            </a>
+          </small>
         </div>
-        
-        <div className="mt-2">
-          <Animation.Collapse in={!valid}>
-            <p className="text-danger">
-              Invalid Regex.
-            </p>
-          </Animation.Collapse>
+
+        <div className='mb-2'>
+          <div className='flex items-center'>
+            <Input
+              placeholder='/^domain.com$/g'
+              defaultValue={adding}
+              onChange={setAdding}
+            ></Input>
+            <Button
+              appearance='primary'
+              className='ml-2 flex-shrink-0'
+              onClick={() => {
+                if (!value) {
+                  value = [];
+                }
+                value.push(adding);
+                updateValue([...value]);
+              }}
+            >
+              Add Regex
+            </Button>
+          </div>
+
+          <div className='mt-2'>
+            <Animation.Collapse in={!valid}>
+              <p className='text-danger'>Invalid Regex.</p>
+            </Animation.Collapse>
+          </div>
+        </div>
+
+        <div className='mb-2'>
+          <TagGroup>
+            {(value || []).map((x, i) => {
+              return (
+                <Tag
+                  closable
+                  onClose={() => {
+                    value.splice(i, 1);
+                    updateValue([...value]);
+                  }}
+                >
+                  {x}
+                </Tag>
+              );
+            })}
+          </TagGroup>
         </div>
       </div>
-   
-      <div className="mb-2">
-        <TagGroup>
-          {(value || []).map((x,i)=>{
-            return <Tag closable onClose={()=>{
-              value.splice(i, 1);
-              updateValue([...value]);
-            }}>{x}</Tag>;
-          })}
-        </TagGroup>
+    );
+  } else if (type == "string") {
+    return (
+      <div className='option mb-3'>
+        <div className='flex'>
+          <p>{displayName}</p>
+        </div>
+
+        <div className='mb-2'>
+          <Input
+            placeholder='onLockTriggered'
+            defaultValue={adding}
+            onChange={updateValue}
+          ></Input>
+        </div>
       </div>
-
-    </div>
-
+    );
   }
 
   return null;
-};
+}

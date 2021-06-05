@@ -11,9 +11,10 @@ import ModalConfig from "./modals/ModalConfig";
 const acorn = require("acorn");
 
 const defaultCode = `/**
+* GitHub: https://github.com/MichaelXF/js-confuser
+* NPM: https://www.npmjs.com/package/js-confuser
+*
 * Welcome to Js Confuser!
-* 
-* The ultimate JavaScript Obfuscation Tool.
 * 
 * You can obfuscate the code with the top right button 'Obfuscate'.
 * 
@@ -67,9 +68,15 @@ export const groups = {
   Strings: [
     {
       type: "probability",
-      name: "stringSplitting",
+      name: "stringCompression",
       description:
-        "String Splitting splits your strings into multiple expressions.",
+        "String Compression uses LZW's compression algorithm to reduce file size. (true/false/0-1)",
+    },
+    {
+      type: "probability",
+      name: "stringConcealing",
+      description:
+        "String Concealing hides strings by encryption. The strings are then deciphered at runtime.",
     },
     {
       type: "probability",
@@ -79,9 +86,9 @@ export const groups = {
     },
     {
       type: "probability",
-      name: "stringConcealing",
+      name: "stringSplitting",
       description:
-        "String Concealing hides strings by encryption. The strings are then deciphered at runtime.",
+        "String Splitting splits your strings into multiple expressions.",
     },
   ],
   Data: [
@@ -105,6 +112,7 @@ export const groups = {
     {
       type: "probability",
       name: "shuffle",
+      modes: ["hash", "true"],
       description:
         "Shuffles the elements in arrays. The array is then 'unshuffled' at runtime.",
     },
@@ -149,7 +157,18 @@ export const groups = {
       type: "probability",
       name: "rgf",
       description:
-        "Uses the 'new Function' syntax to construct functions from strings. Just as dangerous as eval.",
+        "Uses the 'new Function' syntax to construct functions from strings. This is just as dangerous as eval.",
+    },
+    {
+      type: "probability",
+      name: "stack",
+      description: "Local variables are consolidated into a rotating array.",
+    },
+    ,
+    {
+      type: "probability",
+      name: "flatten",
+      description: "Brings independent declarations to the highest scope. ",
     },
   ],
   Lock: [
@@ -180,9 +199,11 @@ export const groups = {
         "Integrity uses checksum techniques to validate the code is unchanged.",
     },
     {
-      type: "boolean",
+      type: "string",
       parentField: "lock",
       name: "countermeasures",
+      description:
+        "A custom callback function to invoke when a lock is triggered.",
     },
   ],
   Output: [

@@ -14,11 +14,12 @@ const defaultCode = `/**
 * GitHub: https://github.com/MichaelXF/js-confuser
 * NPM: https://www.npmjs.com/package/js-confuser
 *
-* Welcome to Js Confuser!
+* Welcome to Js Confuser
 * 
 * You can obfuscate the code with the top right button 'Obfuscate'.
 * 
 * You can customize the obfuscator with the button 'Options'.
+* (Set the target to 'node' for NodeJS apps)
 *
 * Happy Hacking!
 */

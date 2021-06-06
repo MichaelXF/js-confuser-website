@@ -1,8 +1,8 @@
 import { presets } from "js-confuser";
 
 const object = {
-  low: { ...presets.low, compact: false },
-  medium: { ...presets.medium, compact: false },
-  high: { ...presets.high, compact: false },
+  low: { ...presets.low, target: "browser" },
+  medium: { ...presets.medium, target: "browser" },
+  high: { ...presets.high, target: "browser" },
 };
 export default object;

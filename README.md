@@ -6,8 +6,6 @@ Obfuscate JavaScript online for free with JsConfuser.com.
 
 _For any issues regarding the obfuscator itself, please refer to the [Js-Confuser Repo](https://github.com/MichaelXF/js-confuser)._
 
-JsConfuser.com
+![Website Image of JsConfuser.com](https://raw.githubusercontent.com/MichaelXF/js-confuser-website/master/images/website.png)
 
-![Website Image of JsConfuser.com](https://github.com/MichaelXF/js-confuser-website/tree/master/images/website.png)
-
-![2nd Website Image of JsConfuser.com](https://github.com/MichaelXF/js-confuser-website/tree/master/images/website_obfuscated.png)
+![2nd Website Image of JsConfuser.com](https://raw.githubusercontent.com/MichaelXF/js-confuser-website/master/images/website_obfuscated.png)

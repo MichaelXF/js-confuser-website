@@ -65,13 +65,29 @@ export const groups = {
       description:
         "Renames variables with meaningless randomly generated names.",
     },
+    {
+      type: "boolean",
+      name: "renameGlobals",
+      description:
+        "Renames top-level variables, keep this off for web-related scripts.",
+    },
+    {
+      type: "probability",
+      name: "nameRecycling",
+      description: "Attempts to reuse released names.",
+    },
+    {
+      type: "probability",
+      name: "movedDeclarations",
+      description: "Moves variable declarations to the top of the context.",
+    },
   ],
   Strings: [
     {
       type: "probability",
       name: "stringCompression",
       description:
-        "String Compression uses LZW's compression algorithm to reduce file size. (true/false/0-1)",
+        "String Compression uses LZW's compression algorithm to reduce file size.",
     },
     {
       type: "probability",
@@ -97,13 +113,12 @@ export const groups = {
       type: "probability",
       name: "calculator",
       description:
-        "Calculator creates a convoluted function where arithmetic and logical expressions are solved.",
+        "Creates a calculator function to handle arithmetic and logical expressions.",
     },
     {
       type: "probability",
       name: "objectExtraction",
-      description:
-        "Attempts to a extract object properties, otherwise it leaves the object alone.",
+      description: "Extracts object properties into separate variables.",
     },
     {
       type: "probability",
@@ -113,7 +128,7 @@ export const groups = {
     {
       type: "probability",
       name: "shuffle",
-      modes: ["hash", "true"],
+      modes: ["hash", "true", "false"],
       description:
         "Shuffles the elements in arrays. The array is then 'unshuffled' at runtime.",
     },
@@ -144,7 +159,7 @@ export const groups = {
     {
       type: "probability",
       name: "deadCode",
-      description: "Injects random dead code throughout the program.",
+      description: "Randomly injects dead code throughout the program.",
     },
   ],
   Functions: [
@@ -198,6 +213,13 @@ export const groups = {
       name: "integrity",
       description:
         "Integrity uses checksum techniques to validate the code is unchanged.",
+    },
+    {
+      type: "probability",
+      parentField: "lock",
+      name: "antiDebug",
+      description:
+        "Adds debugger statements throughout the code. Additionally adds a background function for DevTools detection. ",
     },
     {
       type: "string",

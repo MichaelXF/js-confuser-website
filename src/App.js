@@ -275,20 +275,20 @@ export default function App() {
       <OptionContext.Provider value={optionsValue}>
         <Code
           indent={indent}
-          className='app-codeview'
+          className="app-codeview"
           code={code}
           onChange={setCode}
         ></Code>
         <ModalOptions show={show} onHide={() => setShow(false)} />
         <ModalConfig show={showConfig} onHide={() => setShowConfig(false)} />
 
-        <div className='app-toolbar'>
+        <div className="app-toolbar">
           {debug ? (
             <Dropdown
-              appearance='link'
-              size='lg'
-              title='Debugger'
-              placement='bottomEnd'
+              appearance="link"
+              size="lg"
+              title="Debugger"
+              placement="bottomEnd"
             >
               {frames.map((x, i) => {
                 return (
@@ -320,10 +320,10 @@ export default function App() {
           ) : null}
 
           <Dropdown
-            appearance='default'
-            size='lg'
-            title='Options'
-            placement='bottomEnd'
+            appearance="default"
+            size="lg"
+            title="Options"
+            placement="bottomEnd"
           >
             <Dropdown.Item
               onSelect={() => {
@@ -346,7 +346,7 @@ export default function App() {
             <Dropdown.Item onSelect={() => setCode("")}>
               Clear Editor
             </Dropdown.Item>
-            <Dropdown.Menu title='Theme' pullLeft>
+            <Dropdown.Menu title="Theme" pullLeft>
               {Object.keys(themeMap).map((x) => {
                 return (
                   <Dropdown.Item
@@ -354,7 +354,7 @@ export default function App() {
                       setTheme(x);
                     }}
                   >
-                    {theme == x ? <Icon icon='check'></Icon> : null}
+                    {theme == x ? <Icon icon="check"></Icon> : null}
                     {x}
                   </Dropdown.Item>
                 );
@@ -376,9 +376,9 @@ export default function App() {
           </Dropdown>
 
           <Button
-            className='mx-1'
-            size='lg'
-            appearance='primary'
+            className="mx-1"
+            size="lg"
+            appearance="primary"
             onClick={() => {
               if (!code) {
                 Alert.error("No code to obfuscate.");
@@ -400,14 +400,54 @@ export default function App() {
               var startedAt = Date.now();
 
               if (debug) {
-                debugTransformations(code, options)
+                var logs = Object.create(null);
+
+                var _consoleLog = console.log;
+
+                function parseLog(message, ...optionalParams) {
+                  if (typeof message === "string" && message.startsWith("[")) {
+                    var before = message.split("[")[1].split("]")[0];
+                    if (!logs[before]) {
+                      logs[before] = [[message, ...optionalParams]];
+                    } else {
+                      logs[before].push([message, ...optionalParams]);
+                    }
+                  } else {
+                  }
+                  _consoleLog(message, ...optionalParams);
+                }
+
+                console.log = parseLog;
+
+                debugTransformations(code, { ...options, verbose: true })
                   .then(async (frames) => {
+                    console.log = _consoleLog;
                     setFrames(frames);
                     var hitError = false;
 
                     for (var i = 0; i < frames.length; i++) {
                       var frame = frames[i];
                       frame.index = i;
+
+                      if (logs[frame.name]) {
+                        frame.code =
+                          logs[frame.name]
+                            .map((line) => {
+                              return (
+                                "// " +
+                                line
+                                  .map((x) =>
+                                    x !== null && typeof x === "object"
+                                      ? JSON.stringify(x)
+                                      : x + ""
+                                  )
+                                  .join(" ")
+                              );
+                            })
+                            .join("\n") +
+                          "\n\n" +
+                          frame.code;
+                      }
 
                       try {
                         acorn.parse(frame.code, {

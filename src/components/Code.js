@@ -37,6 +37,7 @@ export default function Code({
         mode: "javascript",
         tabSize: indent,
         lineWrapping: true,
+        dragDrop: false,
       }}
       value={code}
       onBeforeChange={(editor, data, value) => {

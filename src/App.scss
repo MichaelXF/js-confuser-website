@@ -70,7 +70,7 @@ body,
 }
 
 .app-loading-container {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
@@ -86,4 +86,55 @@ body,
   justify-content: center;
 
   z-index: 400;
+}
+
+.app-loading-progress-bar {
+  position: fixed;
+  bottom: 2px;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+
+  z-index: 5000;
+
+  .rs-progress-info-status {
+    font-size: 14px;
+  }
+}
+
+.file-drop {
+  /* relatively position the container bc the contents are absolute */
+}
+
+.file-drop > .file-drop-target {
+  /* basic styles */
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  height: calc(100vh - 1rem);
+  width: calc(100vw - 1rem);
+
+  border: 2px dashed rgba(222, 231, 235, 0.4);
+  z-index: 10000;
+
+  display: none;
+
+  font-size: 2rem;
+
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  /* overlay a black mask when dragging over the frame */
+  background-color: rgba(222, 231, 235, 0.15);
+  box-shadow: none;
+  opacity: 1;
+
+  /* typography */
+  color: white;
+  font-weight: 500;
+}
+
+.file-drop > .file-drop-target.file-drop-dragging-over-frame {
+  display: flex !important;
 }

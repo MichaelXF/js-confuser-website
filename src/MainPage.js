@@ -1,7 +1,7 @@
 import Code, { themeMap } from "./components/Code";
 import "./App.scss";
-import { Alert, Button, Dropdown, Icon, Loader } from "rsuite";
-import { useMemo, useState, useContext } from "react";
+import { Alert, Button, Dropdown, Icon, Loader, Progress } from "rsuite";
+import { useState, useContext, useEffect } from "react";
 import ModalOptions from "./modals/ModalOptions";
 import ModalConfig from "./modals/ModalConfig";
 import { useLocalStorage } from "./useLocalStorage";
@@ -11,6 +11,7 @@ import worker from "workerize-loader!./worker"; // eslint-disable-line import/no
 import { OptionContext, ThemeContext } from "./App";
 import download from "./download";
 import Presets from "./presets";
+import { FileDrop } from "react-file-drop";
 
 const defaultCode = `/**
 * GitHub: https://github.com/MichaelXF/js-confuser
@@ -33,12 +34,23 @@ function greet(name){
 
 greet("Internet User");`;
 
+var workerInstance;
+function createWorker() {
+  if (workerInstance) {
+    try {
+      workerInstance.terminate();
+    } catch (e) {}
+  }
+  workerInstance = worker(); // Attach an event listener to receive calculations from your worker
+}
+
 export default function MainPage() {
   var { theme, setTheme } = useContext(ThemeContext);
   var { options, setOptions } = useContext(OptionContext);
 
   var [code, setCode] = useState(defaultCode);
   var [showFooter, setShowFooter] = useState(false);
+  var [originalCode, setOriginalCode] = useState();
 
   var [indent, setIndent] = useLocalStorage("jsconfuser_indent", 4);
 
@@ -47,29 +59,113 @@ export default function MainPage() {
   var alternateIndention = indent == 2 ? 4 : 2;
 
   var [loading, setLoading] = useState(false);
-
-  // Create an instance of your worker
-  const workerInstance = worker(); // Attach an event listener to receive calculations from your worker
-  workerInstance.addEventListener("message", ({ data }) => {
-    if (data.event === "success") {
-      setLoading(false);
-      setCode(data.data);
-      setShowFooter(true);
-    } else if (data.event === "error") {
-      setLoading(false);
-      setCode("[Error]\n\n" + data.data.toString());
-    }
-  });
+  var [progress, setProgress] = useState(false);
+  var [percent, setPercent] = useState(false);
+  var [outputFileName, setOutputFileName] = useState();
 
   function obfuscate() {
     setLoading(true);
+    setProgress("");
+    setPercent(0);
     setTimeout(() => {
       workerInstance.obfuscate(code, options);
     }, 100);
   }
 
+  function cancel() {
+    createWorker();
+  }
+
+  if (!workerInstance) {
+    cancel();
+  }
+
+  useEffect(() => {
+    // Create an instance of your worker
+    var cb = ({ data }) => {
+      if (data && data.event) {
+        if (data.event === "progress") {
+          /**
+           * WebWorker emitting progress information
+           */
+          setProgress(data.data[0] + " - " + data.data[1] + "/" + data.data[2]);
+          setPercent(data.data[1] / data.data[2]);
+        } else if (data.event === "success") {
+          /**
+           * WebWorker successfully obfuscated code
+           */
+          setOriginalCode(code || "");
+          setLoading(false);
+          setCode(data.data + "");
+          setShowFooter(true);
+        } else if (data.event === "error") {
+          /**
+           * WebWorker emitting an error
+           */
+          setLoading(false);
+          setCode(
+            "// An error occurred during obfuscation\n\n" + data.data.toString()
+          );
+        }
+      }
+    };
+    workerInstance.addEventListener("message", cb);
+
+    return () => {
+      workerInstance.removeEventListener("message", cb);
+    };
+  }, [workerInstance]);
+
   return (
     <div>
+      <FileDrop
+        frame={document.body}
+        onDrop={(files, event) => {
+          event.preventDefault();
+
+          if (files.length !== 1) {
+            Alert.error("Error: Max 1 file at a time");
+            return;
+          }
+
+          var firstFile = files[0];
+          if (
+            firstFile.type !== "application/x-javascript" &&
+            firstFile.type !== "video/vnd.dlna.mpeg-tts" &&
+            firstFile.type !== "text/plain" &&
+            firstFile.type !== ""
+          ) {
+            Alert.error("Error: JavaScript files only");
+            return;
+          }
+
+          var newName = firstFile.name
+            ? firstFile.name.split(".js")[0] + ".obfuscated.js"
+            : "";
+          setOutputFileName(newName);
+
+          console.log(files);
+          var reader = new FileReader();
+          reader.onload = (function (reader) {
+            return function () {
+              var contents = reader.result;
+              if (typeof contents !== "string") {
+                Alert.error("Error: Must be text");
+                return;
+              }
+
+              setCode(contents);
+            };
+          })(reader);
+
+          reader.readAsText(firstFile);
+        }}
+      >
+        <Icon icon='file-code-o' size='3x' className='mb-2' />
+
+        <p>Drop files to upload your code</p>
+      </FileDrop>
+
       <Code
         indent={indent}
         className='app-codeview'
@@ -79,11 +175,29 @@ export default function MainPage() {
 
       {loading ? (
         <div className='app-loading-container'>
-          <Loader content='Obfuscating code...' vertical />
+          <Loader
+            content={
+              "Obfuscating code..." + (progress ? " (" + progress + ")" : "")
+            }
+            vertical
+          />
 
-          <Button onClick={() => setLoading(false)} className='mt-5'>
+          <Button
+            onClick={() => {
+              setLoading(false);
+              cancel();
+            }}
+            className='mt-5'
+          >
             Cancel
           </Button>
+
+          <div className='app-loading-progress-bar text-sm'>
+            <Progress.Line
+              percent={Math.floor(percent * 100)}
+              strokeWidth={"4px"}
+            />
+          </div>
         </div>
       ) : null}
 
@@ -97,7 +211,7 @@ export default function MainPage() {
             size='lg'
             className='mx-1'
             onClick={() => {
-              download("obfuscated.js", code);
+              download(outputFileName || "obfuscated.js", code);
             }}
           >
             <Icon icon='arrow-circle-down' /> Download
@@ -106,8 +220,9 @@ export default function MainPage() {
             size='lg'
             className='mx-1'
             onClick={() => {
-              setCode("");
+              setCode(originalCode);
               setShowFooter(false);
+              setOutputFileName("");
             }}
           >
             Reset Editor
@@ -140,7 +255,13 @@ export default function MainPage() {
           <Dropdown.Item onSelect={() => setShowConfig(true)}>
             Export Config
           </Dropdown.Item>
-          <Dropdown.Item onSelect={() => setCode("")}>
+          <Dropdown.Item
+            onSelect={() => {
+              setCode("");
+              setShowFooter(false);
+              setOutputFileName("");
+            }}
+          >
             Clear Editor
           </Dropdown.Item>
           <Dropdown.Item

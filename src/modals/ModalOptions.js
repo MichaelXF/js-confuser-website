@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import {
   Button,
   Icon,
@@ -21,9 +21,16 @@ import Presets from "../presets";
 
 const { Column, HeaderCell, Cell, Pagination } = Table;
 
-export default function Options({ show, onHide }) {
+export default function ModalOptions({ show, onHide }) {
   var { options, setOptions } = useContext(OptionContext);
   var [custom, setCustom] = useState(false);
+  var [oldOptions, setOldOptions] = useState();
+
+  useEffect(() => {
+    if (show) {
+      setOldOptions({ ...options });
+    }
+  }, [!!show]);
 
   return (
     <Modal show={show} onHide={onHide}>
@@ -183,7 +190,13 @@ export default function Options({ show, onHide }) {
         <Button onClick={onHide} appearance='primary'>
           Save
         </Button>
-        <Button onClick={onHide} appearance='subtle'>
+        <Button
+          onClick={() => {
+            onHide();
+            setOptions(oldOptions);
+          }}
+          appearance='subtle'
+        >
           Cancel
         </Button>
       </Modal.Footer>

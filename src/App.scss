@@ -10,8 +10,15 @@ body {
   scrollbar-width: thin;
   scrollbar-color: var(--thumbBG) var(--scrollbarBG);
 }
-body, h1, h2, h3, h4, h5, h6 {
-  font-family: 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif!important;
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Rubik", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif !important;
 }
 
 ::-webkit-scrollbar-track {
@@ -22,13 +29,15 @@ body, h1, h2, h3, h4, h5, h6 {
   border-radius: 6px;
 }
 
-body, #root {
+body,
+#root {
   min-height: 100vh;
   height: 100%;
 }
 
 .app-codeview {
-  &, .CodeMirror {
+  &,
+  .CodeMirror {
     width: 100%;
     height: 100vh;
   }
@@ -41,6 +50,40 @@ body, #root {
   position: fixed;
   top: 1rem;
   right: 1rem;
-  
+
   z-index: 2;
+}
+
+.app-footer-toolbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100vw;
+
+  text-align: center;
+  padding: 1rem;
+
+  z-index: 3;
+
+  background: rgba(27, 34, 37, 0.7);
+}
+
+.app-loading-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+
+  background: rgba(15, 19, 26, 0.83);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 400;
 }

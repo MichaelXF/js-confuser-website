@@ -13,7 +13,9 @@ import {
   Whisper,
 } from "rsuite";
 
-import { groups, OptionContext } from "../App.js";
+import { OptionContext } from "../App.js";
+import { groups } from "../groups";
+
 import Option from "../components/Option.js";
 import Presets from "../presets";
 

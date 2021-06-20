@@ -34,7 +34,7 @@ export default function Option({
     typeof initialValue === "number"
   );
 
-  var [adding, setAdding] = useState("/domain\\.com/");
+  var [adding, setAdding] = useState(type == "regex[]" ? "/domain\\.com/" : "");
 
   function updateValue(newValue) {
     if (newValue === undefined) {
@@ -51,8 +51,8 @@ export default function Option({
     if (!modes) {
       if (percentEditor) {
         return (
-          <div className="option option-checkbox">
-            <div className="flex">
+          <div className='option option-checkbox'>
+            <div className='flex'>
               <Checkbox
                 onChange={() => {
                   updateValue(false);
@@ -67,21 +67,21 @@ export default function Option({
                 step={2}
                 min={0}
                 max={100}
-                className="ml-2"
+                className='ml-2'
                 defaultValue={value * 100}
                 style={{ width: "120px" }}
                 onChange={(value) => {
                   updateValue(value / 100);
                 }}
-                postfix="%"
+                postfix='%'
               />
             </div>
           </div>
         );
       }
       return (
-        <div className="option option-checkbox">
-          <div className="flex">
+        <div className='option option-checkbox'>
+          <div className='flex'>
             <Checkbox
               onChange={(_value, checked) => updateValue(checked)}
               defaultChecked={value}
@@ -94,9 +94,9 @@ export default function Option({
                 updateValue(1);
                 setPercentEditor(true);
               }}
-              className="ml-2"
-              size="sm"
-              appearance="link"
+              className='ml-2'
+              size='sm'
+              appearance='link'
             >
               Percent (%)
             </Button>
@@ -105,10 +105,10 @@ export default function Option({
       );
     } else {
       return (
-        <div className="option">
+        <div className='option'>
           <p>{displayName}</p>
           <Dropdown
-            className="my-1"
+            className='my-1'
             title={
               toTitleCase(
                 typeof value === "object"
@@ -143,9 +143,9 @@ export default function Option({
   }
   if (type == "date") {
     return (
-      <div className="option">
-        <div className="flex items-center mt-3">
-          <p className="mr-2">{displayName}</p>
+      <div className='option'>
+        <div className='flex items-center mt-3'>
+          <p className='mr-2'>{displayName}</p>
 
           <DatePicker
             value={value}
@@ -158,7 +158,7 @@ export default function Option({
     );
   } else if (type == "boolean") {
     return (
-      <div className="option option-checkbox">
+      <div className='option option-checkbox'>
         <Checkbox
           onChange={(_value, checked) => updateValue(checked)}
           defaultChecked={initialValue}
@@ -170,7 +170,7 @@ export default function Option({
     );
   } else if (type == "number") {
     return (
-      <div className="option">
+      <div className='option'>
         <p>{displayName}</p>
         <InputNumber onChange={updateValue} />
       </div>
@@ -179,26 +179,26 @@ export default function Option({
     var valid = adding.startsWith("/");
 
     return (
-      <div className="option mb-3">
-        <div className="flex">
-          <p className="mb-1">{displayName}</p>
-          <small className="ml-auto">
-            <a href="https://regexr.com/" target="_blank">
+      <div className='option mb-3'>
+        <div className='flex'>
+          <p className='mb-1'>{displayName}</p>
+          <small className='ml-auto'>
+            <a href='https://regexr.com/' target='_blank'>
               Learn Regex
             </a>
           </small>
         </div>
 
-        <div className="mb-2">
-          <div className="flex items-center">
+        <div className='mb-2'>
+          <div className='flex items-center'>
             <Input
-              placeholder="/^domain.com$/g"
+              placeholder='/^domain.com$/g'
               defaultValue={adding}
               onChange={setAdding}
             ></Input>
             <Button
-              appearance="primary"
-              className="ml-2 flex-shrink-0"
+              appearance='primary'
+              className='ml-2 flex-shrink-0'
               onClick={() => {
                 if (!value) {
                   value = [];
@@ -211,14 +211,14 @@ export default function Option({
             </Button>
           </div>
 
-          <div className="mt-2">
+          <div className='mt-2'>
             <Animation.Collapse in={!valid}>
-              <p className="text-danger">Invalid Regex.</p>
+              <p className='text-danger'>Invalid Regex.</p>
             </Animation.Collapse>
           </div>
         </div>
 
-        <div className="mb-2">
+        <div className='mb-2'>
           <TagGroup>
             {(value || []).map((x, i) => {
               return (
@@ -239,17 +239,65 @@ export default function Option({
     );
   } else if (type == "string") {
     return (
-      <div className="option mb-3">
-        <div className="flex">
+      <div className='option mb-3'>
+        <div className='flex'>
           <p>{displayName}</p>
         </div>
 
-        <div className="mb-2">
+        <div className='mb-2'>
           <Input
-            placeholder="onLockTriggered"
+            placeholder='onLockTriggered'
             defaultValue={adding}
             onChange={updateValue}
           ></Input>
+        </div>
+      </div>
+    );
+  } else if (type == "array") {
+    var valueSet = new Set(value || []);
+    var possibleValues = modes.filter((mode) => !valueSet.has(mode));
+
+    return (
+      <div className='option mb-3'>
+        <p>{displayName}</p>
+
+        <div className='mt-1 mb-2 flex'>
+          <TagGroup>
+            {(value || []).map((x, i) => {
+              return (
+                <Tag
+                  closable
+                  onClose={() => {
+                    value.splice(i, 1);
+                    updateValue([...value]);
+                  }}
+                >
+                  {x}
+                </Tag>
+              );
+            })}
+          </TagGroup>
+
+          <Dropdown
+            appearance='default'
+            title='Add'
+            size='sm'
+            placement='bottomEnd'
+            disabled={possibleValues.length === 0}
+            className='ml-auto'
+          >
+            {possibleValues.map((mode) => {
+              return (
+                <Dropdown.Item
+                  onSelect={() => {
+                    updateValue([...(value || []), mode]);
+                  }}
+                >
+                  {toTitleCase(mode)}
+                </Dropdown.Item>
+              );
+            })}
+          </Dropdown>
         </div>
       </div>
     );

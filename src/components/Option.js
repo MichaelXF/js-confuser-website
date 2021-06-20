@@ -223,6 +223,7 @@ export default function Option({
             {(value || []).map((x, i) => {
               return (
                 <Tag
+                  key={i}
                   closable
                   onClose={() => {
                     value.splice(i, 1);
@@ -266,6 +267,7 @@ export default function Option({
             {(value || []).map((x, i) => {
               return (
                 <Tag
+                  key={i}
                   closable
                   onClose={() => {
                     value.splice(i, 1);
@@ -292,6 +294,7 @@ export default function Option({
                   onSelect={() => {
                     updateValue([...(value || []), mode]);
                   }}
+                  key={mode}
                 >
                   {toTitleCase(mode)}
                 </Dropdown.Item>

@@ -1,6 +1,6 @@
 # [JsConfuser.com](https://jsconfuser.com)
 
-Official Web-UI version of [Js-Confuser](https://npmjs.com/packages/js-confuser), an open source JavaScript obfuscation tool.
+Official Web-UI version of [Js-Confuser](https://npmjs.com/package/js-confuser), an open source JavaScript obfuscation tool.
 
 Obfuscate JavaScript online for free with JsConfuser.com.
 

@@ -4,13 +4,14 @@ export const groups = {
       type: "probability",
       name: "target",
       modes: ["browser", "node"],
-      description: "The context where the program will run.",
+      description: "The execution context for your output.",
     },
     {
       type: "boolean",
       name: "es5",
       displayName: "ES5",
-      description: "ES5 Support",
+      description:
+        "Converts output to ES5-compatible code. Does not cover all cases such as Promises or Generator functions.",
     },
   ],
   Identifiers: [
@@ -18,19 +19,18 @@ export const groups = {
       type: "probability",
       name: "identifierGenerator",
       modes: ["hexadecimal", "randomized", "zeroWidth", "mangled", "number"],
-      description: "Controls how replaced variable names will look like.",
+      description: "Determines how variables are renamed.",
     },
     {
       type: "boolean",
       name: "renameVariables",
-      description:
-        "Renames variables with meaningless randomly generated names.",
+      description: "Determines if variables should be renamed.",
     },
     {
       type: "boolean",
       name: "renameGlobals",
       description:
-        "Renames top-level variables, keep this off for web-related scripts.",
+        "Renames top-level variables, turn this off for web-related scripts.",
     },
     {
       type: "probability",
@@ -43,13 +43,13 @@ export const groups = {
       type: "probability",
       name: "stringCompression",
       description:
-        "String Compression uses LZW's compression algorithm to reduce file size.",
+        "String Compression uses LZW's compression algorithm to compress strings.",
     },
     {
       type: "probability",
       name: "stringConcealing",
       description:
-        "String Concealing hides strings by encryption. The strings are then deciphered at runtime.",
+        "String Concealing involves encoding strings to conceal plain-text values.",
     },
     {
       type: "probability",
@@ -79,19 +79,20 @@ export const groups = {
     {
       type: "probability",
       name: "globalConcealing",
-      description: "Changes global variables to `window['prop']`",
+      description: "Global Concealing hides global variables being accessed.",
     },
     {
       type: "probability",
       name: "shuffle",
       modes: ["hash", "true", "false"],
       description:
-        "Shuffles the elements in arrays. The array is then 'unshuffled' at runtime.",
+        "Shuffles the initial order of arrays. The order is brought back to the original during runtime.",
     },
     {
       type: "probability",
       name: "duplicateLiteralsRemoval",
-      description: "Removes stuff. Works good with Shuffle.",
+      description:
+        "Duplicate Literals Removal replaces duplicate literals with a single variable name.",
     },
   ],
   "Control-Flow": [
@@ -99,23 +100,23 @@ export const groups = {
       type: "probability",
       name: "controlFlowFlattening",
       description:
-        "Control Flow Flattening (CFF) conceals the control-flow of the program.",
+        "Control-flow Flattening hinders program comprehension by creating convoluted switch statements.",
     },
     {
       type: "probability",
       name: "dispatcher",
-      description:
-        "Dispatcher masks functions calls and payloads by creating a proxy function.",
+      description: "Creates a middleman function to process function calls.",
     },
     {
       type: "probability",
       name: "opaquePredicates",
-      description: "Adds opaque predicates which makes static analysis harder.",
+      description:
+        "An Opaque Predicate is a predicate(true/false) that is evaluated at runtime, this can confuse reverse engineers from understanding your code.",
     },
     {
       type: "probability",
       name: "deadCode",
-      description: "Randomly injects dead code throughout the program.",
+      description: "Randomly injects dead code.",
     },
   ],
   Functions: [
@@ -123,13 +124,13 @@ export const groups = {
       type: "probability",
       name: "eval",
       description:
-        "Wraps function's code into eval() statements. From MDN: Executing JavaScript from a string is an enormous security risk. It is far too easy for a bad actor to run arbitrary code when you use eval(). Never use eval()!",
+        "Wraps defined functions within eval statements. From MDN: Executing JavaScript from a string is an enormous security risk. It is far too easy for a bad actor to run arbitrary code when you use eval(). Never use eval()!",
     },
     {
       type: "probability",
       name: "rgf",
       description:
-        "Uses the 'new Function' syntax to construct functions from strings. This is just as dangerous as eval.",
+        "RGF (Runtime-Generated-Functions) uses the new Function(code...) syntax to construct executable code from strings.",
     },
     {
       type: "probability",
@@ -140,7 +141,7 @@ export const groups = {
     {
       type: "probability",
       name: "flatten",
-      description: "Brings independent declarations to the highest scope. ",
+      description: "Brings independent declarations to the highest scope.",
     },
   ],
   Lock: [
@@ -155,13 +156,13 @@ export const groups = {
       type: "date",
       parentField: "lock",
       name: "startDate",
-      description: "The minimum date the program is able to run.",
+      description: "When the program is first able to be used.",
     },
     {
       type: "date",
       parentField: "lock",
       name: "endDate",
-      description: "The maximum date the program is able to run.",
+      description: "When the program is no longer able to be used.",
     },
     {
       type: "array",
@@ -182,15 +183,14 @@ export const groups = {
       type: "probability",
       parentField: "lock",
       name: "integrity",
-      description:
-        "Integrity uses checksum techniques to validate the code is unchanged.",
+      description: "Integrity ensures the source code is unchanged.",
     },
     {
       type: "probability",
       parentField: "lock",
       name: "antiDebug",
       description:
-        "Adds debugger statements throughout the code. Additionally adds a background function for DevTools detection. ",
+        "Adds debugger statements throughout the code. Additionally adds a background function for DevTools detection.",
     },
     {
       type: "string",
@@ -203,13 +203,18 @@ export const groups = {
   Output: [
     {
       type: "boolean",
+      name: "hexadecimalNumbers",
+      description: "Uses the hexadecimal representation for numbers.",
+    },
+    {
+      type: "boolean",
       name: "compact",
-      description: "Trims whitespace and empty lines from the final output",
+      description: "Remove's whitespace from the final output.",
     },
     {
       type: "boolean",
       name: "minify",
-      description: "Removes redundant code for a smaller bundle size",
+      description: "Minifies redundant code.",
     },
   ],
 };

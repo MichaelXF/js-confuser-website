@@ -33,21 +33,24 @@ export default function ModalOptions({ show, onHide }) {
   }, [!!show]);
 
   return (
-    <Modal show={show} onHide={onHide}>
+    <Modal show={show} onHide={onHide} size={custom ? "md" : "sm"}>
       <Modal.Header>
         <Modal.Title>Options</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         {custom ? (
           <>
-            <Button appearance='link' onClick={() => setCustom(false)}>
-              Use Preset
-            </Button>
+            <a
+              className='m-4 link cursor-pointer'
+              onClick={() => setCustom(false)}
+            >
+              Back
+            </a>
 
-            {Object.keys(groups).map((name) => {
+            {Object.keys(groups).map((name, i) => {
               return (
-                <Panel bordered className='m-1' style={{ overflowY: "scroll" }}>
-                  <h6>{name}</h6>
+                <div className='group-container p-4 rounded' key={i}>
+                  <h6 className='mb-1'>{name}</h6>
 
                   {groups[name].map((option, i) => {
                     var currentValue = option.parentField
@@ -56,7 +59,7 @@ export default function ModalOptions({ show, onHide }) {
                       : options[option.name];
 
                     return (
-                      <div className='option-container'>
+                      <div className='option-container' key={i}>
                         <Option
                           {...option}
                           initialValue={currentValue}
@@ -82,12 +85,11 @@ export default function ModalOptions({ show, onHide }) {
                             });
                           }}
                         />
-
-                        <small>{option.description}</small>
                       </div>
                     );
                   })}
-                </Panel>
+                  <hr />
+                </div>
               );
             })}
           </>
@@ -174,7 +176,7 @@ export default function ModalOptions({ show, onHide }) {
               </Column>
 
               <Column width={200}>
-                <HeaderCell>Performance Hit</HeaderCell>
+                <HeaderCell>Performance Reduction</HeaderCell>
                 <Cell dataKey='performance' />
               </Column>
 

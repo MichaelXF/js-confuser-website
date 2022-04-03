@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { QuestionMarkCircleIcon } from "@heroicons/react/solid";
 import {
   Button,
   Checkbox,
@@ -10,6 +11,8 @@ import {
   TagGroup,
   Toggle,
   Animation,
+  Tooltip,
+  Whisper,
 } from "rsuite";
 import "./Option.scss";
 
@@ -26,8 +29,25 @@ export default function Option({
   modes,
   initialValue = false,
   onChange,
+  description,
 }) {
   var displayName = displayName || toTitleCase(name + "");
+
+  var titleComponent = (
+    <div className='flex items-center mb-1'>
+      {displayName}
+
+      <div className='ml-1 leading-none'>
+        <Whisper
+          placement='top'
+          trigger='hover'
+          speaker={<Tooltip>{description}</Tooltip>}
+        >
+          <QuestionMarkCircleIcon className='h-4 w-4 text-gray-500 inline-block' />
+        </Whisper>
+      </div>
+    </div>
+  );
 
   var [value, setValue] = useState(initialValue);
   var [percentEditor, setPercentEditor] = useState(
@@ -52,7 +72,7 @@ export default function Option({
       if (percentEditor) {
         return (
           <div className='option option-checkbox'>
-            <div className='flex'>
+            <div className='flex items-center'>
               <Checkbox
                 onChange={() => {
                   updateValue(false);
@@ -61,15 +81,16 @@ export default function Option({
                 indeterminate={true}
               >
                 {" "}
-                {displayName}
+                {titleComponent}
               </Checkbox>
               <InputNumber
+                size='sm'
                 step={2}
                 min={0}
                 max={100}
                 className='ml-2'
                 defaultValue={value * 100}
-                style={{ width: "120px" }}
+                style={{ width: "120px", height: 30 }}
                 onChange={(value) => {
                   updateValue(value / 100);
                 }}
@@ -87,18 +108,21 @@ export default function Option({
               defaultChecked={value}
             >
               {" "}
-              {displayName}
+              {titleComponent}
             </Checkbox>
             <Button
               onClick={() => {
                 updateValue(1);
                 setPercentEditor(true);
               }}
-              className='ml-2'
+              className='ml-1'
               size='sm'
               appearance='link'
+              style={{
+                marginBottom: "3px",
+              }}
             >
-              Percent (%)
+              %
             </Button>
           </div>
         </div>
@@ -106,9 +130,9 @@ export default function Option({
     } else {
       return (
         <div className='option'>
-          <p>{displayName}</p>
+          <div className='mb-2'>{titleComponent}</div>
           <Dropdown
-            className='my-1'
+            appearance='ghost'
             title={
               toTitleCase(
                 typeof value === "object"
@@ -125,12 +149,13 @@ export default function Option({
               ) || "Choose one"
             }
           >
-            {modes.map((x) => {
+            {modes.map((x, i) => {
               return (
                 <Dropdown.Item
                   onSelect={() => {
                     updateValue(x);
                   }}
+                  key={i}
                 >
                   {toTitleCase(x)}
                 </Dropdown.Item>
@@ -144,16 +169,14 @@ export default function Option({
   if (type == "date") {
     return (
       <div className='option'>
-        <div className='flex items-center mt-3'>
-          <p className='mr-2'>{displayName}</p>
+        <div className='mb-2'>{titleComponent}</div>
 
-          <DatePicker
-            value={value}
-            onChange={(date) => {
-              updateValue(date);
-            }}
-          />
-        </div>
+        <DatePicker
+          value={value}
+          onChange={(date) => {
+            updateValue(date);
+          }}
+        />
       </div>
     );
   } else if (type == "boolean") {
@@ -164,14 +187,14 @@ export default function Option({
           defaultChecked={initialValue}
         >
           {" "}
-          {displayName}
+          {titleComponent}
         </Checkbox>
       </div>
     );
   } else if (type == "number") {
     return (
       <div className='option'>
-        <p>{displayName}</p>
+        <div className='mb-2'>{titleComponent}</div>
         <InputNumber onChange={updateValue} />
       </div>
     );
@@ -179,17 +202,10 @@ export default function Option({
     var valid = adding.startsWith("/");
 
     return (
-      <div className='option mb-3'>
-        <div className='flex'>
-          <p className='mb-1'>{displayName}</p>
-          <small className='ml-auto'>
-            <a href='https://regexr.com/' target='_blank'>
-              Learn Regex
-            </a>
-          </small>
-        </div>
+      <div className='option pb-2'>
+        {titleComponent}
 
-        <div className='mb-2'>
+        <div className='my-2'>
           <div className='flex items-center'>
             <Input
               placeholder='/^domain.com$/g'
@@ -242,7 +258,7 @@ export default function Option({
     return (
       <div className='option mb-3'>
         <div className='flex'>
-          <p>{displayName}</p>
+          <p>{titleComponent}</p>
         </div>
 
         <div className='mb-2'>
@@ -260,7 +276,7 @@ export default function Option({
 
     return (
       <div className='option mb-3'>
-        <p>{displayName}</p>
+        <p>{titleComponent}</p>
 
         <div className='mt-1 mb-2 flex'>
           <TagGroup>

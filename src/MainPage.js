@@ -133,8 +133,10 @@ export default function MainPage() {
             firstFile.type !== "application/x-javascript" &&
             firstFile.type !== "video/vnd.dlna.mpeg-tts" &&
             firstFile.type !== "text/plain" &&
+            firstFile.type !== "text/javascript" &&
             firstFile.type !== ""
           ) {
+            console.log(firstFile.type);
             Alert.error("Error: JavaScript files only");
             return;
           }

@@ -12,18 +12,21 @@ import { OptionContext, ThemeContext } from "./App";
 import download from "./download";
 import Presets from "./presets";
 import { FileDrop } from "react-file-drop";
+import packageJson from "../package.json";
 
 const defaultCode = `/**
 * GitHub: https://github.com/MichaelXF/js-confuser
 * NPM: https://www.npmjs.com/package/js-confuser
 *
-* Welcome to Js Confuser
+* Welcome to Js Confuser!
 * 
 * You can obfuscate the code with the top right button 'Obfuscate'.
 * 
 * You can customize the obfuscator with the button 'Options'.
 * (Set the target to 'node' for NodeJS apps)
-*
+* 
+* Version: ${packageJson.dependencies["js-confuser"].substring(1)}
+* 
 * Happy Hacking!
 */
 
@@ -163,20 +166,20 @@ export default function MainPage() {
           reader.readAsText(firstFile);
         }}
       >
-        <Icon icon='file-code-o' size='3x' className='mb-2' />
+        <Icon icon="file-code-o" size="3x" className="mb-2" />
 
         <p>Drop files to upload your code</p>
       </FileDrop>
 
       <Code
         indent={indent}
-        className='app-codeview'
+        className="app-codeview"
         code={code}
         onChange={setCode}
       ></Code>
 
       {loading ? (
-        <div className='app-loading-container'>
+        <div className="app-loading-container">
           <Loader
             content={
               "Obfuscating code..." + (progress ? " (" + progress + ")" : "")
@@ -189,12 +192,12 @@ export default function MainPage() {
               setLoading(false);
               cancel();
             }}
-            className='mt-5'
+            className="mt-5"
           >
             Cancel
           </Button>
 
-          <div className='app-loading-progress-bar text-sm'>
+          <div className="app-loading-progress-bar text-sm">
             <Progress.Line
               percent={Math.floor(percent * 100)}
               strokeWidth={"4px"}
@@ -207,20 +210,20 @@ export default function MainPage() {
       <ModalConfig show={showConfig} onHide={() => setShowConfig(false)} />
 
       {showFooter ? (
-        <div className='app-footer-toolbar'>
+        <div className="app-footer-toolbar">
           <Button
-            appearance='primary'
-            size='lg'
-            className='mx-1'
+            appearance="primary"
+            size="lg"
+            className="mx-1"
             onClick={() => {
               download(outputFileName || "obfuscated.js", code);
             }}
           >
-            <Icon icon='arrow-circle-down' /> Download
+            <Icon icon="arrow-circle-down" /> Download
           </Button>
           <Button
-            size='lg'
-            className='mx-1'
+            size="lg"
+            className="mx-1"
             onClick={() => {
               setCode(originalCode);
               setShowFooter(false);
@@ -232,12 +235,12 @@ export default function MainPage() {
         </div>
       ) : null}
 
-      <div className='app-toolbar'>
+      <div className="app-toolbar">
         <Dropdown
-          appearance='default'
-          size='lg'
-          title='Options'
-          placement='bottomEnd'
+          appearance="default"
+          size="lg"
+          title="Options"
+          placement="bottomEnd"
         >
           <Dropdown.Item
             onSelect={() => {
@@ -274,7 +277,7 @@ export default function MainPage() {
           >
             Factory Reset Config
           </Dropdown.Item>
-          <Dropdown.Menu title='Theme' pullLeft>
+          <Dropdown.Menu title="Theme" pullLeft>
             {Object.keys(themeMap).map((x) => {
               return (
                 <Dropdown.Item
@@ -282,7 +285,7 @@ export default function MainPage() {
                     setTheme(x);
                   }}
                 >
-                  {theme == x ? <Icon icon='check'></Icon> : null}
+                  {theme == x ? <Icon icon="check"></Icon> : null}
                   {x}
                 </Dropdown.Item>
               );
@@ -301,9 +304,9 @@ export default function MainPage() {
         </Dropdown>
 
         <Button
-          className='mx-1'
-          size='lg'
-          appearance='primary'
+          className="mx-1"
+          size="lg"
+          appearance="primary"
           onClick={() => {
             if (!code) {
               Alert.error("No code to obfuscate.");

@@ -208,7 +208,7 @@ const debugObfuscation = async function (code, options, callback) {
 
   const endTime = a.performance.now();
 
-  return {
+  return output; /* {
     obfuscated: output,
     transformationTimes: transformationTimes,
     obfuscationTime: endTime - startTime,
@@ -216,7 +216,7 @@ const debugObfuscation = async function (code, options, callback) {
     compileTime: compileTime,
     totalTransforms: totalTransforms,
     totalPossibleTransforms: obfuscator.totalPossibleTransforms,
-  };
+  }; */
 };
 
 exports.debugObfuscation = debugObfuscation;

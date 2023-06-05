@@ -1,4 +1,4 @@
-export default function download(filename, text) {
+export default function downloadFile(filename, text) {
   var element = document.createElement("a");
   element.setAttribute(
     "href",

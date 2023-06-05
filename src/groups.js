@@ -20,6 +20,7 @@ export const groups = {
       name: "identifierGenerator",
       modes: ["hexadecimal", "randomized", "zeroWidth", "mangled", "number"],
       description: "Determines how variables are renamed.",
+      allowMixingModes: true,
     },
     {
       type: "boolean",
@@ -36,6 +37,12 @@ export const groups = {
       type: "probability",
       name: "movedDeclarations",
       description: "Moves variable declarations to the top of the context.",
+    },
+    {
+      type: "probability",
+      name: "nameRecycling",
+      description:
+        "(⚠️ Experimental feature, may break your code!) Attempts to reuse released names.",
     },
   ],
   Strings: [
@@ -87,6 +94,7 @@ export const groups = {
       modes: ["hash", "true", "false"],
       description:
         "Shuffles the initial order of arrays. The order is brought back to the original during runtime.",
+      allowMixingModes: true,
     },
     {
       type: "probability",
@@ -100,7 +108,7 @@ export const groups = {
       type: "probability",
       name: "controlFlowFlattening",
       description:
-        "Control-flow Flattening hinders program comprehension by creating convoluted switch statements.",
+        "Control-flow Flattening hinders program comprehension by creating convoluted switch statements.\n\n(⚠️ Significantly impacts performance, use sparingly!)",
     },
     {
       type: "probability",
@@ -122,6 +130,17 @@ export const groups = {
   Functions: [
     {
       type: "probability",
+      name: "stack",
+      description: "Local variables are consolidated into a rotating array.",
+    },
+    ,
+    {
+      type: "probability",
+      name: "flatten",
+      description: "Brings independent declarations to the highest scope.",
+    },
+    {
+      type: "probability",
       name: "eval",
       description:
         "Wraps defined functions within eval statements. From MDN: Executing JavaScript from a string is an enormous security risk. It is far too easy for a bad actor to run arbitrary code when you use eval(). Never use eval()!",
@@ -131,17 +150,6 @@ export const groups = {
       name: "rgf",
       description:
         "RGF (Runtime-Generated-Functions) uses the new Function(code...) syntax to construct executable code from strings.",
-    },
-    {
-      type: "probability",
-      name: "stack",
-      description: "Local variables are consolidated into a rotating array.",
-    },
-    ,
-    {
-      type: "probability",
-      name: "flatten",
-      description: "Brings independent declarations to the highest scope.",
     },
   ],
   Lock: [
@@ -178,6 +186,13 @@ export const groups = {
       name: "browserLock",
       description: "Array of browsers where the script is allowed to run.",
       modes: ["firefox", "chrome", "iexplorer", "edge", "safari", "opera"],
+    },
+    {
+      type: "boolean",
+      parentField: "lock",
+      name: "selfDefending",
+      description:
+        "Prevents the use of code beautifiers or formatters against your code.",
     },
     {
       type: "probability",

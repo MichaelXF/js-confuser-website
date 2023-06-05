@@ -1,80 +1,105 @@
 import { useContext, useState, useEffect } from "react";
 import {
+  Box,
   Button,
-  Icon,
-  IconButton,
+  Divider,
   Modal,
-  Panel,
-  Radio,
-  RadioGroup,
-  Row,
-  Table,
-  Tooltip,
-  Whisper,
-} from "rsuite";
-
+  Heading,
+  ModalOverlay,
+  ModalContent,
+  ModalBody,
+  ModalHeader,
+  ModalFooter,
+  ModalCloseButton,
+} from "@chakra-ui/react";
 import { OptionContext } from "../App.js";
 import { groups } from "../groups";
-
 import Option from "../components/Option.js";
-import Presets from "../presets";
+import { ArrowBackIcon } from "@chakra-ui/icons";
+import { toTitleCase } from "../util.js";
 
-const { Column, HeaderCell, Cell, Pagination } = Table;
-
-export default function ModalOptions({ show, onHide }) {
+export default function ModalOptions({ isOpen, onClose, onBack }) {
   var { options, setOptions } = useContext(OptionContext);
-  var [custom, setCustom] = useState(false);
   var [oldOptions, setOldOptions] = useState();
 
   useEffect(() => {
-    if (show) {
+    if (isOpen) {
       setOldOptions({ ...options });
     }
-  }, [!!show]);
+  }, [!!isOpen]);
 
   return (
-    <Modal show={show} onHide={onHide} size={custom ? "md" : "sm"}>
-      <Modal.Header>
-        <Modal.Title>Options</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        {custom ? (
-          <>
-            <a
-              className='m-4 link cursor-pointer'
-              onClick={() => setCustom(false)}
+    <Modal isOpen={isOpen} onClose={onClose} size="3xl">
+      <ModalOverlay />
+
+      <ModalContent>
+        <ModalHeader>Options</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <Box textAlign="center" mb={4}>
+            <Button
+              onClick={onBack}
+              variant="link"
+              colorScheme="blue"
+              leftIcon={<ArrowBackIcon />}
+              size="sm"
             >
-              Back
-            </a>
+              Use preset instead
+            </Button>
+          </Box>
 
-            {Object.keys(groups).map((name, i) => {
-              return (
-                <div className='group-container p-4 rounded' key={i}>
-                  <h6 className='mb-1'>{name}</h6>
+          {Object.keys(groups).map((name, i) => {
+            return (
+              <Box key={i} mb={14}>
+                <Heading fontSize="xl" mb={2}>
+                  {name}
+                </Heading>
 
+                <Divider />
+
+                <Box mt={2}>
                   {groups[name].map((option, i) => {
-                    var currentValue = option.parentField
+                    let displayName =
+                      option.displayName || toTitleCase(option.name + "");
+
+                    let currentValue = option.parentField
                       ? options[option.parentField] &&
                         options[option.parentField][option.name]
                       : options[option.name];
 
                     return (
-                      <div className='option-container' key={i}>
+                      <Box className="option-container" key={i} mb={2}>
                         <Option
                           {...option}
+                          displayName={displayName}
                           initialValue={currentValue}
                           onChange={(value) => {
                             if (option.parentField) {
-                              if (!options[option.parentField]) {
+                              // ensure options.lock exists
+                              if (
+                                !options[option.parentField] ||
+                                typeof options[option.parentField] !== "object"
+                              ) {
                                 options[option.parentField] = {};
                               }
                               options[option.parentField][option.name] = value;
 
+                              // delete options.lock.startDate if false
                               if (value === false) {
                                 delete options[option.parentField][option.name];
                               }
+
+                              // delete options.lock if empty
+                              if (
+                                Object.keys(options[option.parentField])
+                                  .length === 0
+                              ) {
+                                delete options[option.parentField];
+                              }
                             } else {
                               options[option.name] = value;
+
+                              // delete if false
                               if (value === false) {
                                 delete options[option.name];
                               }
@@ -85,123 +110,30 @@ export default function ModalOptions({ show, onHide }) {
                             });
                           }}
                         />
-                      </div>
+                      </Box>
                     );
                   })}
-                  <hr />
-                </div>
-              );
-            })}
-          </>
-        ) : (
-          <>
-            <p className='mb-4'>Choose an obfuscation preset</p>
+                </Box>
+              </Box>
+            );
+          })}
+        </ModalBody>
 
-            <div className='flex items-center'>
-              <RadioGroup
-                name='radioList'
-                inline
-                appearance='picker'
-                defaultValue={options.preset}
-                onChange={(value) => {
-                  var cloned = { ...Presets[value] };
-
-                  setOptions({
-                    ...options,
-                    ...cloned,
-                  });
-                }}
-              >
-                <Radio value='low'>Low</Radio>
-                <Radio value='medium'>Medium</Radio>
-                <Radio value='high'>High</Radio>
-              </RadioGroup>
-              <Button
-                appearance={options.preset ? "default" : "primary"}
-                className='ml-auto'
-                onClick={() => setCustom(true)}
-              >
-                <span className='flex items-center'>
-                  <Icon icon='cog' className='mr-1' />
-                  Custom Preset
-                </span>
-              </Button>
-            </div>
-
-            <Table
-              className='mt-6'
-              data={[
-                {
-                  preset: "Low",
-                  performance: "30%",
-                  sample: (
-                    <a
-                      href='https://github.com/MichaelXF/js-confuser/blob/master/samples/low.js'
-                      target='_blank'
-                    >
-                      Sample
-                    </a>
-                  ),
-                },
-
-                {
-                  preset: "Medium",
-                  performance: "52%",
-                  sample: (
-                    <a
-                      href='https://github.com/MichaelXF/js-confuser/blob/master/samples/medium.js'
-                      target='_blank'
-                    >
-                      Sample
-                    </a>
-                  ),
-                },
-                {
-                  preset: "High",
-                  performance: "98%",
-                  sample: (
-                    <a
-                      href='https://github.com/MichaelXF/js-confuser/blob/master/samples/high.js'
-                      target='_blank'
-                    >
-                      Sample
-                    </a>
-                  ),
-                },
-              ]}
-            >
-              <Column width={130} align='center' fixed>
-                <HeaderCell>Preset</HeaderCell>
-                <Cell dataKey='preset' />
-              </Column>
-
-              <Column width={200}>
-                <HeaderCell>Performance Reduction</HeaderCell>
-                <Cell dataKey='performance' />
-              </Column>
-
-              <Column width={100}>
-                <HeaderCell>Sample</HeaderCell>
-                <Cell dataKey='sample' />
-              </Column>
-            </Table>
-          </>
-        )}
-      </Modal.Body>
-      <Modal.Footer>
-        <Button onClick={onHide} appearance='primary'>
-          Save
-        </Button>
-        <Button
-          onClick={() => {
-            onHide();
-            setOptions(oldOptions);
-          }}
-          appearance='subtle'
-        >
-          Cancel
-        </Button>
-      </Modal.Footer>
+        <ModalFooter>
+          <Button
+            onClick={() => {
+              onClose();
+              setOptions(oldOptions);
+            }}
+            variant="ghost"
+          >
+            Cancel
+          </Button>
+          <Button colorScheme="blue" ml={3} onClick={onClose}>
+            Save Changes
+          </Button>
+        </ModalFooter>
+      </ModalContent>
     </Modal>
   );
 }

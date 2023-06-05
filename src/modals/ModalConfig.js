@@ -1,39 +1,182 @@
-import { Button, Modal } from "rsuite";
+import {
+  Button,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  MenuButton,
+  IconButton,
+  MenuList,
+  MenuItem,
+  Menu,
+} from "@chakra-ui/react";
 import { OptionContext } from "../App";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
+import JSON5 from "json5";
+import { Controlled as CodeMirror } from "react-codemirror2";
+import "codemirror/theme/oceanic-next.css";
+import { toTitleCase } from "../util";
+import { HamburgerIcon } from "@chakra-ui/icons";
+import { presets } from "js-confuser";
 
-export default function ModalConfig({show, onHide}){
-  
-  var {options} = useContext(OptionContext);
+function formatJSON(object) {
+  return JSON5.stringify(object, null, 2);
+}
 
-  var orderedKeys = Object.keys(options).sort();
-  var display = Object.create(null);
+export default function ModalConfig({ isOpen, onClose }) {
+  var { options, setOptions } = useContext(OptionContext);
+  var [value, setValue] = useState("");
+  var [isValidJSON, setIsValidJSON] = useState(true);
+  var [changesMade, setChangesMade] = useState(false);
+  var [originalOptions, setOriginalOptions] = useState({});
 
-  orderedKeys.forEach(x=>options[x] ? display[x] = options[x] : undefined);
-  delete display.globalVariables;
+  useEffect(() => {
+    if (isOpen) {
+      var orderedKeys = Object.keys(options).sort();
+      var display = Object.create(null);
 
-  if ( display.lock && Object.keys(display.lock).filter(x=>!display.lock[x] || !display.lock[x].length).length == 0 ) {
-    delete display.lock;
+      orderedKeys.forEach((x) =>
+        options[x] ? (display[x] = options[x]) : undefined
+      );
+      delete display.globalVariables;
+
+      if (
+        display.lock &&
+        Object.keys(display.lock).filter(
+          (x) => !display.lock[x] || !display.lock[x].length
+        ).length === 0
+      ) {
+        delete display.lock;
+      }
+
+      var newValue = formatJSON(display);
+      setValue(newValue + " ");
+
+      // This timeout is done to ensure the CodeMirror is properly aligned with the modal body
+      setTimeout(() => {
+        setValue(newValue);
+      }, 100);
+
+      setOriginalOptions(display);
+      setIsValidJSON(true);
+      setChangesMade(false);
+    }
+  }, [!!isOpen]);
+
+  function onChange(value) {
+    var newValue = value;
+
+    setValue(newValue);
+    setChangesMade(true);
+
+    var success = true;
+    try {
+      var parsed = JSON5.parse(newValue);
+
+      setChangesMade(
+        JSON.stringify(parsed) !== JSON.stringify(originalOptions)
+      );
+    } catch (e) {
+      success = false;
+    }
+
+    setIsValidJSON(success);
   }
 
+  function saveChanges() {
+    try {
+      setOptions(JSON5.parse(value));
+    } catch (e) {}
 
-  return <Modal show={show} onHide={onHide}>
+    onClose();
+  }
 
-    <Modal.Header>
-        <Modal.Title>Config</Modal.Title>
-      </Modal.Header>
-    <Modal.Body>
-    
-      <pre>
-        {JSON.stringify(display, null, 4)}
-      </pre>
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} size="xl">
+      <ModalOverlay />
 
-    </Modal.Body>
-    <Modal.Footer>
-      <Button onClick={onHide} appearance="subtle">
-        Close
-      </Button>
-    </Modal.Footer>
-  </Modal>
+      <ModalContent>
+        <ModalHeader>Config</ModalHeader>
+        <ModalCloseButton />
 
-};
+        <ModalBody position="relative">
+          <Menu placement="bottom">
+            <MenuButton
+              as={IconButton}
+              variant="ghost"
+              icon={<HamburgerIcon />}
+              position="absolute"
+              right="0.75rem"
+              top="0.75rem"
+              zIndex="10"
+              size="sm"
+              fontSize="xl"
+              color="chakra-body-text"
+            ></MenuButton>
+            <MenuList zIndex="10">
+              <MenuItem
+                onClick={() => {
+                  try {
+                    onChange(formatJSON(JSON5.parse(value)));
+                  } catch (e) {}
+                }}
+              >
+                Format
+              </MenuItem>
+              {["high", "medium", "low"].map((presetName) => {
+                var displayName = toTitleCase(presetName + " Preset");
+
+                return (
+                  <MenuItem
+                    onClick={() => {
+                      onChange(formatJSON(presets[presetName]));
+                    }}
+                    key={presetName}
+                  >
+                    Import from {displayName}
+                  </MenuItem>
+                );
+              })}
+            </MenuList>
+          </Menu>
+
+          <CodeMirror
+            options={{
+              lineNumbers: false,
+              theme: "oceanic-next",
+              mode: { name: "javascript", jsonld: true },
+              json: "ld",
+              tabSize: 2,
+              lineWrapping: true,
+              dragDrop: false,
+            }}
+            value={value}
+            onBeforeChange={(editor, data, value) => {
+              onChange(value);
+            }}
+            className="json-codemirror"
+          />
+        </ModalBody>
+
+        <ModalFooter>
+          <Button onClick={onClose} variant="ghost">
+            {changesMade ? "Cancel" : "Close"}
+          </Button>
+          {changesMade ? (
+            <Button
+              colorScheme="blue"
+              onClick={saveChanges}
+              isDisabled={!isValidJSON}
+              ml={3}
+            >
+              {isValidJSON ? "Save Changes" : "Invalid JSON"}
+            </Button>
+          ) : null}
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  );
+}

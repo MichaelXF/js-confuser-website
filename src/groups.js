@@ -38,12 +38,6 @@ export const groups = {
       name: "movedDeclarations",
       description: "Moves variable declarations to the top of the context.",
     },
-    {
-      type: "probability",
-      name: "nameRecycling",
-      description:
-        "(⚠️ Experimental feature, may break your code!) Attempts to reuse released names.",
-    },
   ],
   Strings: [
     {
@@ -138,12 +132,6 @@ export const groups = {
       type: "probability",
       name: "flatten",
       description: "Brings independent declarations to the highest scope.",
-    },
-    {
-      type: "probability",
-      name: "eval",
-      description:
-        "Wraps defined functions within eval statements. From MDN: Executing JavaScript from a string is an enormous security risk. It is far too easy for a bad actor to run arbitrary code when you use eval(). Never use eval()!",
     },
     {
       type: "probability",

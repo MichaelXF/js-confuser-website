@@ -44,6 +44,9 @@ import { parseSync } from "js-confuser/dist/parser";
 import { compileJsSync } from "js-confuser/dist/compiler";
 import JSON5 from "json5";
 import { correctOptions, validateOptions } from "js-confuser/dist/options";
+import { Buffer } from "buffer";
+
+window.Buffer = Buffer;
 
 var workerInstance;
 function createWorker() {
@@ -78,6 +81,7 @@ export default function PageMain() {
   var [showConfig, setShowConfig] = useState(false);
   var [showPresets, setShowPresets] = useState(false);
   var [showError, setShowError] = useState(false);
+  var [showAST, setShowAST] = useState(false);
   var [error, setError] = useState();
 
   var [showMenu, setShowMenu] = useState();
@@ -200,6 +204,7 @@ export default function PageMain() {
 
   var toast = useToast();
   var codeRef = useRef();
+  window.CodeMirrorRef = codeRef;
 
   // Creates a success toast
   function successToast(title) {
@@ -224,6 +229,9 @@ export default function PageMain() {
   const setEditorValue = (v) => setCode(v);
   const getEditorValue = () => code;
   const developerObfuscator = async (mode) => {
+    // Developer obfuscation automatically sets 'compact' to false for better reading
+    options.compact = false;
+
     try {
       validateOptions(options);
     } catch (e) {
@@ -356,10 +364,10 @@ export default function PageMain() {
 
       <Code
         indent={indent}
-        className="app-codeview"
         code={code}
         onChange={setCode}
         ref={codeRef}
+        showAST={showAST}
       ></Code>
 
       {showLoadingOverlay ? (
@@ -434,27 +442,10 @@ export default function PageMain() {
             <MenuList>
               <MenuItem
                 onClick={() => {
-                  try {
-                    var tree = parseSync(getEditorValue());
-                    setEditorValue(JSON5.stringify(tree, null, indent));
-                  } catch (e) {
-                    errorToast(e.toString());
-                  }
+                  setShowAST(!showAST);
                 }}
               >
-                Parse code to AST
-              </MenuItem>
-              <MenuItem
-                onClick={() => {
-                  try {
-                    var tree = JSON5.parse(getEditorValue());
-                    setEditorValue(compileJsSync(tree, options));
-                  } catch (e) {
-                    errorToast(e.toString());
-                  }
-                }}
-              >
-                Compile AST to code
+                {showAST ? "Hide" : "Show"} AST
               </MenuItem>
               <MenuItem
                 onClick={async () => {

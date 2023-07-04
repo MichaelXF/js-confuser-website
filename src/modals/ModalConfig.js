@@ -38,9 +38,11 @@ export default function ModalConfig({ isOpen, onClose }) {
       var orderedKeys = Object.keys(options).sort();
       var display = Object.create(null);
 
-      orderedKeys.forEach((x) =>
-        options[x] ? (display[x] = options[x]) : undefined
-      );
+      orderedKeys.forEach((key) => {
+        if (key === "compact" || options[key]) {
+          display[key] = options[key];
+        }
+      });
       delete display.globalVariables;
 
       if (
@@ -157,7 +159,7 @@ export default function ModalConfig({ isOpen, onClose }) {
             onBeforeChange={(editor, data, value) => {
               onChange(value);
             }}
-            className="json-codemirror"
+            className="json-codemirror transparent-codemirror"
           />
         </ModalBody>
 

@@ -100,7 +100,10 @@ export default function ModalOptions({ isOpen, onClose, onBack }) {
                               options[option.name] = value;
 
                               // delete if false
-                              if (value === false) {
+                              if (
+                                value === false &&
+                                option.name !== "compact"
+                              ) {
                                 delete options[option.name];
                               }
                             }

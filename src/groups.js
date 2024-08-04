@@ -85,7 +85,7 @@ export const groups = {
     {
       type: "probability",
       name: "shuffle",
-      modes: ["hash", "true", "false"],
+      modes: ["hash", true, false],
       description:
         "Shuffles the initial order of arrays. The order is brought back to the original during runtime.",
       allowMixingModes: true,

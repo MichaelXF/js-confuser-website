@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@babel/runtime": "^7.25.0",
     "@emotion/react": "^11.13.0",
     "@emotion/styled": "^11.13.0",
     "@monaco-editor/react": "^4.6.0",

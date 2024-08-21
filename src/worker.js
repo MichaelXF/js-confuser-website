@@ -7,9 +7,28 @@ function getByteSize(str) {
   return new Blob([str]).size;
 }
 
-export const obfuscate = (code, options) => {
+function evaluateOptions(optionsJS) {
+  if (typeof optionsJS === "object" && optionsJS) return optionsJS;
+
+  return eval(`
+    var module = { exports: {} };
+      ${optionsJS}
+      module
+      `)?.exports;
+}
+
+export const obfuscateCode = (requestID, code, optionsJS) => {
+  var options = evaluateOptions(optionsJS);
   var callback = (name, complete, total) => {
-    postMessage({ event: "progress", data: [name, complete, total] });
+    postMessage({
+      event: "progress",
+      data: {
+        requestID,
+        name,
+        complete,
+        total,
+      },
+    });
   };
 
   JsConfuser.debugObfuscation(
@@ -24,6 +43,7 @@ export const obfuscate = (code, options) => {
       postMessage({
         event: "success",
         data: {
+          requestID,
           obfuscated: resultObject.obfuscated,
           info: {
             obfuscationTime: resultObject.obfuscationTime,
@@ -44,6 +64,7 @@ export const obfuscate = (code, options) => {
       postMessage({
         event: "error",
         data: {
+          requestID,
           errorString: error.toString(),
           errorStack: error?.stack?.toString?.() || null,
         },
@@ -51,7 +72,29 @@ export const obfuscate = (code, options) => {
     });
 };
 
-export const evaluateCodeSandbox = function (code) {
+export const evaluateCodeSandbox = function (
+  requestID,
+  code,
+  strictMode,
+  allowNetworkRequests
+) {
+  if (!allowNetworkRequests) {
+    /* eslint-disable no-restricted-globals */
+    const workerScope = self;
+
+    workerScope.fetch = function () {
+      throw new Error("Network requests are disabled in this worker.");
+    };
+
+    workerScope.XMLHttpRequest = function () {
+      throw new Error("Network requests are disabled in this worker.");
+    };
+
+    workerScope.WebSocket = function () {
+      throw new Error("WebSocket connections are disabled in this worker.");
+    };
+  }
+
   var RealConsoleLog = console.log;
 
   function StringFn(item) {
@@ -69,6 +112,7 @@ export const evaluateCodeSandbox = function (code) {
       postMessage({
         event: "write",
         data: {
+          requestID,
           type: writeType,
           messages: messages.map(StringFn),
         },
@@ -97,11 +141,20 @@ export const evaluateCodeSandbox = function (code) {
     this.console = console;
 
     try {
-      eval(code);
+      if (strictMode) {
+        eval(code);
+      } else {
+        new Function(code)();
+      }
     } catch (e) {
       Write("error")(String(e?.stack || e));
     }
   })();
 
-  postMessage({ event: "done" });
+  postMessage({
+    event: "done",
+    data: {
+      requestID,
+    },
+  });
 };

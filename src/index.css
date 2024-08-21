@@ -1,0 +1,21 @@
+.GradientText {
+  background: linear-gradient(
+    90deg,
+    rgb(51, 153, 255) 5%,
+    rgb(51, 153, 255) 90%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+a {
+  text-decoration: none;
+}
+
+.LandingBackground {
+}
+
+.HeadingScrollMargin {
+  scroll-margin-top: 25px;
+  scroll-snap-margin-top: 25px; /* iOS 11 and older */
+}

@@ -14,6 +14,7 @@
     "@testing-library/user-event": "^13.5.0",
     "acorn-typescript": "^1.4.13",
     "assert": "^2.1.0",
+    "babel-preset-react-app": "^10.0.1",
     "buffer": "^6.0.3",
     "js-confuser": "^1.7.2",
     "json5": "^2.2.3",

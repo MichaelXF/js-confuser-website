@@ -1,5 +1,7 @@
 # [Js-Confuser Website](https://master--hungry-shannon-c1ce6b.netlify.app/)
 
+This branch is the old version of the JS-Confuser.com website.
+
 Official Web-UI version of [Js-Confuser](https://npmjs.com/package/js-confuser), an open source JavaScript obfuscation tool.
 
 Obfuscate JavaScript online for free with Js-Confuser.

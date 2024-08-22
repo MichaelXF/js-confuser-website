@@ -9,6 +9,7 @@ export default function CodeViewerTabbed({
   readOnly,
   header,
   language,
+  onMount,
 }) {
   var [copied, setCopied] = useState(false);
 
@@ -66,6 +67,7 @@ export default function CodeViewerTabbed({
           setValue?.(value);
         }}
         language={language}
+        onMount={onMount}
       />
     </Box>
   );

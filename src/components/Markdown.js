@@ -91,13 +91,18 @@ export const parseLine = (
 };
 
 export default function Markdown({ value, onMetadataUpdate }) {
-  var [inputValue, setInputValue] = useState("");
-  var [outputValue, setOutputValue] = useState(undefined);
   var optionsRef = useRef();
+  var editorRef = useRef();
 
   var JSConfuser = useJSConfuser();
 
   function obfuscate(value) {
+    function setOutputValue(strValue) {
+      if (editorRef.current) {
+        editorRef.current.setValue(strValue);
+      }
+    }
+
     var options = optionsRef.current;
     if (options && typeof value === "string") {
       JSConfuser.obfuscate(value, options, {
@@ -110,10 +115,6 @@ export default function Markdown({ value, onMetadataUpdate }) {
       });
     }
   }
-
-  useEffect(() => {
-    obfuscate(inputValue);
-  }, [inputValue]);
 
   const headings = [];
 
@@ -223,9 +224,6 @@ export default function Markdown({ value, onMetadataUpdate }) {
             }
             optionsRef.current = optionsOrJS;
 
-            if (outputValue === undefined) {
-              obfuscate(value);
-            }
             console.log("Setting to", index);
           }
 
@@ -244,9 +242,13 @@ export default function Markdown({ value, onMetadataUpdate }) {
 
               {metadata.live ? (
                 <CodeViewerTabbed
-                  value={outputValue ?? ""}
+                  defaultValue={""}
                   header={"Output.js"}
                   language={metadata.language}
+                  onMount={(editor) => {
+                    editorRef.current = editor;
+                    obfuscate(value);
+                  }}
                 />
               ) : null}
             </Box>

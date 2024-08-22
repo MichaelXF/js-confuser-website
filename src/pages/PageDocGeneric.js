@@ -104,11 +104,7 @@ export default function PageDocGeneric({ onMetadataUpdate }) {
           <CircularProgress />
         </Box>
       ) : (
-        <Markdown
-          value={value}
-          onMetadataUpdate={onMetadataUpdate}
-          key={value}
-        />
+        <Markdown value={value} onMetadataUpdate={onMetadataUpdate} />
       )}
     </Box>
   );

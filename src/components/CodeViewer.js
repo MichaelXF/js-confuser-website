@@ -74,7 +74,6 @@ export const CodeViewer = forwardRef(
       }
     };
 
-    let ignoreEvent = false;
     const updateHeight = () => {
       const container = containerRef.current;
       const editor = editorRef.current;
@@ -105,12 +104,7 @@ export const CodeViewer = forwardRef(
       let width = container.offsetWidth;
       container.style.width = `${width}px`;
       container.style.height = `${contentHeight}px`;
-      try {
-        ignoreEvent = true;
-        editor.layout({ width, height: contentHeight });
-      } finally {
-        ignoreEvent = false;
-      }
+      editor.layout({ width, height: contentHeight });
     };
 
     return (

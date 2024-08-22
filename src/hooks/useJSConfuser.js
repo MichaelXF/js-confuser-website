@@ -40,12 +40,18 @@ export default function useJSConfuser() {
       }
     };
 
-    worker.addEventListener("message", callback);
-
+    // Sometimes the worker doesn't load in development?
     if (typeof worker.obfuscateCode !== "function") {
-      callbacksIn.onError?.({ error: "Worker function not available" });
+      // Timeout required as multiple state updates can cause issues
+      setTimeout(() => {
+        callbacksIn.onError?.({
+          errorString: "Worker function not available",
+        });
+      });
       return;
     }
+
+    worker.addEventListener("message", callback);
 
     worker.obfuscateCode(requestID, code, options);
   }

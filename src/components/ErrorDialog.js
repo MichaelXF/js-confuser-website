@@ -42,7 +42,11 @@ export default function ErrorDialog({ error, open, onClose }) {
             : (error?.errorString?.toString?.() ?? "")}
         </Typography>
 
-        <Box textAlign="right" mt={1}>
+        <Box
+          textAlign="right"
+          mt={1}
+          display={error?.errorStack ? "block" : "none"}
+        >
           <Button
             size="small"
             onClick={() => {

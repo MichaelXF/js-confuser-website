@@ -62,6 +62,9 @@ export default function DocNavigation({
       overflow="auto"
       flexShrink={0}
       p={2}
+      sx={{
+        scrollbarWidth: "thin",
+      }}
     >
       <Box mb={2}>
         <Button {...btnProps} component={Link} to="/docs/">
@@ -135,7 +138,7 @@ export default function DocNavigation({
                       <Box
                         borderRight="2px solid"
                         borderColor="divider"
-                        width="18px"
+                        width="16px"
                         mr={2}
                       />
 

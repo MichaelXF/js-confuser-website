@@ -23,10 +23,10 @@ JS-Confuser and Obfuscator.io are both powerful JavaScript obfuscation tools, pr
 
 ##### Deobfuscators
 
-[Obfuscator.io](https://obfuscator.io) is the primary target of multiple deobfuscators such as Webcrack, Sycnhrony, and Restringer. The table compares JS-Confuser vs. Obfuscator.io's resilience to deobfuscators.
+[Obfuscator.io](https://obfuscator.io) is the primary target of multiple deobfuscators such as Webcrack, Synchrony, and Restringer. The table compares JS-Confuser vs. Obfuscator.io's resilience to deobfuscators.
 
 | Deobfuscator | JS-Confuser | Obfuscator.io |
 | [Webcrack](https://webcrack.netlify.app) | Partially | Fully |
-| [Obfuscator.io Deobfuscator](https://obf-io.deobfuscate.io/) |  Partially | Partially |
-| [Synchrony](https://webcrack.netlify.app/) | Little / Partially | Partially |
+| [Obfuscator.io Deobfuscator](https://obf-io.deobfuscate.io/) | Partially | Partially |
+| [Synchrony](https://deobfuscate.relative.im/) | Little / Partially | Partially |
 | [Restringer](https://restringer.tech/) | Little / Partially | Partially |

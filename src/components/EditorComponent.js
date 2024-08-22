@@ -84,6 +84,7 @@ export const EditorComponent = forwardRef(
               height: "30px",
               overflowX: "auto",
               maxWidth: "calc(100vw - 300px)",
+              scrollbarWidth: "thin",
             }}
             whiteSpace="nowrap"
             display="inline-block"

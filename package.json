@@ -20,12 +20,11 @@
     "js-confuser": "^1.7.3",
     "json5": "^2.2.3",
     "react": "^18.2.0",
-    "react-codemirror2": "^7.2.1",
+    "react-codemirror2": "^8.0.0",
     "react-dom": "^18.2.0",
     "react-file-drop": "^3.1.6",
     "react-scripts": "^5.0.1",
     "sass": "^1.62.1",
-    "typescript": "^5.0.4",
     "web-vitals": "^0.2.4",
     "workerize-loader": "^2.0.2"
   },

@@ -20,8 +20,14 @@ import ErrorDialog from "../components/ErrorDialog";
 import { useSearchParams } from "react-router-dom";
 import useCodeWorker from "../hooks/useCodeWorker";
 import { convertOptionsToJS, evaluateOptionsOrJS } from "../utils/option-utils";
+import useSEO from "../hooks/useSEO";
 
-function MyEditor() {
+export default function PageEditor() {
+  useSEO(
+    "JS-Confuser Editor",
+    "A JavaScript obfuscator that runs in your browser."
+  );
+
   const JSConfuser = useJSConfuser();
   const codeWorker = useCodeWorker();
 
@@ -478,5 +484,3 @@ function MyEditor() {
     </div>
   );
 }
-
-export default MyEditor;

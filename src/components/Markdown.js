@@ -232,7 +232,7 @@ export default function Markdown({ value, onMetadataUpdate }) {
           return (
             <Box key={index} my={3}>
               <CodeViewerTabbed
-                value={value}
+                defaultValue={value}
                 header={metadata.header}
                 language={metadata.language || "javascript"}
                 readOnly={!metadata.live}

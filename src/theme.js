@@ -58,9 +58,11 @@ export const theme = createTheme({
           props: { variant: "mini" },
           style: {
             minHeight: "40px", // Set the height of the toolbar to 40px
+            maxHeight: "40px",
             padding: "0",
             "@media (min-width:600px)": {
               minHeight: "40px", // Ensure it's 40px on larger screens too
+              maxHeight: "40px",
               padding: "0",
             },
           },

@@ -1,9 +1,10 @@
 {
-  "name": "js-confuser-ui",
+  "name": "js-confuser-website",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@babel/plugin-proposal-optional-chaining": "^7.21.0",
+    "@babel/plugin-transform-optional-chaining": "^7.24.8",
     "@babel/runtime": "^7.25.0",
     "@emotion/react": "^11.13.0",
     "@emotion/styled": "^11.13.0",
@@ -15,7 +16,7 @@
     "@testing-library/user-event": "^13.5.0",
     "acorn-typescript": "^1.4.13",
     "assert": "^2.1.0",
-    "babel-preset-react-app": "^10.0.1",
+    "babel-preset-react-app": "^10.0.0",
     "buffer": "^6.0.3",
     "js-confuser": "^1.7.2",
     "json5": "^2.2.3",
@@ -52,5 +53,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
   }
 }

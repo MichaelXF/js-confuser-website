@@ -8,13 +8,14 @@ import {
 } from "@mui/material";
 import { Check, KeyboardArrowRight, Lock } from "@mui/icons-material";
 import { Link } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { CodeViewer } from "../components/CodeViewer";
 import { landingPageCode } from "../constants";
 import useJSConfuser from "../hooks/useJSConfuser";
 import Nav from "../components/Nav";
 import QuickActions from "../components/QuickActions";
 import * as monaco from "monaco-editor";
+import useSEO from "../hooks/useSEO";
 
 function FeatureRow({ item }) {
   return (
@@ -63,6 +64,11 @@ function FeatureRows({ items }) {
 }
 
 export default function PageHome() {
+  useSEO(
+    "JS-Confuser",
+    "This tool transforms your original JavaScript source code into a new representation that's harder to understand, copy, re-use and modify without authorization."
+  );
+
   var JSConfuser = useJSConfuser();
   var [loading, setLoading] = useState(false);
   var [fileName, setFileName] = useState("App.js");
@@ -345,7 +351,14 @@ export default function PageHome() {
         </Container>
       </Box>
 
-      <Box minHeight="100vh" borderTop="1px solid" borderColor="divider">
+      <Box
+        minHeight="100vh"
+        borderTop="1px solid"
+        borderColor="divider"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
         <Container maxWidth="lg" sx={{ py: 10 }}>
           <Typography
             variant="h4"

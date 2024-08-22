@@ -7,6 +7,7 @@ export const CodeViewer = forwardRef(
   (
     {
       value,
+      defaultValue,
       height,
       onChange,
       readOnly = true,
@@ -117,6 +118,7 @@ export const CodeViewer = forwardRef(
         <Editor
           language={language}
           value={value}
+          defaultValue={defaultValue}
           theme="vs-dark"
           onMount={handleEditorDidMount} // Use the onMount callback
           onChange={onChange}

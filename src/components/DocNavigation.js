@@ -63,20 +63,22 @@ export default function DocNavigation({
       flexShrink={0}
       p={2}
     >
-      <Button {...btnProps} component={Link} to="/docs/">
-        <Home sx={{ mr: 1, fontSize: "1.125rem", color: "primary.main" }} />
-        Welcome Page
-      </Button>
+      <Box mb={2}>
+        <Button {...btnProps} component={Link} to="/docs/">
+          <Home sx={{ mr: 1, fontSize: "1.125rem", color: "primary.main" }} />
+          Welcome Page
+        </Button>
 
-      <Button
-        {...btnProps}
-        onClick={() => {
-          openSearchDialog();
-        }}
-      >
-        <Search sx={{ mr: 1, fontSize: "1.125rem", color: "primary.main" }} />
-        Search the docs...
-      </Button>
+        <Button
+          {...btnProps}
+          onClick={() => {
+            openSearchDialog();
+          }}
+        >
+          <Search sx={{ mr: 1, fontSize: "1.125rem", color: "primary.main" }} />
+          Search the docs...
+        </Button>
+      </Box>
 
       {navigationItems.map((section, index) => {
         var isOpen = open[section.label];

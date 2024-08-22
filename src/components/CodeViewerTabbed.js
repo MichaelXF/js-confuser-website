@@ -4,6 +4,7 @@ import { useState } from "react";
 
 export default function CodeViewerTabbed({
   value,
+  defaultValue,
   setValue,
   readOnly,
   header,
@@ -59,6 +60,7 @@ export default function CodeViewerTabbed({
       <CodeViewer
         readOnly={readOnly}
         value={value}
+        defaultValue={defaultValue}
         height="auto"
         onChange={(value) => {
           setValue?.(value);

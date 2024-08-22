@@ -42,6 +42,11 @@ export default function useJSConfuser() {
 
     worker.addEventListener("message", callback);
 
+    if (typeof worker.obfuscateCode !== "function") {
+      callbacksIn.onError?.({ error: "Worker function not available" });
+      return;
+    }
+
     worker.obfuscateCode(requestID, code, options);
   }
 

@@ -1,8 +1,8 @@
 import Editor from "@monaco-editor/react";
-import { Box, Button, IconButton, Typography, useTheme } from "@mui/material";
+import { Box, IconButton, useTheme } from "@mui/material";
 import { rgbToHex } from "../utils/color-utils";
-import { Add, Close } from "@mui/icons-material";
-import { forwardRef, useEffect, useRef } from "react";
+import { Add } from "@mui/icons-material";
+import { forwardRef } from "react";
 import { defaultCode } from "../constants";
 import EditorComponentTab from "./EditorComponentTab";
 const jsConfuserTypes = `

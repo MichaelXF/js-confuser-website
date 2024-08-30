@@ -44,3 +44,15 @@ export const defaultOptionsJS = `module.exports = {
   preset: "medium",
   target: "browser",
 };`;
+
+// AST Explorer
+export const astConsoleMessage = `Welcome to the AST Explorer!
+
+This tool allows you to explore the Abstract Syntax Tree (AST) of your JavaScript code.
+
+- You can access the current NodePath with \`path\`
+
+- Babel Types are available at \`t\`
+
+- You can access the editor with \`editor\` and \`monaco\`
+`;

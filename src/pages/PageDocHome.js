@@ -4,7 +4,7 @@ import useSEO from "../hooks/useSEO";
 
 export default function PageDocHome({ onMetadataUpdate }) {
   useSEO(
-    "Docs | Welcome to JS Confuser!",
+    "Docs | JS-Confuser",
     `JS-Confuser is an open-source JavaScript obfuscator. This obfuscation
         tool transforms your code into an unreadable, complex representation
         that is difficult to understand. Here you can learn everything you need

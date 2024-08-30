@@ -14,7 +14,6 @@ import useJSConfuser from "../hooks/useJSConfuser";
 import ConsoleDialog from "../components/ConsoleDialog";
 import { saveFileToIndexedDB } from "../utils/file-utils";
 import EditorNav from "../components/EditorNav";
-import json5 from "json5";
 import { EditorFileDrop } from "../components/EditorFileDrop";
 import ErrorDialog from "../components/ErrorDialog";
 import { useSearchParams } from "react-router-dom";

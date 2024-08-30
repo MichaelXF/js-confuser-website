@@ -19,3 +19,8 @@ a {
   scroll-margin-top: 25px;
   scroll-snap-margin-top: 25px; /* iOS 11 and older */
 }
+
+.ast-highlight {
+  background-color: hsla(210, 100%, 60%, 0.2);
+  /* color: hsl(210, 100%, 60%) !important; */
+}

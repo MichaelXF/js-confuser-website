@@ -1,23 +1,81 @@
 import { Box, useTheme } from "@mui/material";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { rgbToHex } from "../utils/color-utils";
 import Editor from "@monaco-editor/react";
 import { parse } from "@babel/parser";
 import * as t from "@babel/types";
-
-import json5 from "json5";
-import "../index.css";
 import useSEO from "../hooks/useSEO";
-
 import { Buffer } from "buffer";
 import { astConsoleMessage, defaultCode } from "../constants";
+import ConsoleDialog from "../components/ConsoleDialog";
+
 window.Buffer = Buffer;
 window.t = t;
+window.updates = true;
 
-const { default: traverse } = require("@babel/traverse");
+const { default: traverse, NodePath, Scope } = require("@babel/traverse");
+const { default: generate } = require("@babel/generator");
+
+const prototypePatches = [
+  {
+    target: Scope.prototype,
+    methods: ["rename"],
+  },
+  {
+    target: NodePath.prototype,
+    methods: [
+      "replaceWith",
+      "replaceWithMultiple",
+      "replaceInline",
+      "replaceWithSource",
+      "replaceExpressionWithStatements",
+      "remove",
+      "insertBefore",
+      "insertAfter",
+      "unshiftContainer",
+      "pushContainer",
+      "popContainer",
+      "shiftContainer",
+    ],
+  },
+];
+
+for (let patch of prototypePatches) {
+  patch.originalMethods = patch.methods.map((method) => {
+    return patch.target[method];
+  });
+}
 
 function capturePaths(ast) {
   const paths = new Map();
+
+  for (let patch of prototypePatches) {
+    for (let i in patch.methods) {
+      const method = patch.methods[i];
+      const originalMethod = patch.originalMethods[i];
+      patch.target[method] = function (...args) {
+        const result = originalMethod.apply(this, args);
+
+        if (window.updates) {
+          triggerASTUpdate();
+        }
+
+        return result;
+      };
+    }
+  }
+
+  function triggerASTUpdate() {
+    window.dispatchEvent(
+      new CustomEvent("astUpdate", {
+        detail: {
+          ast,
+        },
+      })
+    );
+  }
+
+  window.update = triggerASTUpdate;
 
   traverse(ast, {
     enter(path) {
@@ -65,6 +123,14 @@ export default function PageAST() {
     "Explore the AST of your JavaScript code."
   );
 
+  var [showConsoleDialog, setShowConsoleDialog] = useState(false);
+
+  const evaluateCode = () => {
+    // Purposely making my code IMPOSSIBLE for AI to understand
+    // Nope, this is just using a random key which triggers ->
+    // Re-render -> Console Dialog Re-render -> Console Re-evaluates code
+    setShowConsoleDialog(1 + Math.random());
+  };
   const ref = useRef({
     input: { editor: null, monaco: null },
     output: { editor: null, monaco: null },
@@ -116,7 +182,9 @@ export default function PageAST() {
     }
 
     if (ref.current.input.editor && ref.current.output.editor) {
-      ref.current.input.editor.setValue(defaultCode);
+      ref.current.input.editor.setValue(
+        window.localStorage.getItem("astCode") || defaultCode
+      );
     }
   };
 
@@ -236,6 +304,10 @@ export default function PageAST() {
   }
 
   function updateASTPosition(position) {
+    if (position === undefined) {
+      position = ref.current.input.editor.getPosition();
+    }
+
     var positionIndex = ref.current.input.editor
       .getModel()
       .getOffsetAt(position);
@@ -253,8 +325,12 @@ export default function PageAST() {
         const path = paths.get(node);
         const scope = path?.scope;
 
+        window.node = node;
         window.path = path;
         window.scope = scope;
+        window.program = paths.get(ast.program) || ast.program;
+        window.file = paths.get(ast) || ast;
+        window.ast = ast;
 
         function customReplacer() {
           const seen = new WeakSet();
@@ -291,7 +367,7 @@ export default function PageAST() {
     try {
       // Parse the input code using @babel/parser
       const ast = parse(input, {
-        sourceType: "module",
+        sourceType: "ambiguous",
         plugins: [], // Add necessary plugins if needed
       });
 
@@ -311,8 +387,72 @@ export default function PageAST() {
     }
   }
 
+  const getSelectedTextOrFullContent = () => {
+    const { editor } = ref.current?.input;
+    if (!editor) return "";
+
+    const selection = editor.getSelection();
+
+    // Check if there is a selection
+    if (selection && !selection.isEmpty()) {
+      return editor.getModel().getValueInRange(selection);
+    } else {
+      // Return the entire content if no selection is present
+      return editor.getValue();
+    }
+  };
+
+  useEffect(() => {
+    /**
+     *
+     * @param {KeyboardEvent} e
+     */
+    var callback = (e) => {
+      if (e.key === "Enter" && e.shiftKey) {
+        evaluateCode();
+      }
+    };
+    window.addEventListener("keydown", callback);
+
+    var astCallback = (e) => {
+      var { ast } = e.detail;
+      if (ast) {
+        var code = generate(ast).code;
+        var { editor } = ref.current.input;
+        if (editor) {
+          const currentPosition = editor.getPosition();
+
+          editor.setValue(code);
+
+          // Step 3: Restore the cursor position
+          if (currentPosition) {
+            editor.setPosition(currentPosition);
+          }
+        }
+      }
+    };
+
+    window.addEventListener("astUpdate", astCallback);
+
+    return () => {
+      window.removeEventListener("keydown", callback);
+
+      window.removeEventListener("astUpdate", astCallback);
+    };
+  }, []);
+
   return (
     <Box>
+      <ConsoleDialog
+        open={showConsoleDialog}
+        onClose={() => {
+          setShowConsoleDialog(false);
+        }}
+        getEditorCode={() => {
+          return getSelectedTextOrFullContent();
+        }}
+      />
+
       <Box display="flex" width="100%" height="100vh">
         <Box width="50%">
           <Editor
@@ -327,6 +467,7 @@ export default function PageAST() {
             onMount={handleEditorDidMount("input")} // Use the onMount callback
             onChange={(value) => {
               updateAST();
+              window.localStorage.setItem("astCode", value);
             }}
           />
         </Box>

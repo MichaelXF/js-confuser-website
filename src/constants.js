@@ -52,7 +52,15 @@ This tool allows you to explore the Abstract Syntax Tree (AST) of your JavaScrip
 
 - You can access the current NodePath with \`path\`
 
+- The root NodePaths \`program\` and \`file\` are exposed for convenience
+
 - Babel Types are available at \`t\`
 
 - You can access the editor with \`editor\` and \`monaco\`
+
+- Most updates are monkey-patched to be reflected in the editor
+
+- You can manually call \`update\` to reprint the AST
+
+- Disable automatic updates with \`updates = false\`
 `;

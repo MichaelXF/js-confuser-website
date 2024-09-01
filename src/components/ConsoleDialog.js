@@ -6,14 +6,14 @@ import {
   DialogContent,
   DialogTitle,
 } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import useWorkerEval from "../hooks/useWorkerEval";
 
 export default function ConsoleDialog({
   open,
   onClose,
   getEditorCode,
-  getEditorOptions,
+  getEditorOptions = () => ({}),
 }) {
   var consoleRef = useRef();
   var workerEval = useWorkerEval(consoleRef);

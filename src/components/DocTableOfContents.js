@@ -10,9 +10,10 @@ export default function DocTableOfContents({ metadata }) {
       pr={4}
       pl={2}
       position="sticky"
-      top="30px"
+      top="0px"
+      pt={4}
     >
-      <Box pb={4}>
+      <Box pb={4} px={1}>
         <Typography
           sx={{ color: "text.secondary", textTransform: "uppercase" }}
           variant="body2"
@@ -37,6 +38,7 @@ export default function DocTableOfContents({ metadata }) {
 
       <Typography
         mb={2}
+        px={1}
         sx={{ color: "text.secondary", textTransform: "uppercase" }}
         variant="body2"
       >
@@ -50,20 +52,30 @@ export default function DocTableOfContents({ metadata }) {
             color="inherit"
             sx={{
               color: "text.secondary_darker",
-              pl: isNested ? 2 : 1,
               justifyContent: "flex-start",
               textAlign: "left",
               mb: "2px",
               fontSize: "0.8125rem",
-              whiteSpace: "prewrap",
-              wordBreak: "break-all",
+              width: "100%",
             }}
             fullWidth
             key={heading.index + ":" + heading.label}
             component={"a"}
             href={heading.to}
+            title={heading.label}
           >
-            {heading.label}
+            <Typography
+              sx={{
+                overflowWrap: "break-word",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                pr: 1,
+              }}
+              variant="inherit"
+            >
+              {heading.label}
+            </Typography>
           </Button>
         );
       })}

@@ -58,7 +58,7 @@ export default function PageDoc() {
           onClose={() => setShowSearchDialog(false)}
         />
 
-        <Box key={pathname}>
+        <Box key={pathname} width="100%">
           <Box
             display="flex"
             overflow="auto"

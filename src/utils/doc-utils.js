@@ -158,7 +158,14 @@ function generate() {
     var order = parseInt(fileNameSplit[1]);
     var title = fileNameSplit[2].replace(/_/g, " ");
 
-    var urlPath = (group + "/" + title).toLowerCase().replace(/ /g, "-");
+    var urlPath = group;
+    if (order !== -1) {
+      // If order is negative remove the title from the URL path
+      // Special case for All Presets page
+      urlPath += "/" + title;
+    }
+
+    urlPath = urlPath.toLowerCase().replace(/ /g, "-");
 
     addDoc(urlPath, group, title, { contentPath: path, order });
   }
@@ -213,6 +220,13 @@ function generate() {
       };
     })
     .sort((a, b) => a.order - b.order);
+
+  // Add default 'Welcome page' to the Getting Started group
+  navigationItems[0].children.unshift({
+    label: "Welcome Page",
+    to: "/docs",
+    fullLabel: "Getting Started" + DOC_PATH_SEPARATOR + "Welcome Page",
+  });
 
   return { navigationItems, docsByPath };
 }

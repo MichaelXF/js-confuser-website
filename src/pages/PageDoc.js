@@ -58,18 +58,27 @@ export default function PageDoc() {
           onClose={() => setShowSearchDialog(false)}
         />
 
-        <Box
-          maxHeight="calc(100vh - 65px)"
-          height="100%"
-          overflow="auto"
-          flexGrow={1}
-          key={pathname}
-        >
+        <Box key={pathname}>
           <Box
             display="flex"
-            sx={{ p: 4, maxWidth: "1100px", mx: "auto", width: "100%" }}
+            overflow="auto"
+            maxHeight="calc(100vh - 65px)"
+            height="100%"
+            width="100%"
           >
-            <Box flexGrow={1}>{DocPage}</Box>
+            <Box
+              sx={{
+                p: 4,
+                px: 10,
+                maxWidth: "1100px",
+                mx: "auto",
+                width: "100%",
+                flexShrink: 1,
+                flexGrow: 1,
+              }}
+            >
+              {DocPage}
+            </Box>
             {!isHomePage && <DocTableOfContents metadata={metadata} />}
           </Box>
         </Box>

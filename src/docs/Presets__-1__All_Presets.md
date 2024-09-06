@@ -1,4 +1,4 @@
-##### All Presets
+#### All Presets
 
 | Preset | Performance Reduction | Try It Out |
 | [High Preset](/docs/presets/high) | - | [Try It Out](/editor?preset=high) |

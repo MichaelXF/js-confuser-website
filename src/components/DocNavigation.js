@@ -9,18 +9,19 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { DOC_PATH_SEPARATOR } from "../utils/doc-utils";
 
-const NAV_ITEM_HEIGHT = "38px";
+const NAV_ITEM_HEIGHT = "36px";
 
 function NavItem({ item, open, setOpen, parent, depth = 0, pathname }) {
   let openLabel = item.fullLabel;
 
   const isOpen = !!open[openLabel];
+  let isActive = pathname === item.to?.toLowerCase();
 
   let leftBorders = new Array(depth).fill(0).map((_, i) => {
     return (
       <Box
         borderRight="2px solid"
-        borderColor="divider"
+        borderColor={"divider"}
         width="16px"
         mr={2}
         flexShrink={0}
@@ -30,8 +31,6 @@ function NavItem({ item, open, setOpen, parent, depth = 0, pathname }) {
   });
 
   if (!item.children) {
-    let isActive = pathname === item.to?.toLowerCase();
-
     return (
       <Button
         sx={{
@@ -44,6 +43,7 @@ function NavItem({ item, open, setOpen, parent, depth = 0, pathname }) {
           fontWeight: isActive ? "bold" : "normal",
           color: isActive ? "primary.main" : "inherit",
           height: NAV_ITEM_HEIGHT,
+          bgcolor: isActive ? "divider" : "transparent",
         }}
         color="inherit"
         component={Link}
@@ -171,23 +171,18 @@ export default function DocNavigation({
     <Box
       borderRight="1px solid"
       borderColor="divider"
-      maxWidth="290px"
+      maxWidth="300px"
       width="100%"
       maxHeight="calc(100vh - 65px)"
       height="100%"
       overflow="auto"
       flexShrink={0}
-      p={2}
+      p={1}
       sx={{
         scrollbarWidth: "thin",
       }}
     >
-      <Box mb={2}>
-        <Button {...btnProps} component={Link} to="/docs/">
-          <Home sx={{ mr: 1, fontSize: "1.125rem", color: "primary.main" }} />
-          Welcome Page
-        </Button>
-
+      <Box mt={1} mb={2}>
         <Button
           {...btnProps}
           onClick={() => {
@@ -212,7 +207,7 @@ export default function DocNavigation({
         );
       })}
 
-      <Box pb={20}></Box>
+      <Box pb={12}></Box>
     </Box>
   );
 }

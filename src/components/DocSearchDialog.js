@@ -161,6 +161,7 @@ export default function DocSearchDialog({ open, onClose }) {
           top: "5%",
           left: "50%",
           transform: "translate(-50%, 0)",
+          borderRadius: "6px",
         },
       }}
       maxWidth="sm"

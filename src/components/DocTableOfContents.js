@@ -3,7 +3,15 @@ import { Box, Button, Link, Typography } from "@mui/material";
 
 export default function DocTableOfContents({ metadata }) {
   return (
-    <Box maxWidth="300px" width="100%" pl={10} position="sticky" top="30px">
+    <Box
+      flexShrink={0}
+      maxWidth="300px"
+      width="100%"
+      pr={4}
+      pl={2}
+      position="sticky"
+      top="30px"
+    >
       <Box pb={4}>
         <Typography
           sx={{ color: "text.secondary", textTransform: "uppercase" }}
@@ -14,7 +22,7 @@ export default function DocTableOfContents({ metadata }) {
         </Typography>
 
         <Typography color="text.secondary_darker" fontSize="0.925rem">
-          Please help us improve by{" "}
+          Please help us improve by <br />
           <Link
             underline="none"
             href="https://github.com/MichaelXF/js-confuser/issues"

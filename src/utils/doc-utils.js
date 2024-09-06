@@ -274,7 +274,7 @@ function createContentDocs(addDoc) {
     .forEach((item) => {
       var titleCase = camelCaseToTitleCase(item.name);
 
-      var options = {
+      var baseOptions = {
         target: "browser",
       };
       var optionName = item.name;
@@ -297,34 +297,43 @@ function createContentDocs(addDoc) {
       }
 
       if (!item.parentField) {
-        options = {
-          ...options,
+        baseOptions = {
+          ...baseOptions,
           [item.name]: true,
         };
       } else {
         optionName = item.parentField + "." + item.name;
-        options = {
-          ...options,
+        baseOptions = {
+          ...baseOptions,
           [item.parentField]: {
             [item.name]: true,
           },
         };
       }
 
-      options = {
-        ...options,
+      baseOptions = {
+        ...baseOptions,
+        ...(item?.exampleConfig || {}),
+      };
+
+      var liveExampleOptions = {
+        ...baseOptions,
         renameVariables: true,
         compact: false,
         indent: 2,
-        ...(item?.exampleConfig || {}),
       };
+
+      // For 'target' page
+      if (Object.keys(baseOptions).length === 1 && baseOptions.target) {
+        baseOptions.compact = true;
+      }
 
       var usageExample = `import JSConfuser from "js-confuser";
 import {readFileSync, writeFileSync} from "fs";
 
 // Read input code
 const sourceCode = readFileSync("input.js", "utf8");
-const options = ${json5.stringify(options, null, 2)};
+const options = ${json5.stringify(baseOptions, null, 2)};
 
 JSConfuser.obfuscate(sourceCode, options).then((obfuscated)=>{
   // Write output code
@@ -384,8 +393,6 @@ JSConfuser.obfuscate(sourceCode, options).then((obfuscated)=>{
 
     ${item.startDocContent ? item.startDocContent + "\n---" : ""}
 
-    ${customImplementation}
-
     ${
       item.exampleCode
         ? `
@@ -393,11 +400,15 @@ JSConfuser.obfuscate(sourceCode, options).then((obfuscated)=>{
 
       This example showcases how \`${titleCase}\` transforms the code. Try it out by changing the input code and see changes apply in real-time.
 
-      ---{ header: "Input.js", language: "javascript", live: true, options: ${JSON.stringify(options)} }
+      ---{ header: "Input.js", language: "javascript", live: true, options: ${JSON.stringify(liveExampleOptions)} }
       ${item.exampleCode}
+      ---
+      
       ---`
         : ""
     }
+
+    ${customImplementation}
 
     ##### Usage Example
 

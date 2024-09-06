@@ -1,6 +1,8 @@
 #### Playground
 
 The JS-Confuser Playground is a rich code editor for obfuscating your JavaScript code.
+<br>
+[Try It Out](/editor)
 
 ##### How to use
 
@@ -33,26 +35,28 @@ The `JSConfuser.js` can be edited by navigating to **Tools** > **Edit JSConfuser
 var counter = 0;
 
 module.exports = {
-  target: 'browser',
-  renameVariables: true,
+target: 'browser',
+renameVariables: true,
 
-  // Custom Identifier Generator implementation
-  // Returns `var_0`, `var_1`, `var_2`
-  identifierGenerator: () => `var_${counter++}`,
+// Custom Identifier Generator implementation
+// Returns `var_0`, `var_1`, `var_2`
+identifierGenerator: () => `var_${counter++}`,
 
-  // Custom String Concealing
-  // Always encrypt API endpoints
-  stringConcealing: (str) => {
-    if (str.includes('https://api-example.com')) {
-      return true;
-    }
+// Custom String Concealing
+// Always encrypt API endpoints
+stringConcealing: (str) => {
+if (str.includes('https://api-example.com')) {
+return true;
+}
 
     // 60% for other strings
     return Math.random() < 0.6;
-  },
 
-  // ...Other settings...
+},
+
+// ...Other settings...
 };
+
 ---
 
 ---

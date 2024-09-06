@@ -51,7 +51,9 @@ function NavItem({ item, open, setOpen, parent, depth = 0, pathname }) {
       >
         {leftBorders}
 
-        <Box p={1}>{item.label}</Box>
+        <Box px={1} alignSelf="center">
+          {item.label}
+        </Box>
       </Button>
     );
   }
@@ -113,26 +115,21 @@ export default function DocNavigation({
   navigationItems,
   pathname,
 }) {
-  var [open, setOpen] = useState({});
-
-  useEffect(() => {
+  function createOpenObject(open = {}) {
+    var mergeObject = {};
     function checkChildren(parentItem) {
       for (let item of parentItem.children) {
         if (item.to && item.to.toLowerCase() === pathname) {
           if (!open[item.fullLabel]) {
+            // Open this item
+            mergeObject[item.fullLabel] = true;
+
             // Ensure all parent items are open too
             var paths = item.fullLabel.split(DOC_PATH_SEPARATOR);
-            var mergeObject = {
-              [item.fullLabel]: true,
-            };
             for (var i = 0; i < paths.length; i++) {
               mergeObject[paths.slice(0, i).join(DOC_PATH_SEPARATOR)] = true;
             }
-
-            setOpen((open) => ({
-              ...open,
-              ...mergeObject,
-            }));
+            return;
           }
         }
         if (item.children) {
@@ -143,6 +140,19 @@ export default function DocNavigation({
     for (let item of navigationItems) {
       checkChildren(item);
     }
+
+    return mergeObject;
+  }
+
+  // First render make sure the correct nav items are expanded
+  var [open, setOpen] = useState(() => createOpenObject());
+
+  // On tab change, make sure the correct nav items are expanded
+  useEffect(() => {
+    var mergeObject = createOpenObject();
+    setOpen((open) => {
+      return { ...open, ...mergeObject };
+    });
   }, [pathname]);
 
   /**

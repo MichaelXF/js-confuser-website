@@ -8,7 +8,7 @@ JS-Confuser is a JavaScript obfuscation tool designed to make your code harder t
 
 ###### Should I obfuscate my own code?
 
-Obfuscation helps protect your intellectual property by making it more difficult for unauthorized users to understand, modify, or steal your code. It can deter casual reverse engineers, protect sensitive data like API keys, and harden client-side license checks.
+Obfuscation helps protect your intellectual property by making it more difficult for unauthorized users to understand, modify, or steal your code. It can deter casual reverse engineers, protect sensitive data and intellectual property, and harden client-side license checks.
 
 ###### Are there any drawbacks?
 

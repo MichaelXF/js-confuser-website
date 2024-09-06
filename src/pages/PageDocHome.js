@@ -12,7 +12,7 @@ export default function PageDocHome({ onMetadataUpdate }) {
   );
 
   return (
-    <Box>
+    <Box py={2}>
       <Typography variant="h4" gutterBottom>
         Welcome to JS Confuser!
       </Typography>

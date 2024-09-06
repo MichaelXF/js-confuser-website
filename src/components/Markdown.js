@@ -66,6 +66,11 @@ export const parseLine = (
           target="_blank"
           rel="noopener noreferrer"
           key={match.index}
+          sx={{
+            wordBreak: "break-word",
+            width: "max-content",
+            display: "inline-block",
+          }}
         >
           {match[5]}
 

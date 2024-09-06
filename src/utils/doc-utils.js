@@ -163,54 +163,95 @@ function generate() {
 
   createContentDocs(addDoc);
 
-  addDoc("options", "Options", "All Options", { content: "Options" });
+  var navigationItems = Object.keys(navigationGroups)
+    .map((groupPath) => {
+      function subGroups(children) {
+        var defaultGroup = [];
+        var otherGroups = {};
 
-  var navigationItems = Object.keys(navigationGroups).map((groupPath) => {
-    function subGroups(children) {
-      var defaultGroup = [];
-      var otherGroups = {};
-
-      for (var item of children) {
-        if (!item.subGroup) {
-          defaultGroup.push(item);
-        } else {
-          if (!otherGroups[item.subGroup]) {
-            otherGroups[item.subGroup] = [item];
+        for (var item of children) {
+          if (!item.subGroup) {
+            defaultGroup.push(item);
           } else {
-            otherGroups[item.subGroup].push(item);
+            if (!otherGroups[item.subGroup]) {
+              otherGroups[item.subGroup] = [item];
+            } else {
+              otherGroups[item.subGroup].push(item);
+            }
           }
         }
+
+        var sortByOrder = (items) => {
+          return items.sort((a, b) => a.order - b.order);
+        };
+
+        if (!Object.keys(otherGroups).length) {
+          return sortByOrder(defaultGroup);
+        }
+
+        return [
+          ...sortByOrder(defaultGroup),
+          ...Object.keys(otherGroups).map((subGroup) => ({
+            label: toTitleCase(subGroup),
+            children: sortByOrder(otherGroups[subGroup]),
+            fullLabel: groupPath + DOC_PATH_SEPARATOR + subGroup,
+          })),
+        ];
       }
 
-      var sortByOrder = (items) => {
-        return items.sort((a, b) => a.order - b.order);
+      return {
+        label: toTitleCase(groupPath),
+        children: subGroups(navigationGroups[groupPath]),
+        fullLabel: groupPath,
+        order: {
+          "Getting Started": 0,
+          Options: 1,
+          Presets: 2,
+        }[groupPath],
       };
-
-      if (!Object.keys(otherGroups).length) {
-        return sortByOrder(defaultGroup);
-      }
-
-      return [
-        ...sortByOrder(defaultGroup),
-        ...Object.keys(otherGroups).map((subGroup) => ({
-          label: toTitleCase(subGroup),
-          children: sortByOrder(otherGroups[subGroup]),
-          fullLabel: groupPath + DOC_PATH_SEPARATOR + subGroup,
-        })),
-      ];
-    }
-
-    return {
-      label: toTitleCase(groupPath),
-      children: subGroups(navigationGroups[groupPath]),
-      fullLabel: groupPath,
-    };
-  });
+    })
+    .sort((a, b) => a.order - b.order);
 
   return { navigationItems, docsByPath };
 }
 
+function createAllOptionsDocPage(addDoc) {
+  // "All Options" Doc page
+
+  var str = `
+  #### All Options
+
+  JS-Confuser provides a wide range of options to customize the obfuscation process. Below is a list of all available options in the obfuscator.
+
+  - Remember, [presets](/docs/presets) can be used to quickly apply a set of options to the obfuscator.
+
+
+  ${Object.keys(groups)
+    .map((groupName) => {
+      return `
+      ---
+
+    ##### ${toTitleCase(groupName)}
+    
+    | Option | Description |
+    ${groups[groupName]
+      .map((item) => {
+        return `| [${camelCaseToTitleCase(item.name)}](/docs/options${item.name}) | ${item.description.split("\n")[0]} `;
+      })
+      .join("\n")}
+    `;
+    })
+    .join("\n")}
+  `;
+
+  addDoc("options", "Options", "All Options", {
+    content: str,
+  });
+}
+
 function createContentDocs(addDoc) {
+  createAllOptionsDocPage(addDoc);
+
   // Add Options Docs
   Object.values(groups)
     .flat(1)

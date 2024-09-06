@@ -1,8 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Box } from "@mui/material";
 import { defaultCode, defaultOptionsJS } from "../constants";
-
-import * as Monaco from "monaco-editor";
 
 // Import your worker
 import LoadingBackdrop from "../components/LoadingBackdrop";
@@ -20,6 +18,7 @@ import { useSearchParams } from "react-router-dom";
 import useCodeWorker from "../hooks/useCodeWorker";
 import { convertOptionsToJS, evaluateOptionsOrJS } from "../utils/option-utils";
 import useSEO from "../hooks/useSEO";
+import presets from "js-confuser/dist/presets";
 
 export default function PageEditor() {
   useSEO(
@@ -41,6 +40,7 @@ export default function PageEditor() {
     if (ref.current) {
       var code = params.get("code");
       var config = params.get("config");
+      var preset = params.get("preset");
 
       if (code) {
         var model = ref.current.editor.getModel();
@@ -50,6 +50,9 @@ export default function PageEditor() {
       }
       if (config) {
         setOptionsJS(config);
+      }
+      if (preset) {
+        setOptions(presets[preset]);
       }
 
       if (code || config) {

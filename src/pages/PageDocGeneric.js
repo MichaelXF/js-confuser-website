@@ -10,7 +10,11 @@ export default function PageDocGeneric({ onMetadataUpdate }) {
   var { setSEO } = useSEO("JS-Confuser Docs", "Documentation for JS-Confuser");
   var { group, subpath } = useParams();
   var { hash } = useLocation();
-  var pathname = (group + "/" + subpath).toLowerCase();
+  var pathname = group;
+  if (subpath) {
+    pathname += "/" + subpath;
+  }
+  pathname = pathname.toLowerCase();
 
   var { docsByPath } = getDocs();
 

@@ -1,6 +1,8 @@
 import { Box, Button, Typography } from "@mui/material";
 import { CodeViewer } from "./CodeViewer";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import ConsoleDialog from "./ConsoleDialog";
+import { KeyboardArrowRight } from "@mui/icons-material";
 
 export default function CodeViewerTabbed({
   value,
@@ -10,8 +12,16 @@ export default function CodeViewerTabbed({
   header,
   language,
   onMount,
+  mb = 4,
+  allowEvaluate = false,
 }) {
   var [copied, setCopied] = useState(false);
+  const [showConsoleDialog, setShowConsoleDialog] = useState(false);
+  const editorRef = useRef();
+  function realOnMount(editor, monaco) {
+    editorRef.current = editor;
+    onMount?.(editor, monaco);
+  }
 
   return (
     <Box
@@ -20,8 +30,14 @@ export default function CodeViewerTabbed({
       overflow="hidden"
       flex={"1 1 58%"}
       borderRadius={2}
-      mb={4}
+      mb={mb}
     >
+      <ConsoleDialog
+        getEditorCode={() => editorRef.current?.getValue()}
+        open={showConsoleDialog}
+        onClose={() => setShowConsoleDialog(false)}
+        getEditorOptions={() => ({})}
+      />
       <Box
         height="36px"
         p={2}
@@ -35,6 +51,26 @@ export default function CodeViewerTabbed({
         <Typography color="text.secondary">{header}</Typography>
 
         <Box ml="auto">
+          {allowEvaluate && (
+            <Button
+              variant="inherit"
+              sx={{
+                color: "text.secondary",
+                fontSize: "0.875rem",
+                height: "100%",
+                textTransform: "none",
+              }}
+              onClick={(e) => {
+                e.target.blur();
+                setShowConsoleDialog(true);
+              }}
+              startIcon={
+                <KeyboardArrowRight sx={{ transform: "translate(0, 1px)" }} />
+              }
+            >
+              Evaluate
+            </Button>
+          )}
           <Button
             variant="inherit"
             sx={{
@@ -67,7 +103,7 @@ export default function CodeViewerTabbed({
           setValue?.(value);
         }}
         language={language}
-        onMount={onMount}
+        onMount={realOnMount}
       />
     </Box>
   );

@@ -13,12 +13,13 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  Button,
 } from "@mui/material";
 import CodeViewerTabbed from "./CodeViewerTabbed"; // Assume this component is imported
 import json5 from "json5";
 import useJSConfuser from "../hooks/useJSConfuser";
 import { textEllipsis, toUrlCase } from "../utils/format-utils";
-import { OpenInNew, Tag } from "@mui/icons-material";
+import { KeyboardArrowRight, OpenInNew, Tag } from "@mui/icons-material";
 import { trimRemovePrefix } from "../utils/md-utils";
 
 export const parseLine = (
@@ -254,6 +255,7 @@ export default function Markdown({ value, onMetadataUpdate }) {
                     editorRef.current = editor;
                     obfuscate(value);
                   }}
+                  allowEvaluate={true}
                 />
               ) : null}
             </Box>

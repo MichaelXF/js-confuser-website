@@ -9,6 +9,8 @@ export const DOC_PATH_SEPARATOR = " --- ";
 
 var cachedValue = null;
 
+// Ensures all doc's content is loaded
+// Used for the search bar so all results always come back
 export function ensureAllDocsLoaded(onLoadingStart) {
   var { docsByPath } = getDocs();
 
@@ -236,7 +238,7 @@ function createAllOptionsDocPage(addDoc) {
     | Option | Description |
     ${groups[groupName]
       .map((item) => {
-        return `| [${camelCaseToTitleCase(item.name)}](/docs/options${item.name}) | ${item.description.split("\n")[0]} `;
+        return `| [${camelCaseToTitleCase(item.name)}](/docs/options/${item.name}) | ${item.description.split("\n")[0]} `;
       })
       .join("\n")}
     `;

@@ -71,6 +71,8 @@ export const CodeViewer = forwardRef(
 
       if (height === "auto") {
         editor.onDidContentSizeChange(updateHeight);
+
+        updateHeight();
       }
     };
 

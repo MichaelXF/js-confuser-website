@@ -13,6 +13,8 @@ window.Buffer = Buffer;
 window.t = t;
 window.updates = true;
 
+let allowValueRefresh = true;
+
 const { default: traverse, NodePath, Scope } = require("@babel/traverse");
 const { default: generate } = require("@babel/generator");
 
@@ -414,12 +416,15 @@ export default function PageAST() {
     };
     window.addEventListener("keydown", callback);
 
+    var handle = null;
+
     var astCallback = (e) => {
       var { ast } = e.detail;
       if (ast) {
         var code = generate(ast).code;
         var { editor } = ref.current.input;
         if (editor) {
+          allowValueRefresh = false;
           const currentPosition = editor.getPosition();
 
           editor.setValue(code);
@@ -428,6 +433,14 @@ export default function PageAST() {
           if (currentPosition) {
             editor.setPosition(currentPosition);
           }
+
+          if (handle) {
+            clearTimeout(handle);
+          }
+          handle = setTimeout(() => {
+            allowValueRefresh = true;
+            handle = null;
+          }, 1000);
         }
       }
     };
@@ -466,7 +479,9 @@ export default function PageAST() {
             }}
             onMount={handleEditorDidMount("input")} // Use the onMount callback
             onChange={(value) => {
-              updateAST();
+              if (allowValueRefresh) {
+                updateAST();
+              }
               window.localStorage.setItem("astCode", value);
             }}
           />

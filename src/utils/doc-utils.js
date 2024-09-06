@@ -5,6 +5,8 @@ import json5 from "json5";
 import { groups } from "../groups";
 import { trimRemovePrefix } from "./md-utils";
 
+export const DOC_PATH_SEPARATOR = " --- ";
+
 var cachedValue = null;
 
 export function ensureAllDocsLoaded(onLoadingStart) {
@@ -88,6 +90,8 @@ export function getDocs() {
   }
 
   cachedValue = generate();
+  console.log(cachedValue);
+
   return cachedValue;
 }
 
@@ -110,10 +114,19 @@ function generate() {
       navigationGroups[group] = [];
     }
 
+    var subGroup = objectContentPathOrContent.subGroup;
+
     navigationGroups[group].push({
       label: title,
       to: "/docs/" + urlPath,
       order: newDoc.order,
+      subGroup: subGroup,
+      fullLabel:
+        group +
+        DOC_PATH_SEPARATOR +
+        (subGroup || "default") +
+        DOC_PATH_SEPARATOR +
+        title,
     });
 
     // Doc content is already loaded - call the onDocContentLoaded function
@@ -150,10 +163,47 @@ function generate() {
 
   createContentDocs(addDoc);
 
+  addDoc("options", "Options", "All Options", { content: "Options" });
+
   var navigationItems = Object.keys(navigationGroups).map((groupPath) => {
+    function subGroups(children) {
+      var defaultGroup = [];
+      var otherGroups = {};
+
+      for (var item of children) {
+        if (!item.subGroup) {
+          defaultGroup.push(item);
+        } else {
+          if (!otherGroups[item.subGroup]) {
+            otherGroups[item.subGroup] = [item];
+          } else {
+            otherGroups[item.subGroup].push(item);
+          }
+        }
+      }
+
+      var sortByOrder = (items) => {
+        return items.sort((a, b) => a.order - b.order);
+      };
+
+      if (!Object.keys(otherGroups).length) {
+        return sortByOrder(defaultGroup);
+      }
+
+      return [
+        ...sortByOrder(defaultGroup),
+        ...Object.keys(otherGroups).map((subGroup) => ({
+          label: toTitleCase(subGroup),
+          children: sortByOrder(otherGroups[subGroup]),
+          fullLabel: groupPath + DOC_PATH_SEPARATOR + subGroup,
+        })),
+      ];
+    }
+
     return {
       label: toTitleCase(groupPath),
-      children: navigationGroups[groupPath].sort((a, b) => a.order - b.order),
+      children: subGroups(navigationGroups[groupPath]),
+      fullLabel: groupPath,
     };
   });
 
@@ -316,6 +366,7 @@ JSConfuser.obfuscate(sourceCode, options).then((obfuscated)=>{
     `;
       addDoc("options/" + item.name, "Options", titleCase, {
         content,
+        subGroup: Object.keys(groups).find((x) => groups[x].includes(item)),
       });
     });
 

@@ -107,6 +107,9 @@ export const CodeViewer = forwardRef(
       editor.layout({ width, height: contentHeight });
     };
 
+    const estimatedInitialHeight =
+      (value || defaultValue || "").split("\n").length * 24 + "px";
+
     return (
       <div ref={containerRef} style={{ width: "100%", height: height }}>
         <Editor
@@ -117,7 +120,7 @@ export const CodeViewer = forwardRef(
           onMount={handleEditorDidMount} // Use the onMount callback
           onChange={onChange}
           options={{}}
-          height={height === "auto" ? "50px" : height}
+          height={height === "auto" ? estimatedInitialHeight : height}
         />
       </div>
     );

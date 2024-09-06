@@ -76,8 +76,13 @@ export default function PageHome() {
 
   useEffect(() => {
     if (!editor) return;
-    let index = 0;
     var exampleCode = landingPageCode;
+
+    let index = Math.max(landingPageCode.length - 101, 0);
+    editor.setValue(landingPageCode.substring(0, index));
+    editor.setPosition(editor.getModel().getFullModelRange().getEndPosition());
+
+    let typingCount = 0;
 
     const typeCharacter = () => {
       if (index <= exampleCode.length) {
@@ -127,7 +132,14 @@ export default function PageHome() {
         }
 
         index++;
-        setTimeout(typeCharacter, Math.random() * 5 + 20); // Randomized typing speed for human-like effect
+
+        // Randomized typing speed for human-like effect
+        var delay = Math.random() * 20 + 30;
+        if (typingCount < 10) {
+          delay += 100;
+          typingCount++;
+        }
+        setTimeout(typeCharacter, delay);
       } else {
         // done
         onDone();
@@ -139,9 +151,9 @@ export default function PageHome() {
       function timeout(ms) {
         return new Promise((resolve) => setTimeout(resolve, ms));
       }
-      await timeout(3000);
+      await timeout(2500);
       setLoading(true);
-      await timeout(2000);
+      await timeout(2500);
 
       JSConfuser.obfuscate(
         landingPageCode,
@@ -163,7 +175,9 @@ export default function PageHome() {
       );
     }
 
-    typeCharacter(); // Start typing effect
+    setTimeout(() => {
+      typeCharacter(); // Start typing effect
+    }, 50);
   }, [editor]);
 
   return (

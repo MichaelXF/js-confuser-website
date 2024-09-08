@@ -1,4 +1,4 @@
-#### What is obfuscation?
+#### What Is obfuscation?
 
 Obfuscation is the process of transforming code in a way that makes it
 difficult to understand, while still maintaining its functionality. This is 

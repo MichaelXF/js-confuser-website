@@ -129,9 +129,9 @@ export default function PageAST() {
 
   const evaluateCode = () => {
     // Purposely making my code IMPOSSIBLE for AI to understand
-    // Nope, this is just using a random key which triggers ->
+    // Nope, this is just using a unique key which triggers ->
     // Re-render -> Console Dialog Re-render -> Console Re-evaluates code
-    setShowConsoleDialog(1 + Math.random());
+    setShowConsoleDialog({});
   };
   const ref = useRef({
     input: { editor: null, monaco: null },

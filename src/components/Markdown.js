@@ -1,11 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import {
   Typography,
   Link,
   Box,
   Divider,
-  ListItem,
-  IconButton,
   Table,
   TableContainer,
   Paper,
@@ -13,13 +11,12 @@ import {
   TableRow,
   TableCell,
   TableBody,
-  Button,
 } from "@mui/material";
 import CodeViewerTabbed from "./CodeViewerTabbed"; // Assume this component is imported
 import json5 from "json5";
 import useJSConfuser from "../hooks/useJSConfuser";
 import { textEllipsis, toUrlCase } from "../utils/format-utils";
-import { KeyboardArrowRight, OpenInNew, Tag } from "@mui/icons-material";
+import { OpenInNew } from "@mui/icons-material";
 import { trimRemovePrefix } from "../utils/md-utils";
 
 export const parseLine = (
@@ -43,7 +40,11 @@ export const parseLine = (
     }
 
     if (match[1].startsWith("**")) {
-      elements.push(<strong key={match.index}>{match[2]}</strong>);
+      elements.push(
+        <strong key={match.index} className="MarkdownBold">
+          {match[2]}
+        </strong>
+      );
     } else if (match[1].startsWith("*")) {
       elements.push(<i key={match.index}>{match[3]}</i>);
     } else if (match[1].startsWith("`")) {
@@ -96,7 +97,11 @@ export const parseLine = (
   return elements;
 };
 
-export default function Markdown({ value, onMetadataUpdate }) {
+export default function Markdown({
+  value,
+  onMetadataUpdate = () => {},
+  sx = { color: "#d4d4d4", lineHeight: "32px" },
+}) {
   var optionsRef = useRef();
   var editorRef = useRef();
 
@@ -175,6 +180,7 @@ export default function Markdown({ value, onMetadataUpdate }) {
         return (
           <Typography
             variant={`h${headingLevel}`}
+            color="text.primary"
             key={index}
             gutterBottom
             mt={headings.length === 1 ? 0 : 4}
@@ -229,8 +235,6 @@ export default function Markdown({ value, onMetadataUpdate }) {
               throw new Error("Not implemented");
             }
             optionsRef.current = optionsOrJS;
-
-            console.log("Setting to", index);
           }
 
           return (
@@ -282,7 +286,7 @@ export default function Markdown({ value, onMetadataUpdate }) {
         var paddingInlineStart = bulletLevel * 28;
 
         return (
-          <Typography>
+          <Typography variant="inherit">
             <ul
               style={{
                 marginBlock: "8px",
@@ -387,5 +391,5 @@ export default function Markdown({ value, onMetadataUpdate }) {
     });
   }, [strValue]);
 
-  return <Box lineHeight={"32px"}>{component}</Box>;
+  return <Box sx={sx}>{component}</Box>;
 }

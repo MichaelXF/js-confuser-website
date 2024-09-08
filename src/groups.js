@@ -465,6 +465,18 @@ printToConsole("Hello World"); // "Hello World"`,
     {
       type: "boolean",
       parentField: "lock",
+      name: "tamperProtection",
+      description: `Tamper Protection safeguards the runtime behavior from being altered by JavaScript pitfalls.
+
+**⚠️ Tamper Protection requires eval and ran in a non-strict mode environment!**
+
+- **This can break your code.**
+- **Due to the security concerns of arbitrary code execution, you must enable this yourself.**
+`,
+    },
+    {
+      type: "boolean",
+      parentField: "lock",
       name: "selfDefending",
       description:
         "Prevents the use of code beautifiers or formatters against your code.",

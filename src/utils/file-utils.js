@@ -120,7 +120,7 @@ export async function listAllFiles() {
       if (cursor) {
         const fileName = cursor.value.name;
 
-        console.log("Found file:", fileName);
+        // console.log("Found file:", fileName);
 
         fileNames.push(fileName);
 

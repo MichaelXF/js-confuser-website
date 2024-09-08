@@ -11,13 +11,18 @@ import useWorkerEval from "../hooks/useWorkerEval";
 
 export default function ConsoleDialog({
   open,
-  onClose,
+  onClose: onCloseIn,
   getEditorCode,
   getEditorOptions = () => ({}),
 }) {
   var consoleRef = useRef();
   var workerEval = useWorkerEval(consoleRef);
   var running = !!workerEval.running;
+
+  var onClose = () => {
+    workerEval.cancel();
+    onCloseIn?.();
+  };
 
   const startEval = () => {
     if (consoleRef.current) {
@@ -38,7 +43,7 @@ export default function ConsoleDialog({
   }, [open]);
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog open={!!open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>Console</DialogTitle>
       <DialogContent>
         <Box

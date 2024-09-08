@@ -4,11 +4,9 @@ import {
   Button,
   Checkbox,
   FormControlLabel,
-  IconButton,
   InputAdornment,
   Menu,
   MenuItem,
-  MenuList,
   Stack,
   TextField,
   Tooltip,
@@ -22,6 +20,7 @@ import {
 } from "../utils/format-utils";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import Markdown from "./Markdown";
 
 export default function OptionComponent({ option, value, setValue }) {
   var titleCase = camelCaseToTitleCase(option.name)
@@ -42,7 +41,7 @@ export default function OptionComponent({ option, value, setValue }) {
   );
 
   var info = (
-    <Tooltip title={option.description}>
+    <Tooltip title={<Markdown value={option.description} sx={{}} />}>
       <Button
         sx={{
           width: "34px",
@@ -202,13 +201,15 @@ export default function OptionComponent({ option, value, setValue }) {
               }}
               autoFocus={true}
               defaultValue={String(
-                value === true
-                  ? 100
-                  : value === false
-                    ? 0
-                    : typeof value === "number"
-                      ? value * 100
-                      : value
+                typeof value === "undefined" || value === null
+                  ? 0
+                  : value === true
+                    ? 100
+                    : value === false
+                      ? 0
+                      : typeof value === "number"
+                        ? value * 100
+                        : value
               )}
               onBlur={(e) => {
                 if (e.target.value === "") {

@@ -92,7 +92,6 @@ export function getDocs() {
   }
 
   cachedValue = generate();
-  console.log(cachedValue);
 
   return cachedValue;
 }
@@ -141,7 +140,7 @@ function generate() {
   for (var path of Docs) {
     var parts = path.split("/");
 
-    console.log(parts[parts.length - 1]);
+    // console.log(parts[parts.length - 1]);
 
     // "Getting_Started__FAQ"
     var partsByDot = parts[parts.length - 1].split(".");
@@ -163,6 +162,10 @@ function generate() {
       // If order is negative remove the title from the URL path
       // Special case for All Presets page
       urlPath += "/" + title;
+    }
+
+    if (title === "What Is Obfuscation") {
+      title = "What Is Obfuscation?";
     }
 
     urlPath = urlPath.toLowerCase().replace(/ /g, "-");
@@ -388,7 +391,7 @@ JSConfuser.obfuscate(sourceCode, options).then((obfuscated)=>{
 
     Option name: \`"${optionName}"\`
 
-    Option value: \`${optionValues}\`
+    Option value${optionValues.includes("/") ? "s" : ""}: \`${optionValues}\`
     ---
 
     ${item.startDocContent ? item.startDocContent + "\n---" : ""}

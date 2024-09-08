@@ -22,7 +22,7 @@
     "assert": "^2.1.0",
     "babel-preset-react-app": "^10.0.0",
     "buffer": "^6.0.3",
-    "js-confuser": "^1.7.2",
+    "js-confuser": "^1.7.3",
     "json5": "^2.2.3",
     "monaco-editor": "^0.50.0",
     "prettier": "^3.3.3",

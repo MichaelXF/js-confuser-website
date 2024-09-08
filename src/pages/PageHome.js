@@ -6,7 +6,15 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { Check, KeyboardArrowRight, Lock } from "@mui/icons-material";
+import {
+  AdminPanelSettings,
+  Bolt,
+  Check,
+  Copyright,
+  KeyboardArrowRight,
+  Lock,
+  PriceCheck,
+} from "@mui/icons-material";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { CodeViewer } from "../components/CodeViewer";
@@ -18,8 +26,10 @@ import * as monaco from "monaco-editor";
 import useSEO from "../hooks/useSEO";
 
 function FeatureRow({ item }) {
+  const [Icon, title, description] = item;
+
   return (
-    <Box flex="1 1 50%" py={3} pr={10}>
+    <Box flex="1 1 50%" py={3} pr={6}>
       <Box fontWeight="bold">
         <Stack direction="row" spacing={2} alignItems="center">
           <Box
@@ -34,20 +44,21 @@ function FeatureRow({ item }) {
               fontSize: "1.125rem",
             }}
           >
-            <Lock
+            <Icon
               sx={{
                 color: "primary.main",
+                fontSize: "1.5rem",
               }}
             />
           </Box>
-          <Typography variant="h6" fontWeight="bold">
-            {item[0]}
+          <Typography fontSize="1.125rem" color="white" fontWeight="bold">
+            {title}
           </Typography>
         </Stack>
       </Box>
 
-      <Typography color="text.secondary" mt={2}>
-        {item[1]}
+      <Typography color="text.secondary" mt={2} fontSize="1.125rem">
+        {description}
       </Typography>
     </Box>
   );
@@ -55,7 +66,7 @@ function FeatureRow({ item }) {
 
 function FeatureRows({ items }) {
   return (
-    <Stack direction="row" spacing={6} mb={2} px={4} alignItems="stretch">
+    <Stack direction="row" spacing={6} mb={2} alignItems="stretch">
       {items.map((item, i) => {
         return <FeatureRow key={i} item={item} />;
       })}
@@ -209,7 +220,12 @@ export default function PageHome() {
                 obfuscation
               </Typography>
 
-              <Typography variant="body1" mt={4} mb={4} color="text.secondary">
+              <Typography
+                fontSize="1.125rem"
+                mt={4}
+                mb={4}
+                color="text.secondary"
+              >
                 JS-Confuser is a powerful JavaScript obfuscation tool that makes
                 your programs impossible to understand, copy, re-use or modify
                 without authorization.
@@ -317,10 +333,10 @@ export default function PageHome() {
       >
         <Container maxWidth="lg" sx={{ py: 10 }}>
           <Typography variant="h4" className="GradientText" fontWeight="bold">
-            What is this?
+            What Is This?
           </Typography>
 
-          <Typography mt={2} mb={8}>
+          <Typography mt={4} mb={10} fontSize="1.125rem" color="text.secondary">
             JavaScript Obfuscation helps protect your code from being stolen and
             being reverse engineered. This tool transforms your original
             JavaScript source code into a new representation that's harder to
@@ -333,7 +349,7 @@ export default function PageHome() {
             variant="h4"
             className="GradientText"
             fontWeight="bold"
-            mb={4}
+            mb={2}
           >
             Why JS-Confuser?
           </Typography>
@@ -341,21 +357,25 @@ export default function PageHome() {
           {[
             [
               [
-                "Highly effective",
+                Bolt,
+                "Highly Effective",
                 "JS-Confuser uses state-of-the-art obfuscation techniques to protect your code.",
               ],
               [
-                "Defend your intellectual property",
-                "Defeat malicious actors from stealing your source code.",
+                Copyright,
+                "Defend your Intellectual Property",
+                "Stop malicious actors from stealing your source code or your intellectual property.",
               ],
             ],
             [
               [
-                "Enforce licensing and paywalls",
+                PriceCheck,
+                "Enforce Licensing and Paywalls",
                 "Prevent reverse engineers from gaining unauthorized access to your app.",
               ],
               [
-                "Detect and prevent tampering",
+                AdminPanelSettings,
+                "Detect and Prevent Tampering",
                 "JS-Confuser can detect and prevent realtime tampering with your code.",
               ],
             ],

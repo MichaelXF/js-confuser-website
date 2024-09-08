@@ -10,7 +10,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { Info, KeyboardArrowRight, Lock } from "@mui/icons-material";
+import { Edit, Info, KeyboardArrowRight, Lock } from "@mui/icons-material";
 
 export default function EditorPanelDefault({
   obfuscateCode,
@@ -63,7 +63,6 @@ export default function EditorPanelDefault({
 
           return (
             <Button
-              borderRadius={2}
               key={index}
               onClick={() => {
                 setOptions((options) => ({
@@ -129,7 +128,6 @@ export default function EditorPanelDefault({
 
           return (
             <Button
-              borderRadius={2}
               key={index}
               onClick={() => {
                 setOptions((options) => ({
@@ -184,7 +182,7 @@ export default function EditorPanelDefault({
         }}
         endIcon={<KeyboardArrowRight />}
       >
-        {isCustomPreset ? "Change Custom Preset" : "Create Custom Preset"}
+        {isCustomPreset ? "Edit Custom Preset" : "Create Custom Preset"}
         <span style={{ flexGrow: 1 }} />
       </Button>
 

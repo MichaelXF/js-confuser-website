@@ -14,13 +14,11 @@ export default function EditorComponentTab({
   changeTab,
   closeTab,
   tab,
-  key,
 }) {
   var [state, setState] = useState({});
 
   return (
     <Button
-      key={key}
       sx={{
         color: isActive ? "text.secondary" : "text.secondary",
         height: "30px",
@@ -33,11 +31,11 @@ export default function EditorComponentTab({
         pl: 2,
         pr: 1,
         whiteSpace: "nowrap",
+        alignItems: "center",
+        justifyContent: "flex-start",
       }}
       color="inherit"
       display="flex"
-      alignItems="center"
-      justifyContent="flex-start"
       onClick={() => changeTab(tab)}
       title="Right click to rename"
     >

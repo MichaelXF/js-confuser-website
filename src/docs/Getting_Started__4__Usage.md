@@ -8,22 +8,24 @@ The provided code example will obfuscate the file `input.js` and write the outpu
 
 ---{header: "Example"}
 import JSConfuser from "js-confuser";
-import {readFileSync, writeFileSync} from "fs";
+import { readFileSync, writeFileSync } from "fs";
 
 // Read input code
 const sourceCode = readFileSync("input.js", "utf8");
 const options = {
   target: "node",
-  preset: "medium"
+  preset: "medium",
 };
 
-JSConfuser.obfuscate(sourceCode, options).then((obfuscated)=>{
-  // Write output code
-  writeFileSync("output.js", obfuscated);
-}).catch(err=>{
-  // Error occurred
-  console.error(err);
-});
+JSConfuser.obfuscate(sourceCode, options)
+  .then((obfuscated) => {
+    // Write output code
+    writeFileSync("output.js", obfuscated);
+  })
+  .catch((err) => {
+    // Error occurred
+    console.error(err);
+  });
 ---
 
 ##### API Methods

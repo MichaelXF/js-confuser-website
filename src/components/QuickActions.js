@@ -7,7 +7,7 @@ export default function QuickActions() {
     <Stack direction="row" flexWrap="wrap" spacing={0}>
       {[
         {
-          title: "What is Obfuscation?",
+          title: "What Is Obfuscation?",
           description: "Learn more about what obfuscation is",
           to: "/docs/getting-started/what-is-obfuscation",
         },

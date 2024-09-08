@@ -1,3 +1,8 @@
+import packageJson from "../package.json";
+
+export const JsConfuserVersion =
+  packageJson.dependencies["js-confuser"].substring(1);
+
 export const landingPageCode = `// Verify the user's license key
 async function checkUserLicense(){
   const licenseKey = "YOUR_LICENSE_KEY";
@@ -28,7 +33,7 @@ export const defaultCode = `/**
  * You can customize the obfuscator with the button 'Options'.
  * (Set the target to 'node' for NodeJS apps)
  *
- * Version: 1.7.2
+ * Version: ${JsConfuserVersion}
  *
  * Happy Hacking!
  */

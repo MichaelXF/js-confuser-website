@@ -37,13 +37,12 @@ import useSnackbar from "../hooks/useSnackbar";
 import useCodeWorker from "../hooks/useCodeWorker";
 
 function EditorNavItem({
-  index,
   subItem,
   editorOptions,
   setEditorOptions,
   handleParentClose,
 }) {
-  const [open, setOpen] = useState();
+  const [open, setOpen] = useState(false);
   const anchorEl = useRef();
 
   const handleClick = (event) => {
@@ -57,7 +56,7 @@ function EditorNavItem({
   const id = open ? "simple-popover" : undefined;
 
   return (
-    <React.Fragment key={index}>
+    <React.Fragment>
       {subItem.items ? (
         <Menu
           anchorOrigin={{
@@ -79,8 +78,8 @@ function EditorNavItem({
           {subItem.items.map((subSubItem, index) => {
             return (
               <EditorNavItem
+                key={index}
                 subItem={subSubItem}
-                index={index}
                 editorOptions={editorOptions}
                 setEditorOptions={setEditorOptions}
                 handleParentClose={() => {
@@ -525,17 +524,17 @@ export default function EditorNav({
                   <Menu
                     id={"basic-menu-" + item.label}
                     anchorEl={anchorEl}
-                    open={anchorEl && anchorName === item.label}
+                    open={anchorEl ? anchorName === item.label : false}
                     onClose={handleClose}
                     MenuListProps={{
                       "aria-labelledby": "basic-button",
                     }}
                   >
-                    {item.items.map((subItem, index) => {
+                    {item.items.map((subItem) => {
                       return (
                         <EditorNavItem
+                          key={index}
                           subItem={subItem}
-                          index={index}
                           editorOptions={getEditorOptions()}
                           setEditorOptions={setEditorOptions}
                           handleParentClose={handleClose}

@@ -1,4 +1,8 @@
 export function rgbToHex(rgb) {
+  if (typeof rgb === "string" && rgb.startsWith("#")) {
+    return rgb;
+  }
+
   var [r, g, b] = rgb
     .split("rgb(")[1]
     .split(")")[0]

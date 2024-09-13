@@ -369,7 +369,7 @@ export default function PageAST() {
     try {
       // Parse the input code using @babel/parser
       const ast = parse(input, {
-        sourceType: "ambiguous",
+        sourceType: "unambiguous",
         plugins: [], // Add necessary plugins if needed
       });
 

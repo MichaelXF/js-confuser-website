@@ -93,8 +93,6 @@ export default function PageHome() {
     editor.setValue(landingPageCode.substring(0, index));
     editor.setPosition(editor.getModel().getFullModelRange().getEndPosition());
 
-    let typingCount = 0;
-
     const typeCharacter = () => {
       if (index <= exampleCode.length) {
         const model = editor.getModel();
@@ -146,10 +144,7 @@ export default function PageHome() {
 
         // Randomized typing speed for human-like effect
         var delay = Math.random() * 20 + 30;
-        if (typingCount < 10) {
-          delay += 100;
-          typingCount++;
-        }
+
         setTimeout(typeCharacter, delay);
       } else {
         // done

@@ -14,6 +14,7 @@ export const CodeViewer = forwardRef(
       maxHeight = -1,
       language = "javascript",
       onMount = () => {},
+      backgroundColor,
     },
     externalRef
   ) => {
@@ -26,7 +27,8 @@ export const CodeViewer = forwardRef(
     const editorRef = externalRef || internalRef;
 
     // Access the body background color
-    const bodyBackgroundColor = theme.palette.background.default;
+    const bodyBackgroundColor =
+      backgroundColor || theme.palette.background.default;
 
     const handleEditorDidMount = (editor, monaco) => {
       editorRef.current = editor;

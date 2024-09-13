@@ -476,6 +476,7 @@ export default function EditorNav({
       sx={{
         color: "text.primary",
         height: "40px",
+        pr: "5px",
       }}
       variant="mini"
     >

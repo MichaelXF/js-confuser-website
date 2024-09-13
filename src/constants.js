@@ -27,11 +27,11 @@ export const defaultCode = `/**
  * NPM: https://www.npmjs.com/package/js-confuser
  *
  * Welcome to Js Confuser!
- *
- * You can obfuscate the code with the top right button 'Obfuscate'.
- *
- * You can customize the obfuscator with the button 'Options'.
- * (Set the target to 'node' for NodeJS apps)
+ * 
+ * You can obfuscate the code with the top left button 'Obfuscate'.
+ * 
+ * You can customize the obfuscator from the side-panel.
+ * (See all options under 'Create Custom Preset')
  *
  * Version: ${JsConfuserVersion}
  *

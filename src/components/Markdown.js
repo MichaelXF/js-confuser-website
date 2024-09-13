@@ -326,13 +326,21 @@ export default function Markdown({
           <TableContainer
             component={Paper}
             key={index}
-            sx={{ my: 2, border: "2px solid", borderColor: "divider_opaque" }}
+            sx={{ my: 2, border: "1px solid", borderColor: "divider_opaque" }}
           >
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
-              <TableHead>
+              <TableHead
+                sx={{
+                  borderBottom: "1px solid",
+                  borderColor: "divider_opaque",
+                  bgcolor: "rgba(255,255,255,0.01)",
+                }}
+              >
                 <TableRow>
                   {headerNames.map((header, i) => (
-                    <TableCell key={i}>{parseLine(header)}</TableCell>
+                    <TableCell key={i} sx={{ fontWeight: "bold" }}>
+                      {parseLine(header)}
+                    </TableCell>
                   ))}
                 </TableRow>
               </TableHead>

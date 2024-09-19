@@ -1,4 +1,4 @@
-#### Installation
+### Installation
 
 JS-Confuser is available on NPM under the package name `js-confuser`.
 

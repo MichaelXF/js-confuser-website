@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import worker from "workerize-loader!../worker"; // eslint-disable-line import/no-webpack-loader-syntax
+import worker from "workerize-loader?inline!../workers/evalWorker"; // eslint-disable-line import/no-webpack-loader-syntax
 import { getRandomString } from "../utils/random-utils";
 
 export default function useWorkerEval(consoleRef) {

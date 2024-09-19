@@ -1,16 +1,5 @@
-import React, { useEffect, useState } from "react";
-import {
-  Box,
-  Button,
-  Checkbox,
-  Divider,
-  Link,
-  Stack,
-  Tooltip,
-  Typography,
-  useTheme,
-} from "@mui/material";
-import { Edit, Info, KeyboardArrowRight, Lock } from "@mui/icons-material";
+import { Button, Checkbox, Stack, Tooltip, Typography } from "@mui/material";
+import { Info, KeyboardArrowRight, Lock } from "@mui/icons-material";
 
 export default function EditorPanelDefault({
   obfuscateCode,
@@ -22,11 +11,12 @@ export default function EditorPanelDefault({
   activeTab,
 }) {
   var isCustomPreset = options.preset === undefined;
+  var isOptionsFile = activeTab?.title === "JSConfuser.ts";
   var isTypeScript = activeTab?.getLanguageId?.() === "typescript";
 
   return (
     <>
-      {!isTypeScript ? (
+      {!isTypeScript || isOptionsFile ? (
         <Button
           sx={{ fontWeight: "bold", width: "100%", minHeight: "42px" }}
           startIcon={<Lock sx={{ transform: "scale(0.9)" }} />}

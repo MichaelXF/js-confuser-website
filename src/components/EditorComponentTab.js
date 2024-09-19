@@ -38,6 +38,7 @@ export default function EditorComponentTab({
       display="flex"
       onClick={() => changeTab(tab)}
       title="Right click to rename"
+      component="div"
     >
       <Typography
         variant="body2"

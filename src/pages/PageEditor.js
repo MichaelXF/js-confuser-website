@@ -71,15 +71,12 @@ export default function PageEditor() {
    */
   let [tabs, setTabs] = useState([]);
 
-  /**
-   * @type {React.MutableRefObject<WeakMap<monaco.editor.ITextModel, monaco.editor.ICodeEditorViewState>>}
-   */
-  let viewStatesRef = useRef(new WeakMap());
-
   const [optionsJS, setOptionsLocalStorageJS] = useLocalStorage(
     "JSConfuser_Options",
     defaultOptionsJS
   );
+  const optionsJSRef = useRef();
+  optionsJSRef.current = optionsJS;
 
   const [editorOptions, setEditorOptions] = useLocalStorage(
     "JSConfuser_EditorOptions",
@@ -97,7 +94,7 @@ export default function PageEditor() {
 
     var found = tabs.find((t) => t.identity === "internal_options");
     if (found) {
-      found.setValue(value);
+      found.setNonDirtyValue(value);
     }
   };
 
@@ -123,13 +120,28 @@ export default function PageEditor() {
     var tab = typeof tabOrIndex === "number" ? tabs[tabOrIndex] : tabOrIndex;
 
     const { editor } = ref.current;
-    editor.setModel(tab);
+    editorSetModel(editor, tab);
 
     setActiveTab(tab);
   }
 
   const tabsRef = useRef();
   tabsRef.current = tabs;
+
+  function editorSetModel(editor, model) {
+    var currentModel = editor.getModel();
+    if (currentModel) {
+      currentModel.viewState = editor.saveViewState();
+    }
+    editor.setModel(model);
+
+    if (model.viewState) {
+      editor.focus();
+      editor.restoreViewState(model.viewState);
+
+      delete model.viewState;
+    }
+  }
 
   function newTab(value = "", fileName = "Untitled.js", onSave, identity) {
     const { monaco, editor } = ref.current;
@@ -158,29 +170,30 @@ export default function PageEditor() {
         setTabs((tabs) =>
           tabs.includes(alreadyOpen) ? tabs : [...tabs, alreadyOpen]
         );
+        alreadyOpen.onSave = onSave;
         alreadyOpen.setValue(value);
         changeTab(alreadyOpen);
         return;
       }
     }
 
-    function getLanguageFromFileName(fileName) {
-      if (fileName.endsWith(".ts")) {
-        return "typescript";
-      } else if (fileName.endsWith(".js")) {
-        return "javascript";
-      } else if (fileName.endsWith(".json")) {
-        return "json";
-      } else {
-        return "plaintext";
-      }
+    const fileExtension = fileName.split(".").pop();
+
+    function getLanguageFromFileName(filName) {
+      return (
+        {
+          js: "javascript",
+          ts: "typescript",
+          json: "json",
+        }[fileExtension] || "plaintext"
+      );
     }
 
-    var uri = monaco.Uri.parse("file:///" + identity + ".js");
+    var uri = monaco.Uri.parse("file:///" + identity + "." + fileExtension);
 
     const newModel = monaco.editor.createModel(
       value,
-      getLanguageFromFileName(fileName),
+      getLanguageFromFileName(),
       uri
     );
 
@@ -208,6 +221,11 @@ export default function PageEditor() {
       newModel.setIsDirty(isModified);
     });
 
+    newModel.setNonDirtyValue = (value) => {
+      lastSavedContent = value;
+      newModel.setValue(value);
+    };
+
     newModel.setIsDirty = (isDirty) => {
       newModel.isDirty = isDirty;
       const el = document.getElementById("tab-" + newModel.identity);
@@ -222,7 +240,8 @@ export default function PageEditor() {
       newModel.onSave(lastSavedContent);
     };
 
-    editor.setModel(newModel);
+    editorSetModel(editor, newModel);
+
     setTabs((tabs) => [...tabs, newModel]);
     setActiveTab(newModel);
 
@@ -234,21 +253,22 @@ export default function PageEditor() {
   }
 
   function closeTab(tab) {
-    var newTabs = tabs.filter((t, i) => t !== tab);
+    var { editor } = ref.current;
+
+    var newTabs = tabsRef.current?.filter((t, i) => t !== tab);
     setTabs(newTabs);
 
-    if (activeTab === tab && newTabs.length) {
-      changeTab(newTabs[Math.max(0, newTabs.length - 1)]);
-    }
-    if (newTabs.length === 0) {
-      var editor = ref.current?.editor;
-      if (editor) {
+    if (editor) {
+      const activeTab = editor.getModel();
+      if (activeTab === tab && newTabs.length) {
+        changeTab(newTabs[Math.max(0, newTabs.length - 1)]);
+      }
+      if (newTabs.length === 0) {
         editor.setValue("// Open a new file to start");
       }
     }
   }
 
-  var [showError, setShowError] = useState(false);
   var [error, setError] = useState();
 
   if (options.error) {
@@ -258,9 +278,10 @@ export default function PageEditor() {
     };
   }
 
-  var [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
   var [loadingInfo, setLoadingInfo] = useState({ progress: "", percent: "" });
 
+  var [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
+  var [showError, setShowError] = useState(false);
   var [showOptionsDialog, setShowOptionsDialog] = useState(false);
   var [showConsoleDialog, setShowConsoleDialog] = useState(false);
 
@@ -272,84 +293,102 @@ export default function PageEditor() {
     }
     const { editor } = ref.current;
 
-    // Get the current value from the editor
-    const originalCode = editor.getValue();
-
-    try {
-      // Obfuscate the code using JS-Confuser
-
-      JSConfuser.obfuscate(originalCode, optionsJS, {
-        onComplete: (data) => {
-          setShowLoadingOverlay(false);
-
-          var { obfuscated, info } = data;
-
-          var outputFileName = "Obfuscated.js";
-          var activeModel = editor.getModel();
-          if (typeof activeModel.title === "string") {
-            outputFileName = activeModel.title;
-
-            // file.obfuscated.js -> file.obfuscated.2.js
-            // file.obfuscated.2.js -> file.obfuscated.3.js
-            if (
-              outputFileName.includes(".obfuscated.") &&
-              outputFileName.endsWith(".js")
-            ) {
-              var num =
-                parseInt(
-                  outputFileName.split(".obfuscated.")[1].split(".js")[0]
-                ) + 1;
-              if (Number.isNaN(num) || num < 1) {
-                num = 2;
-              }
-
-              outputFileName =
-                outputFileName.split(".obfuscated")[0] +
-                ".obfuscated." +
-                num +
-                ".js";
-            } else if (outputFileName.endsWith(".js")) {
-              // Replace .js with .obfuscated.js
-              outputFileName = activeModel.title.replace(
-                ".js",
-                ".obfuscated.js"
-              );
-            } else {
-              // No file extension -> file.obfuscated.js
-              outputFileName = outputFileName + ".obfuscated.js";
-            }
-          }
-
-          var model = newTab(obfuscated, outputFileName);
-          model.obfuscationInfo = info;
-        },
-        onError: (data) => {
-          setShowLoadingOverlay(false);
-          setError({
-            errorString: data.errorString,
-            errorStack: data.errorStack,
-          });
-          setShowError(true);
-        },
-        onProgress: (data) => {
-          setLoadingInfo({
-            progress: data.name + " (" + data.complete + "/" + data.total + ")",
-            percent: data.complete / data.total,
-          });
-        },
-      });
-      setLoadingInfo({ progress: "Starting...", percent: 0 });
-      setShowLoadingOverlay(true);
-      setShowError(false);
-    } catch (error) {
-      console.error("Obfuscation failed:", error);
+    let activeModel = editor.getModel();
+    if (activeModel.title === "JSConfuser.ts") {
+      activeModel = tabsRef.current.find((t) => t.title !== "JSConfuser.ts");
     }
+
+    return new Promise((resolve, reject) => {
+      // Get the current value from the editor
+      let originalCode = activeModel.getValue();
+
+      try {
+        // Obfuscate the code using JS-Confuser
+        JSConfuser.obfuscate(originalCode, optionsJSRef.current, {
+          onComplete: (data) => {
+            setShowLoadingOverlay(false);
+
+            var { code, profileData } = data;
+
+            console.log(profileData);
+
+            var outputFileName = "Obfuscated.js";
+            if (typeof activeModel.title === "string") {
+              outputFileName = activeModel.title;
+
+              // file.obfuscated.js -> file.obfuscated.2.js
+              // file.obfuscated.2.js -> file.obfuscated.3.js
+              if (
+                outputFileName.includes(".obfuscated.") &&
+                outputFileName.endsWith(".js")
+              ) {
+                var num =
+                  parseInt(
+                    outputFileName.split(".obfuscated.")[1].split(".js")[0]
+                  ) + 1;
+                if (Number.isNaN(num) || num < 1) {
+                  num = 2;
+                }
+
+                outputFileName =
+                  outputFileName.split(".obfuscated")[0] +
+                  ".obfuscated." +
+                  num +
+                  ".js";
+              } else if (outputFileName.endsWith(".js")) {
+                // Replace .js with .obfuscated.js
+                outputFileName = activeModel.title.replace(
+                  ".js",
+                  ".obfuscated.js"
+                );
+              } else {
+                // No file extension -> file.obfuscated.js
+                outputFileName = outputFileName + ".obfuscated.js";
+              }
+            }
+
+            var model = newTab(code, outputFileName);
+            model.profileData = profileData;
+
+            resolve(true);
+          },
+          onError: (data) => {
+            setShowLoadingOverlay(false);
+            setError({
+              errorString: data.errorString,
+              errorStack: data.errorStack,
+            });
+            setShowError(true);
+
+            resolve(false);
+          },
+          onProgress: (data) => {
+            setLoadingInfo({
+              progress:
+                (data.nextTransform || data.currentTransform) +
+                " (" +
+                data.index +
+                "/" +
+                data.totalTransforms +
+                ")",
+              percent: data.index / data.totalTransforms,
+            });
+          },
+        });
+        setLoadingInfo({ progress: "Starting...", percent: 0 });
+        setShowLoadingOverlay(true);
+        setShowError(false);
+      } catch (error) {
+        resolve(false);
+        console.error("Obfuscation failed:", error);
+      }
+    });
   };
 
   const editOptionsFile = () => {
     newTab(
       optionsJS,
-      "JSConfuser.js",
+      "JSConfuser.ts",
       (value) => {
         setOptionsJS(value);
       },
@@ -373,6 +412,23 @@ export default function PageEditor() {
   };
 
   const evaluateCode = () => {
+    const { editor } = ref.current;
+    var model = editor?.getModel();
+    if (model.title === "JSConfuser.ts") {
+      model.saveContent();
+
+      obfuscateCode()
+        .then((success) => {
+          if (success) {
+            evaluateCode();
+          }
+        })
+        .catch(() => {
+          alert("Failed to obfuscate code");
+        });
+      return;
+    }
+
     // Purposely making my code IMPOSSIBLE for AI to understand
     // Nope, this is just using a unique key which triggers ->
     // Re-render -> Console Dialog Re-render -> Console Re-evaluates code
@@ -397,6 +453,25 @@ export default function PageEditor() {
           errorStack: err.stack,
         });
       });
+  };
+
+  const activeModelRef = useRef();
+  activeModelRef.current = showError || showOptionsDialog || showConsoleDialog;
+
+  // Function to close all modals and return true if any were open
+  const closeModals = () => {
+    // Check if any modal is currently open
+    const wasAnyModalOpen = activeModelRef.current;
+
+    // Close all modals
+    setShowError(false);
+    setShowOptionsDialog(false);
+    setShowConsoleDialog(false);
+
+    activeModelRef.current = false;
+
+    // Return true if any modal was open
+    return wasAnyModalOpen;
   };
 
   return (
@@ -425,6 +500,12 @@ export default function PageEditor() {
         getEditorOptions={getEditorOptions}
         onClose={() => {
           setShowConsoleDialog(false);
+          requestAnimationFrame(() => {
+            const { editor } = ref.current;
+            if (editor) {
+              editor.focus();
+            }
+          });
         }}
         getEditorCode={() => {
           return getSelectedTextOrFullContent();
@@ -457,6 +538,16 @@ export default function PageEditor() {
         getEditor={() => ref.current?.editor}
         codeWorker={codeWorker}
         convertCode={convertCode}
+        closeTab={closeTab}
+        closeModals={closeModals}
+        focusEditor={() => {
+          requestAnimationFrame(() => {
+            const { editor } = ref.current;
+            if (editor) {
+              editor.focus();
+            }
+          });
+        }}
       />
 
       <EditorFileDrop newTab={newTab} />

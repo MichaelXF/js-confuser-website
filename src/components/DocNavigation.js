@@ -170,7 +170,7 @@ export default function DocNavigation({
         bgcolor: "primary.alpha",
       },
       fontWeight: "normal",
-      typography: "0.875rem",
+      typography: "1rem",
     },
     display: "flex",
     alignItems: "center",

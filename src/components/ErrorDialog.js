@@ -62,15 +62,15 @@ export default function ErrorDialog({ error, open, onClose }) {
         </Box>
 
         <Typography color="text.secondary" mt={2}>
-          If you believe this an error within the obfuscator, please create an
-          issue on the GitHub:{" "}
+          If you believe this an error within the obfuscator, please{" "}
           <Link
             href="https://github.com/MichaelXF/js-confuser/issues"
             target="_blank"
           >
-            https://github.com/MichaelXF/js-confuser/issues
-            <OpenInNew sx={{ transform: "translate(6px,3px)" }} />
-          </Link>
+            create an issue
+            <OpenInNew sx={{ transform: "translate(0,3px)", ml: "3px" }} />
+          </Link>{" "}
+          on the GitHub repository.
           <br />
           <br />
           More details may be available in the DevTools Console.

@@ -1,6 +1,5 @@
-import { Buffer } from "buffer";
-import { useEffect, useRef } from "react";
-import Worker from "workerize-loader!../worker"; // eslint-disable-line import/no-webpack-loader-syntax
+import { useRef } from "react";
+import Worker from "workerize-loader!../workers/jsConfuserWorker.js"; // eslint-disable-line import/no-webpack-loader-syntax
 import { getRandomString } from "../utils/random-utils";
 
 export default function useJSConfuser() {

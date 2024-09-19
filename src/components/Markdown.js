@@ -117,8 +117,8 @@ export default function Markdown({
     var options = optionsRef.current;
     if (options && typeof value === "string") {
       JSConfuser.obfuscate(value, options, {
-        onComplete: ({ obfuscated }) => {
-          setOutputValue(obfuscated);
+        onComplete: ({ code }) => {
+          setOutputValue(code);
         },
         onError: (error) => {
           setOutputValue("// " + error.errorString);
@@ -129,25 +129,39 @@ export default function Markdown({
 
   const headings = [];
 
+  /**
+   * @param {string} markdown
+   * @returns
+   */
   const parseMarkdown = (markdown) => {
     const lines = markdown.split("\n");
 
     const skipLines = new Set();
     let allowBreak = false;
+    let allowActualBreak = false;
 
     return lines.map((line, index) => {
       if (skipLines.has(index)) {
         return <React.Fragment key={index}></React.Fragment>;
       }
 
+      /**
+       * @type {string}
+       */
       var trimmed = line.trim();
 
-      if (!trimmed && allowBreak) {
-        return (
-          <React.Fragment key={index}>
-            <br />
-          </React.Fragment>
-        );
+      if (!trimmed) {
+        if (allowActualBreak) {
+          allowActualBreak = false;
+          return (
+            <React.Fragment key={index}>
+              <br />
+            </React.Fragment>
+          );
+        } else if (allowBreak) {
+          allowActualBreak = true;
+          allowBreak = false;
+        }
       }
 
       if (trimmed === "<br>") {
@@ -176,14 +190,18 @@ export default function Markdown({
           level: headingLevel,
           to: "#" + headingHash,
         });
+
         allowBreak = false;
+        allowActualBreak = false;
+
         return (
           <Typography
             variant={`h${headingLevel}`}
             color="text.primary"
             key={index}
             gutterBottom
-            mt={headings.length === 1 ? 0 : 4}
+            mt={headingLevel === 1 ? 0 : 3}
+            mb={headingLevel === 4 ? 2 : headingLevel === 5 ? 2 : undefined}
             id={headingHash}
             className="HeadingScrollMargin"
           >
@@ -192,10 +210,16 @@ export default function Markdown({
         );
       }
 
-      if (trimmed.startsWith("---{")) {
+      if (
+        trimmed.startsWith("---{") ||
+        trimmed.startsWith("---js") ||
+        trimmed.startsWith("```")
+      ) {
         var endLineIndex = -1;
+        var endToken = trimmed.slice(0, 3);
+
         for (let i = index + 1; i < lines.length; i++) {
-          if (lines[i].trim().startsWith("---")) {
+          if (lines[i].trim().startsWith(endToken)) {
             endLineIndex = i;
             break;
           }
@@ -207,11 +231,25 @@ export default function Markdown({
 
           var metadataString = trimmed.slice(3).trim();
           var valueLines = lines.slice(index + 1, endLineIndex);
+          if (!valueLines[0].trim() && valueLines.length > 1) {
+            valueLines.shift();
+          }
+
           var firstIndention =
             valueLines[0].length - valueLines[0].trimStart().length;
 
+          var metadata = {};
+
           try {
-            var metadata = json5.parse(metadataString);
+            if (metadataString === "js") {
+              metadata = {
+                language: "javascript",
+                live: false,
+                header: "Code",
+              };
+            } else {
+              metadata = json5.parse(metadataString);
+            }
           } catch (e) {
             console.error(metadataString);
             throw new Error(e);
@@ -227,6 +265,7 @@ export default function Markdown({
             .trim();
 
           allowBreak = false;
+          allowActualBreak = false;
 
           if (metadata.live) {
             // eval string
@@ -238,7 +277,7 @@ export default function Markdown({
           }
 
           return (
-            <Box key={index} my={3}>
+            <Box key={index} my={4}>
               <CodeViewerTabbed
                 defaultValue={value}
                 header={metadata.header}
@@ -269,33 +308,60 @@ export default function Markdown({
 
       if (trimmed.startsWith("---")) {
         allowBreak = false;
-        return <Divider sx={{ my: 4 }} key={index} />;
+        allowActualBreak = false;
+
+        return <Divider sx={{ my: 6 }} key={index} />;
       }
 
-      if (trimmed.startsWith("- ")) {
-        var bulletLevel = 0;
-        var bulletPoint = trimmed;
+      function isValidBulletPoint(trimmed) {
+        if (!trimmed) return false;
 
+        return trimmed.startsWith("- ") || trimmed.match(/^[0-9]+. +/);
+      }
+
+      if (isValidBulletPoint(trimmed)) {
+        const bulletLines = [];
+        var i = index;
         do {
-          bulletPoint = bulletPoint.slice(2).trim();
-          bulletLevel++;
-        } while (bulletPoint.startsWith("- "));
-
-        allowBreak = false;
-
-        var paddingInlineStart = bulletLevel * 28;
+          bulletLines.push(trimmed);
+          skipLines.add(i);
+          i++;
+          if (i > lines.length) break;
+          trimmed = lines[i]?.trim();
+        } while (
+          (typeof trimmed === "string" && !trimmed) ||
+          isValidBulletPoint(trimmed)
+        );
 
         return (
-          <Typography variant="inherit">
-            <ul
-              style={{
-                marginBlock: "8px",
-                paddingInlineStart: paddingInlineStart + "px",
-              }}
-            >
-              <li>{parseLine(bulletPoint)}</li>
-            </ul>
-          </Typography>
+          <Box key={index} mb={4}>
+            {bulletLines.map((line, i) => {
+              var bulletLevel = 0;
+              var bulletPoint = line.trim();
+
+              if (!bulletPoint) return null;
+
+              do {
+                bulletPoint = bulletPoint.slice(2).trim();
+                bulletLevel++;
+              } while (bulletPoint.startsWith("- "));
+
+              var paddingInlineStart = bulletLevel * 28;
+
+              return (
+                <Typography variant="inherit">
+                  <ul
+                    style={{
+                      marginBlock: "8px",
+                      paddingInlineStart: paddingInlineStart + "px",
+                    }}
+                  >
+                    <li>{parseLine(bulletPoint)}</li>
+                  </ul>
+                </Typography>
+              );
+            })}
+          </Box>
         );
       }
 
@@ -321,70 +387,96 @@ export default function Markdown({
         }
 
         allowBreak = false;
+        allowActualBreak = false;
 
         return (
-          <TableContainer
-            component={Paper}
-            key={index}
-            sx={{ my: 2, border: "1px solid", borderColor: "divider_opaque" }}
-          >
-            <Table sx={{ minWidth: 650 }} aria-label="simple table">
-              <TableHead
-                sx={{
-                  borderBottom: "1px solid",
-                  borderColor: "divider_opaque",
-                  bgcolor: "rgba(255,255,255,0.01)",
-                }}
-              >
-                <TableRow>
-                  {headerNames.map((header, i) => (
-                    <TableCell key={i} sx={{ fontWeight: "bold" }}>
-                      {parseLine(header)}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.map((row) => (
-                  <TableRow key={row.name}>
-                    {row.map((cell, i) => {
-                      var content = parseLine(cell);
-                      var sx = {};
+          <Box key={index} pt={1} mt={2} mb={4}>
+            <TableContainer
+              component={Paper}
+              key={index}
+              sx={{
+                border: "1px solid",
+                borderColor: "divider_opaque",
+              }}
+            >
+              <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                <TableHead
+                  sx={{
+                    outline: "1px solid",
+                    outlineColor: "divider_opaque",
+                    bgcolor: "rgba(255,255,255,0.01)",
+                  }}
+                >
+                  <TableRow>
+                    {headerNames.map((header, i) => (
+                      <TableCell
+                        key={i}
+                        sx={{
+                          fontWeight: "bold",
+                          width: header.trim() === "Option" ? "220px" : "none",
+                        }}
+                      >
+                        {parseLine(header)}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {rows.map((row) => (
+                    <TableRow key={row.name}>
+                      {row.map((cell, i) => {
+                        var content = parseLine(cell);
+                        var sx = {};
 
-                      var trimmed = cell.trim();
-                      if (trimmed === "Yes") {
-                        sx = { color: "primary.main" };
-                      } else if (trimmed === "No") {
-                        sx = { color: "error.main", fontWeight: "bold" };
-                      }
+                        var trimmed = cell.trim();
+                        if (trimmed === "Yes") {
+                          sx = { color: "primary.main" };
+                        } else if (trimmed === "No") {
+                          sx = { color: "error.main", fontWeight: "bold" };
+                        }
 
-                      if (i === 0) {
+                        if (i === 0) {
+                          return (
+                            <TableCell
+                              component="th"
+                              scope="row"
+                              key={i}
+                              sx={sx}
+                            >
+                              {content}
+                            </TableCell>
+                          );
+                        }
                         return (
-                          <TableCell component="th" scope="row" key={i} sx={sx}>
+                          <TableCell key={i} sx={sx}>
                             {content}
                           </TableCell>
                         );
-                      }
-                      return (
-                        <TableCell key={i} sx={sx}>
-                          {content}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                      })}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
         );
       }
 
       if (trimmed) {
         allowBreak = true;
+        allowActualBreak = false;
+      }
+
+      if (!trimmed) {
+        return null;
       }
 
       // Default
-      return <React.Fragment key={index}>{parseLine(line)}</React.Fragment>;
+      return (
+        <Typography key={index} sx={sx}>
+          {parseLine(trimmed)}
+        </Typography>
+      );
     });
   };
 

@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from "react";
 import { Box, useTheme } from "@mui/material";
 import EditorPanelDefault from "./EditorPanelDefault";
 import EditorPanelDownload from "./EditorPanelDownload";
@@ -15,11 +14,11 @@ export default function EditorPanel({
 }) {
   const theme = useTheme();
 
-  const panelMode = activeTab?.obfuscationInfo ? "download" : "default";
+  const panelMode = activeTab?.profileData ? "download" : "default";
 
   return (
     <Box
-      maxWidth="260px"
+      maxWidth="270px"
       width="100%"
       flexShrink={0}
       height="calc(100vh - 40px)"

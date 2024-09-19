@@ -5,14 +5,23 @@ import { Add } from "@mui/icons-material";
 import { forwardRef } from "react";
 import { defaultCode } from "../constants";
 import EditorComponentTab from "./EditorComponentTab";
+
+import jsConfuserOptionsTS from "!!raw-loader!js-confuser/src/options.ts"; // eslint-disable-line import/no-webpack-loader-syntax
+
 const jsConfuserTypes = `
-  declare const JSConfuser: {
-    obfuscate(source: string, options?: object): Promise<string>;
-    obfuscateAST(ast: object, options?: object): object;
-    presets: {
-      [key: string]: object;
-    };
-  };
+declare module 'js-confuser' {
+  export class Template {}
+  
+  ${jsConfuserOptionsTS}
+}
+
+interface Module {
+  exports: import('js-confuser').ObfuscateOptions;
+}
+
+
+// Simulate Node.js-like 'module' behavior
+declare var module: Module;
 `;
 
 export const EditorComponent = forwardRef(
@@ -49,7 +58,7 @@ export const EditorComponent = forwardRef(
       // Register your JSConfuser types with Monaco
       monaco.languages.typescript.typescriptDefaults.addExtraLib(
         jsConfuserTypes,
-        "file:///model/jsconfuser.d.ts" // Use a unique URI that matches how you'd refer to this file in your code
+        "file:///node_modules/@types/obfuscateOptions/index.d.ts"
       );
 
       monaco.languages.typescript.typescriptDefaults.setEagerModelSync(true);

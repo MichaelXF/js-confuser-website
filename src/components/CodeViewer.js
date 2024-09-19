@@ -1,7 +1,23 @@
 import { useTheme } from "@mui/material";
 import { rgbToHex } from "../utils/color-utils";
 import { Editor } from "@monaco-editor/react";
-import { forwardRef, useEffect, useRef } from "react";
+import { forwardRef, useRef } from "react";
+
+const editorOptions = {
+  fontFamily: "Fira Code, monospace",
+  fontSize: 16,
+  lineNumbers: "on",
+  minimap: { enabled: false },
+  scrollBeyondLastLine: false, // Disable scrolling beyond the last line
+  folding: false, // Disable the folding controls
+  foldingHighlight: false, // Disable the folding highlight
+  links: false,
+  wordWrap: "on",
+  wrappingStrategy: "advanced",
+  overviewRulerLanes: 0,
+  tabSize: 2,
+  insertSpaces: true,
+};
 
 export const CodeViewer = forwardRef(
   (
@@ -15,6 +31,8 @@ export const CodeViewer = forwardRef(
       language = "javascript",
       onMount = () => {},
       backgroundColor,
+      heightLines,
+      style = {},
     },
     externalRef
   ) => {
@@ -48,18 +66,8 @@ export const CodeViewer = forwardRef(
 
       // Ensure the editor uses Fira Code font
       editor.updateOptions({
-        fontFamily: "Fira Code, monospace",
-        fontSize: 16,
-        lineNumbers: "on",
-        minimap: { enabled: false },
-        scrollBeyondLastLine: false, // Disable scrolling beyond the last line
-        folding: false, // Disable the folding controls
-        foldingHighlight: false, // Disable the folding highlight
+        ...editorOptions,
         readOnly: readOnly, // Make the editor read-only
-        links: false,
-        wordWrap: "on",
-        wrappingStrategy: "advanced",
-        overviewRulerLanes: 0,
         scrollbar:
           height === "auto"
             ? {
@@ -111,11 +119,17 @@ export const CodeViewer = forwardRef(
       editor.layout({ width, height: contentHeight });
     };
 
-    const estimatedInitialHeight =
-      (value || defaultValue || "").split("\n").length * 24 + "px";
+    const estimatedLines =
+      typeof heightLines === "number"
+        ? heightLines
+        : (value || defaultValue || "").split("\n").length;
+    const estimatedInitialHeight = estimatedLines * 24 + "px";
 
     return (
-      <div ref={containerRef} style={{ width: "100%", height: height }}>
+      <div
+        ref={containerRef}
+        style={{ width: "100%", height: height, ...style }}
+      >
         <Editor
           language={language}
           value={value}
@@ -123,8 +137,12 @@ export const CodeViewer = forwardRef(
           theme="vs-dark"
           onMount={handleEditorDidMount} // Use the onMount callback
           onChange={onChange}
-          options={{}}
-          height={height === "auto" ? estimatedInitialHeight : height}
+          options={editorOptions}
+          height={
+            height === "auto" || height === "initial"
+              ? estimatedInitialHeight
+              : height
+          }
         />
       </div>
     );

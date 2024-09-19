@@ -1,4 +1,4 @@
-import worker from "workerize-loader!../codeWorker"; // eslint-disable-line import/no-webpack-loader-syntax
+import worker from "workerize-loader!../workers/codeWorker"; // eslint-disable-line import/no-webpack-loader-syntax
 import { getRandomString } from "../utils/random-utils";
 
 var workerInstance;

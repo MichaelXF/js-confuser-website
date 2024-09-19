@@ -1,6 +1,8 @@
 export function rgbToHex(rgb) {
-  if (typeof rgb === "string" && rgb.startsWith("#")) {
-    return rgb;
+  if (typeof rgb === "string") {
+    if (rgb.startsWith("#")) return rgb;
+
+    if (rgb === "transparent") return "#00000000";
   }
 
   var [r, g, b] = rgb

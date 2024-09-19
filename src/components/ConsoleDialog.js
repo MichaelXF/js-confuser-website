@@ -43,7 +43,13 @@ export default function ConsoleDialog({
   }, [open]);
 
   return (
-    <Dialog open={!!open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog
+      open={!!open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      disableRestoreFocus={true}
+    >
       <DialogTitle>Console</DialogTitle>
       <DialogContent>
         <Box

@@ -27,7 +27,6 @@ export default function CodeViewerTabbed({
     <Box
       border="1px solid"
       borderColor="divider"
-      overflow="hidden"
       flex={"1 1 58%"}
       borderRadius={2}
       mb={mb}
@@ -42,7 +41,11 @@ export default function CodeViewerTabbed({
         height="36px"
         p={2}
         px={2}
-        sx={{ bgcolor: "divider" }}
+        sx={{
+          bgcolor: "divider",
+          borderTopLeftRadius: 8,
+          borderTopRightRadius: 8,
+        }}
         textAlign="center"
         display="flex"
         justifyContent="center"
@@ -61,7 +64,6 @@ export default function CodeViewerTabbed({
                 textTransform: "none",
               }}
               onClick={(e) => {
-                e.target.blur();
                 setShowConsoleDialog(true);
               }}
               startIcon={
@@ -95,6 +97,7 @@ export default function CodeViewerTabbed({
         </Box>
       </Box>
       <CodeViewer
+        backgroundColor="transparent"
         readOnly={readOnly}
         value={value}
         defaultValue={defaultValue}

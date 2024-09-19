@@ -27,6 +27,7 @@ export function camelCaseToTitleCase(str) {
   if (str === "es5") return "ES5";
   if (str === "rgf") return "RGF";
   if (str === "osLock") return "OS Lock";
+  if (str === "astScrambler") return "AST Scrambler";
 
   // Split the string at each uppercase letter and add a space before it
   const result = str.replace(/([A-Z])/g, " $1");
@@ -55,3 +56,7 @@ export const formatSize = (b) => {
 
 export const formatPercentage = (p) =>
   Math.floor(p * 100).toLocaleString() + "%";
+
+export function formatNumberWithCommas(number) {
+  return number.toLocaleString();
+}

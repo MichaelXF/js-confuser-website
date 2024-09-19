@@ -1,10 +1,9 @@
-#### Playground
+### Playground
 
 The JS-Confuser Playground is a rich code editor for obfuscating your JavaScript code.
-<br>
 [Try It Out](/editor)
 
-##### How to use
+#### How to use
 
 - Paste your code into the editor
 - Configure the options to your liking
@@ -13,25 +12,25 @@ The JS-Confuser Playground is a rich code editor for obfuscating your JavaScript
 
 ---
 
-##### 100% Local
+#### 100% Local
 
 JS-Confuser.com runs entirely in your browser, completely offline. This means your input code and actions are never sent to any remote server. You can find the source code for this website [here](https://github.com/MichaelXF/js-confuser-website).
 
-##### Recent Files
+#### Recent Files
 
 JS-Confuser.com saves recently opened files in your browser's FileStorage. These files are also 100% local.
 
-##### Prettier Formatter
+#### Prettier Formatter
 
 JS-Confuser.com comes with Prettier enabled by default. You can disable the auto-formatting feature by navigating to **File** > **Format On Save** > **Uncheck**.
 
 ---
 
-##### JSConfuser.js
+#### JSConfuser.ts
 
-The `JSConfuser.js` can be edited by navigating to **Tools** > **Edit JSConfuser.JS**. The file serves a JSON representation for your obfuscator settings. The file is evaluated and can additionally include custom implementations.
+The `JSConfuser.ts` can be edited by navigating to **Tools** > **Edit JSConfuser.ts**. The file serves a JSON representation for your obfuscator settings. The file is evaluated and can additionally include custom implementations.
 
----{header: "JSConfuser.js"}
+---{header: "JSConfuser.ts"}
 var counter = 0;
 
 module.exports = {
@@ -59,7 +58,7 @@ module.exports = {
 
 ---
 
-##### See also
+#### See also
 
 - [Rename Variables](../options/renameVariables)
 - [String Concealing](..options/stringConcealing)

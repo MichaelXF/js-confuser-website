@@ -1,8 +1,8 @@
-#### Usage
+### Usage
 
 JS-Confuser exposes a simple API that allows you to obfuscate your code with just a few lines of code.
 
-##### Example
+#### Example
 
 The provided code example will obfuscate the file `input.js` and write the output to a file named `output.js`.
 
@@ -18,9 +18,9 @@ const options = {
 };
 
 JSConfuser.obfuscate(sourceCode, options)
-  .then((obfuscated) => {
+  .then((result) => {
     // Write output code
-    writeFileSync("output.js", obfuscated);
+    writeFileSync("output.js", result.code);
   })
   .catch((err) => {
     // Error occurred
@@ -28,31 +28,38 @@ JSConfuser.obfuscate(sourceCode, options)
   });
 ---
 
-##### API Methods
+---
+
+#### API Methods
 
 ###### `JSConfuser.obfuscate(sourceCode, options)`
 
-Obfuscates source code. Returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that resolves to a string of the obfuscated code.
+Obfuscates source code. Returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that resolves to an object of the obfuscated result.
 
 | Parameter | Type | Description |
 | `sourceCode` | `string` | The JavaScript code to be obfuscated. |
 | `options` | `object` | The obfuscator settings. |
 
+Return Type: `Promise<ObfuscationResult>`
+
+| Property | Type | Description |
+| `code` | `string` | The obfuscated code. |
+
 ---
 
 ###### `JSConfuser.obfuscateAST(AST, options)`
 
-Obfuscates an [ESTree](https://github.com/estree/estree) compliant AST. Returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise).
+Obfuscates a Babel AST. Returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise).
 
 Note: Mutates the object.
 
 | Parameter | Type | Description |
-| `AST` | `object` | The [ESTree](https://github.com/estree/estree) compliant AST. This object will be mutated. |
+| `AST` | `object` | The Babel AST. This object will be mutated. |
 | `options` |  `object`| The obfuscator settings. |
 
 ---
 
-###### API Internals
+##### API Internals
 
 ###### `JSConfuser.presets`
 

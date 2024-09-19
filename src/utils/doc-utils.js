@@ -238,7 +238,7 @@ function createAllOptionsDocPage(addDoc) {
   // "All Options" Doc page
 
   var str = `
-  #### All Options
+  ### All Options
 
   JS-Confuser provides a wide range of options to customize the obfuscation process. Below is a list of all available options in the obfuscator.
 
@@ -250,7 +250,7 @@ function createAllOptionsDocPage(addDoc) {
       return `
       ---
 
-    ##### ${toTitleCase(groupName)}
+    #### ${toTitleCase(groupName)}
     
     | Option | Description |
     ${groups[groupName]
@@ -289,6 +289,8 @@ function createContentDocs(addDoc) {
         optionValues = "string";
       } else if (item.type === "boolean") {
         optionValues = "true/false";
+      } else if (item.type === "regex[]") {
+        optionValues = "RegExp[]/string[]";
       }
 
       if (item.customImplementation) {
@@ -323,28 +325,45 @@ function createContentDocs(addDoc) {
         ...baseOptions,
         renameVariables: true,
         compact: false,
-        indent: 2,
+        minify: true,
       };
+
+      if (item.name === "compact") {
+        liveExampleOptions.compact = true;
+        liveExampleOptions.renameVariables = false;
+      }
 
       // For 'target' page
       if (Object.keys(baseOptions).length === 1 && baseOptions.target) {
         baseOptions.compact = true;
       }
 
-      var usageExample = `import JSConfuser from "js-confuser";
+      var docVariables = {};
+
+      const usageExampleCode = `import JSConfuser from "js-confuser";
 import {readFileSync, writeFileSync} from "fs";
 
 // Read input code
 const sourceCode = readFileSync("input.js", "utf8");
 const options = ${json5.stringify(baseOptions, null, 2)};
 
-JSConfuser.obfuscate(sourceCode, options).then((obfuscated)=>{
+JSConfuser.obfuscate(sourceCode, options).then((result)=>{
   // Write output code
-  writeFileSync("output.js", obfuscated);
+  writeFileSync("output.js", result.code);
 }).catch(err=>{
   // Error occurred
   console.error(err);  
 });`;
+
+      docVariables.usageExample = `
+          #### Usage Example
+
+    The provided code example will obfuscate the file \`input.js\` and write the output to a file named \`output.js\`.
+
+    ---{header: "Usage Example", language: "javascript"}
+    ${usageExampleCode}
+    ---
+      `;
 
       var seeAlso = [];
       if (item.parentField === "lock" && item.name !== "countermeasures") {
@@ -353,16 +372,32 @@ JSConfuser.obfuscate(sourceCode, options).then((obfuscated)=>{
           to: "/docs/options/countermeasures",
         });
       }
+      if (item.seeAlso) {
+        seeAlso = seeAlso.concat(item.seeAlso);
+      }
 
-      var customImplementation = "";
+      docVariables.seeAlso = seeAlso.length
+        ? `
+          ---
+  
+        ##### See Also
+  
+        ${seeAlso.map((x) => `- [${x.label}](${x.to})`).join("\n")}
+        `
+        : "";
+
+      docVariables.customImplementation = "";
 
       if (item.customImplementation) {
         var custom = item.customImplementation;
+        var optionNamePrefix = "options." + item.name;
+        if (item.parentField) {
+          optionNamePrefix = "options." + item.parentField + "." + item.name;
+        }
 
-        customImplementation += `
-        ##### Custom Implementation
-
-        ###### \`options.${item.name}(${custom.parameters.map((x) => x.parameter).join(", ")})\`
+        docVariables.customImplementation += `
+        #### Custom Implementation
+        ###### \`${optionNamePrefix}(${custom.parameters.map((x) => x.parameter).join(", ")})\`
 
         ${custom.description}
         ${
@@ -383,57 +418,46 @@ JSConfuser.obfuscate(sourceCode, options).then((obfuscated)=>{
         `;
       }
 
+      docVariables.header = `
+### ${titleCase}
+
+${item.description}
+
+
+Option name: \`"${optionName}"\`
+Option value${optionValues.includes("/") ? "s" : ""}: \`${optionValues}\`
+---
+      `;
+
+      docVariables.inputOutput = item.exampleCode
+        ? `
+        #### Input / Output
+  
+        This example showcases how \`${titleCase}\` transforms the code. Try it out by changing the input code and see changes apply in real-time.
+  
+        ---{ header: "Input.js", language: "javascript", live: true, options: ${JSON.stringify(liveExampleOptions)} }
+        ${item.exampleCode}
+        ---
+        
+        ---`
+        : "";
+
       var content = `
-    #### ${titleCase}
-
-    ${item.description}
-
-
-    Option name: \`"${optionName}"\`
-
-    Option value${optionValues.includes("/") ? "s" : ""}: \`${optionValues}\`
-    ---
+      ${docVariables.header}
 
     ${item.startDocContent ? item.startDocContent + "\n---" : ""}
 
-    ${
-      item.exampleCode
-        ? `
-      ##### Input / Output
+    ${docVariables.inputOutput}
 
-      This example showcases how \`${titleCase}\` transforms the code. Try it out by changing the input code and see changes apply in real-time.
+    ${item.docContent ? item.docContent + "\n---" : ""}
 
-      ---{ header: "Input.js", language: "javascript", live: true, options: ${JSON.stringify(liveExampleOptions)} }
-      ${item.exampleCode}
-      ---
-      
-      ---`
-        : ""
-    }
-
-    ${customImplementation}
-
-    ##### Usage Example
-
-    The provided code example will obfuscate the file \`input.js\` and write the output to a file named \`output.js\`.
-
-    ---{header: "Usage Example", language: "javascript"}
-    ${usageExample}
-    ---
+    ${docVariables.customImplementation}
+    
+    ${docVariables.usageExample}
 
     ${item.endDocContent ? "---\n" + item.endDocContent : ""}
 
-    ${
-      seeAlso.length
-        ? `
-        ---
-
-      ##### See Also
-
-      ${seeAlso.map((x) => `- [${x.label}](${x.to})`).join(", ")}
-      `
-        : ""
-    }
+    ${docVariables.seeAlso}
     `;
       addDoc("options/" + item.name, "Options", titleCase, {
         content,

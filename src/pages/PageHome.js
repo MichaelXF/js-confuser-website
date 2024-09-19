@@ -41,7 +41,7 @@ function FeatureRow({ item }) {
               width: 44,
               height: 44,
               borderRadius: "50%",
-              fontSize: "1.125rem",
+              fontSize: "1.25rem",
             }}
           >
             <Icon
@@ -168,10 +168,10 @@ export default function PageHome() {
           preset: "high",
         },
         {
-          onComplete: async ({ obfuscated }) => {
+          onComplete: async ({ code }) => {
             setLoading(false);
 
-            editor.setValue(obfuscated);
+            editor.setValue(code);
 
             setFileName("App.obfuscated.js");
 
@@ -202,16 +202,16 @@ export default function PageHome() {
           <Stack direction="row" spacing={10} alignItems="center" width="100%">
             <Box textAlign="left" flex="1 1 42%" pt={6}>
               <Typography
-                variant="h3"
+                variant="h1"
                 className="GradientText"
                 fontWeight="bold"
               >
                 Protect your app
               </Typography>
-              <Typography variant="h3" fontWeight="bold">
+              <Typography variant="h1" fontWeight="bold">
                 with next-level
               </Typography>
-              <Typography variant="h3" fontWeight="bold">
+              <Typography variant="h1" fontWeight="bold">
                 obfuscation
               </Typography>
 
@@ -307,9 +307,13 @@ export default function PageHome() {
                 )}
 
                 <CodeViewer
-                  height="440px"
+                  height="initial"
+                  heightLines={landingPageCode.split("\n").length}
                   onMount={(editor) => {
                     setEditor(editor);
+                  }}
+                  style={{
+                    pointerEvents: "none",
                   }}
                 />
               </Box>
@@ -327,7 +331,7 @@ export default function PageHome() {
         justifyContent="center"
       >
         <Container maxWidth="lg" sx={{ py: 10 }}>
-          <Typography variant="h4" className="GradientText" fontWeight="bold">
+          <Typography variant="h3" className="GradientText" fontWeight="bold">
             What Is This?
           </Typography>
 
@@ -341,7 +345,7 @@ export default function PageHome() {
           </Typography>
 
           <Typography
-            variant="h4"
+            variant="h3"
             className="GradientText"
             fontWeight="bold"
             mb={2}
@@ -371,7 +375,7 @@ export default function PageHome() {
               [
                 AdminPanelSettings,
                 "Detect and Prevent Tampering",
-                "JS-Confuser can detect and prevent realtime tampering with your code.",
+                "JS-Confuser can detect and prevent real-time tampering with your code.",
               ],
             ],
           ].map((items, i) => {
@@ -390,7 +394,7 @@ export default function PageHome() {
       >
         <Container maxWidth="lg" sx={{ py: 10 }}>
           <Typography
-            variant="h4"
+            variant="h3"
             className="GradientText"
             fontWeight="bold"
             mb={6}

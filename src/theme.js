@@ -8,22 +8,28 @@ export const theme = createTheme({
       fontSize: "0.875rem", // Set the font size for the code variant
     },
     h1: {
-      fontWeight: "bold",
+      fontSize: "3rem", // Example size of h2 = 48px
+      fontWeight: "bold", // Bold font
     },
     h2: {
-      fontWeight: "bold",
+      fontSize: "2.5rem", // Example size of h3
+      fontWeight: "bold", // Bold font
     },
     h3: {
-      fontWeight: "bold",
+      fontSize: "2.25rem", // Example size of h4
+      fontWeight: "bold", // Bold font
     },
     h4: {
-      fontWeight: "bold",
+      fontSize: "1.75rem", // Example size of h5
+      fontWeight: "bold", // Bold font
     },
     h5: {
-      fontWeight: "bold",
+      fontSize: "1.5rem", // Example size of h6 = 24px
+      fontWeight: "bold", // Bold font
     },
     h6: {
-      fontWeight: "bold",
+      fontSize: "1.25rem", // Slightly smaller than default h6 = 18px
+      fontWeight: "bold", // Bold font
     },
   },
   palette: {
@@ -45,10 +51,19 @@ export const theme = createTheme({
   },
 
   components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          // Apply dark color scheme for scrollbars and other UI elements
+          colorScheme: "dark",
+        },
+      },
+    },
     MuiTooltip: {
       styleOverrides: {
         tooltip: {
           fontSize: "0.875rem", // Set your desired font size here
+          backgroundColor: "#4c4d4f", // Darker background color
         },
       },
     },

@@ -13,28 +13,14 @@ import {
   Checkbox,
   Menu,
   MenuItem,
-  Popover,
   Stack,
   Toolbar,
   Typography,
 } from "@mui/material";
 import { Link } from "react-router-dom";
-import {
-  Add,
-  ArrowDownward,
-  ArrowDropDown,
-  ArrowForward,
-  Check,
-  Close,
-  KeyboardArrowDown,
-  KeyboardArrowRight,
-  Launch,
-  Lock,
-  OpenInNew,
-} from "@mui/icons-material";
-import { defaultCode, defaultOptionsJS } from "../constants";
+import { ArrowDropDown, Close, KeyboardArrowRight } from "@mui/icons-material";
+import { defaultOptionsJS } from "../constants";
 import useSnackbar from "../hooks/useSnackbar";
-import useCodeWorker from "../hooks/useCodeWorker";
 
 function EditorNavItem({
   subItem,
@@ -182,6 +168,9 @@ export default function EditorNav({
   getEditor,
   codeWorker,
   convertCode,
+  closeTab,
+  focusEditor,
+  closeModals,
 }) {
   const snackbar = useSnackbar();
 
@@ -201,6 +190,8 @@ export default function EditorNav({
   const handleClose = () => {
     setAnchorEl(null);
     setAnchorName(null);
+
+    focusEditor();
   };
 
   const activeTabRef = useRef();
@@ -265,6 +256,17 @@ export default function EditorNav({
               disabled: !recentFiles.length,
             },
           ],
+        },
+
+        {
+          label: "Close File",
+          shortcut: "Ctrl + W",
+          onClick: () => {
+            if (!closeModals()) {
+              closeTab(activeTabRef.current);
+            }
+          },
+          hidden: true,
         },
 
         {
@@ -348,7 +350,7 @@ export default function EditorNav({
           onClick: convertCode,
         },
         {
-          label: "Edit JSConfuser.JS",
+          label: "Edit JSConfuser.ts",
           shortcut: "Ctrl + P",
           onClick: editOptionsFile,
         },
@@ -530,11 +532,14 @@ export default function EditorNav({
                     MenuListProps={{
                       "aria-labelledby": "basic-button",
                     }}
+                    disableRestoreFocus={true}
                   >
-                    {item.items.map((subItem) => {
+                    {item.items.map((subItem, subIndex) => {
+                      if (subItem.hidden) return null;
+
                       return (
                         <EditorNavItem
-                          key={index}
+                          key={subIndex}
                           subItem={subItem}
                           editorOptions={getEditorOptions()}
                           setEditorOptions={setEditorOptions}

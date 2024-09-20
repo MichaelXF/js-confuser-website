@@ -3,6 +3,7 @@ import {
   Button,
   CircularProgress,
   Container,
+  Hidden,
   Stack,
   Typography,
 } from "@mui/material";
@@ -66,7 +67,15 @@ function FeatureRow({ item }) {
 
 function FeatureRows({ items }) {
   return (
-    <Stack direction="row" spacing={6} mb={2} alignItems="stretch">
+    <Stack
+      spacing={6}
+      mb={2}
+      alignItems="stretch"
+      direction={{
+        xs: "column", // Collapse into multiple lines on extra-small screens (phones)
+        sm: "row", // Show in a row on small screens and up
+      }}
+    >
       {items.map((item, i) => {
         return <FeatureRow key={i} item={item} />;
       })}
@@ -263,6 +272,10 @@ export default function PageHome() {
               overflow="hidden"
               flex={"1 1 58%"}
               borderRadius={2}
+              display={{
+                xs: "none", // Hide on extra-small screens (phones)
+                sm: "block", // Show on small screens and up
+              }}
             >
               <Box
                 height="32px"
@@ -386,6 +399,7 @@ export default function PageHome() {
 
       <Box
         minHeight="100vh"
+        height="100%"
         borderTop="1px solid"
         borderColor="divider"
         display="flex"

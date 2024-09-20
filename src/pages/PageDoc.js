@@ -1,4 +1,12 @@
-import { Box } from "@mui/material";
+import {
+  Box,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  useMediaQuery,
+} from "@mui/material";
 import Nav from "../components/Nav";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
@@ -9,6 +17,8 @@ import DocSearchDialog from "../components/DocSearchDialog";
 import DocNavigation from "../components/DocNavigation";
 import DocTableOfContents from "../components/DocTableOfContents";
 import useSEO from "../hooks/useSEO";
+import { useTheme } from "@emotion/react";
+import { Close, Menu } from "@mui/icons-material";
 
 export default function PageDoc() {
   var { group } = useParams();
@@ -40,18 +50,96 @@ export default function PageDoc() {
     />
   );
 
+  const theme = useTheme();
+
+  const isPhone = useMediaQuery(theme.breakpoints.down("sm"));
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+
+  const iconButtonSx = {
+    color: "text.secondary",
+  };
+
+  const docNavigation = (
+    <DocNavigation
+      pathname={pathname}
+      navigationItems={navigationItems}
+      openSearchDialog={() => {
+        setShowSearchDialog(true);
+      }}
+      onItemClick={() => {
+        if (isPhone) {
+          setShowMobileMenu(false);
+        }
+      }}
+    />
+  );
+
   return (
     <Box>
       <Nav />
 
       <Box display="flex" height="calc(100vh - 65px)">
-        <DocNavigation
-          pathname={pathname}
-          navigationItems={navigationItems}
-          openSearchDialog={() => {
-            setShowSearchDialog(true);
-          }}
-        />
+        {isPhone ? (
+          <>
+            <IconButton
+              sx={{
+                position: "fixed",
+                top: "70px",
+                right: "10px",
+                zIndex: 1000,
+                ...iconButtonSx,
+              }}
+              onClick={() => {
+                setShowMobileMenu(true);
+              }}
+            >
+              <Menu />
+            </IconButton>
+
+            <Dialog
+              open={showMobileMenu}
+              onClose={() => {
+                setShowMobileMenu(false);
+              }}
+              fullScreen={true}
+            >
+              <IconButton
+                sx={{
+                  position: "fixed",
+                  top: "10px",
+                  right: "10px",
+                  zIndex: 1000,
+                  ...iconButtonSx,
+                }}
+                onClick={() => {
+                  setShowMobileMenu(false);
+                }}
+              >
+                <Close />
+              </IconButton>
+              <DialogContent>{docNavigation}</DialogContent>
+            </Dialog>
+          </>
+        ) : null}
+
+        {!isPhone ? (
+          <Box
+            borderRight="1px solid"
+            borderColor="divider"
+            maxWidth="300px"
+            width="100%"
+            maxHeight="calc(100vh - 65px)"
+            height="100%"
+            overflow="auto"
+            flexShrink={0}
+            p={1}
+            sx={{
+              scrollbarWidth: "thin",
+            }}
+          >
+            {docNavigation}
+          </Box>
+        ) : null}
 
         <DocSearchDialog
           open={showSearchDialog}
@@ -69,7 +157,9 @@ export default function PageDoc() {
             <Box
               sx={{
                 p: 4,
-                px: 10,
+                px: {
+                  md: 10,
+                },
                 maxWidth: "1100px",
                 mx: "auto",
                 width: "100%",
@@ -79,7 +169,9 @@ export default function PageDoc() {
             >
               {DocPage}
             </Box>
-            {!isHomePage && <DocTableOfContents metadata={metadata} />}
+            {!isPhone
+              ? !isHomePage && <DocTableOfContents metadata={metadata} />
+              : null}
           </Box>
         </Box>
       </Box>

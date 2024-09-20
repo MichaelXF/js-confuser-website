@@ -41,6 +41,7 @@ console.log(myVar); // "Modified Value"
     {
       type: "probability",
       name: "identifierGenerator",
+      defaultValue: "randomized",
       modes: ["hexadecimal", "randomized", "zeroWidth", "mangled", "number"],
       description: "Determines how variables are renamed.",
       allowMixingModes: true,
@@ -162,6 +163,7 @@ console.log(jRLf713)
     },
     {
       type: "boolean",
+      defaultValue: true,
       name: "renameGlobals",
       description:
         "Renames top-level variables, turn this off for web-related scripts. **Enabled by default.**",
@@ -179,6 +181,7 @@ console.log(jRLf713)
     },
     {
       type: "boolean",
+      defaultValue: true,
       name: "renameLabels",
       description:
         "Renames labeled control-flow statements, and removes unnecessary labels. **Enabled by default.**",
@@ -834,6 +837,7 @@ If you decide to use Integrity, consider the following:
     },
     {
       type: "boolean",
+      defaultValue: true,
       name: "compact",
       description: "Remove's whitespace from the final output.",
       exampleCode: `/**
@@ -889,6 +893,33 @@ for (var i = 1; i <= 25; i++) {
       - Remove redundant braces
       - If statement to ternary operator
       - Expression consolidation
+      `,
+    },
+    {
+      type: "boolean",
+      name: "preserveFunctionLength",
+      defaultValue: true,
+      description: "Preserves the original `function.length` property.",
+      exampleCode: `
+      function add(a, b){
+        return a + b;
+      }
+      
+      console.log(add.length); // 2
+      `,
+      exampleConfig: {
+        presets: "medium",
+      },
+      docContent: `
+      #### Preserving Function Length
+
+      The \`function.length\` property returns the number of arguments expected by the function. This property is read-only and cannot be changed.
+
+      The obfuscator will most likely change the function length property. This option preserves the original function length property by adding a subsequent assignment to mock the original length.
+      
+      #### Why This Matters
+
+      Some libraries and frameworks rely on the \`function.length\` property. If the property is changed, it can break the functionality of the library or framework. 
       `,
     },
   ],

@@ -2,36 +2,13 @@ import {
   AppBar,
   Box,
   Button,
-  CircularProgress,
-  Container,
-  CssBaseline,
   Divider,
-  IconButton,
-  LinearProgress,
-  Menu,
-  MenuItem,
-  Paper,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  ThemeProvider,
   Toolbar,
   Typography,
 } from "@mui/material";
-import {
-  Check,
-  Edit,
-  Info,
-  KeyboardArrowDown,
-  KeyboardArrowRight,
-  Lock,
-  Warning,
-} from "@mui/icons-material";
-import { Link } from "react-router-dom";
+import { KeyboardArrowRight } from "@mui/icons-material";
+import { Link as ReactLink } from "react-router-dom";
 
 export default function Nav() {
   return (
@@ -50,21 +27,30 @@ export default function Nav() {
           width="100%"
           flexGrow={1}
         >
-          <Link to="/">
+          <ReactLink to="/">
             <Typography variant="body1" fontWeight="bold" color="primary.main">
               JS-Confuser
             </Typography>
-          </Link>
+          </ReactLink>
 
           <Divider orientation="vertical" flexItem />
 
-          <Link to="/editor">
-            <Button endIcon={<KeyboardArrowRight />} variant="text">
-              Try It Out
-            </Button>
-          </Link>
+          <Button
+            endIcon={<KeyboardArrowRight />}
+            variant="text"
+            to="/editor"
+            component={ReactLink}
+            sx={{
+              display: {
+                xs: "none",
+                sm: "flex",
+              },
+            }}
+          >
+            Try It Out
+          </Button>
 
-          <Box flexGrow={1} display="flex" justifyContent="flex-end">
+          <Box justifyContent="flex-end" display="flex" flexGrow={1}>
             <Button
               variant="text"
               href="https://www.npmjs.com/package/js-confuser"
@@ -79,9 +65,9 @@ export default function Nav() {
               GitHub
             </Button>
 
-            <Link to="/docs">
+            <ReactLink to="/docs">
               <Button variant="text">Docs</Button>
-            </Link>
+            </ReactLink>
           </Box>
         </Stack>
       </Toolbar>

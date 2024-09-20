@@ -41,7 +41,24 @@ export default function OptionComponent({ option, value, setValue }) {
   );
 
   var info = (
-    <Tooltip title={<Markdown value={option.description} sx={{}} />}>
+    <Tooltip
+      title={
+        <Markdown
+          value={option.description}
+          sx={{
+            fontSize: "1rem",
+            lineHeight: "1.6",
+          }}
+        />
+      }
+      componentsProps={{
+        tooltip: {
+          sx: {
+            maxWidth: 450, // Increase max width
+          },
+        },
+      }}
+    >
       <Button
         sx={{
           width: "34px",

@@ -4,7 +4,14 @@ import { Link } from "react-router-dom";
 
 export default function QuickActions() {
   return (
-    <Stack direction="row" flexWrap="wrap" spacing={0}>
+    <Stack
+      direction={{
+        xs: "column",
+        sm: "row",
+      }}
+      flexWrap="wrap"
+      spacing={0}
+    >
       {[
         {
           title: "What Is Obfuscation?",
@@ -35,7 +42,10 @@ export default function QuickActions() {
               p: 4,
               mr: "10px",
               mb: "10px",
-              width: "calc(50% - 10px)",
+              width: {
+                xs: "100%",
+                sm: "calc(50% - 10px)",
+              },
               fontWeight: "normal",
               textTransform: "none",
               alignItems: "center",

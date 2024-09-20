@@ -107,7 +107,6 @@ export default function PageEditor() {
       typeof optionsOrFn === "function" ? optionsOrFn(options) : optionsOrFn;
     var newOptionsJS = convertOptionsToJS(optionsValue);
 
-    console.log(newOptionsJS);
     setOptionsJS(newOptionsJS);
 
     var tab = tabs.find((t) => t.title === "options.js");
@@ -387,7 +386,7 @@ export default function PageEditor() {
 
   const editOptionsFile = () => {
     newTab(
-      optionsJS,
+      optionsJSRef.current,
       "JSConfuser.ts",
       (value) => {
         setOptionsJS(value);

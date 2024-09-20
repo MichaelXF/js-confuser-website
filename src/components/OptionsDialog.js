@@ -13,16 +13,29 @@ import { groups } from "../groups";
 import OptionComponent from "./OptionComponent";
 import { useEffect, useState } from "react";
 import presets from "js-confuser/dist/presets";
+import {
+  getOptionSchema,
+  getOptionSchemasWithDefaultValues,
+} from "../utils/option-utils";
 
 export default function OptionsDialog({ open, onClose, options, setOptions }) {
   var [proposedOptions, setProposedOptions] = useState({});
 
   useEffect(() => {
     if (open) {
-      var value = { ...options };
+      let value = { ...options };
       if (value.preset) {
         value = { ...presets[value.preset], ...value };
       }
+
+      const defaultOptionSchemas = getOptionSchemasWithDefaultValues();
+
+      for (const optionSchema of defaultOptionSchemas) {
+        if (typeof value[optionSchema.name] === "undefined") {
+          value[optionSchema.name] = optionSchema.defaultValue;
+        }
+      }
+
       setProposedOptions(value);
     }
   }, [!!open]);

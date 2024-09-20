@@ -11,7 +11,15 @@ import { DOC_PATH_SEPARATOR } from "../utils/doc-utils";
 
 const NAV_ITEM_HEIGHT = "36px";
 
-function NavItem({ item, open, setOpen, parent, depth = 0, pathname }) {
+function NavItem({
+  item,
+  open,
+  setOpen,
+  parent,
+  depth = 0,
+  pathname,
+  onItemClick,
+}) {
   let openLabel = item.fullLabel;
 
   const isOpen = !!open[openLabel];
@@ -48,6 +56,9 @@ function NavItem({ item, open, setOpen, parent, depth = 0, pathname }) {
         color="inherit"
         component={Link}
         to={item.to}
+        onClick={() => {
+          onItemClick();
+        }}
       >
         {leftBorders}
 
@@ -101,6 +112,7 @@ function NavItem({ item, open, setOpen, parent, depth = 0, pathname }) {
                 parent={item}
                 pathname={pathname}
                 depth={depth + 1}
+                onItemClick={onItemClick}
               />
             );
           })}
@@ -114,6 +126,7 @@ export default function DocNavigation({
   openSearchDialog,
   navigationItems,
   pathname,
+  onItemClick,
 }) {
   function createOpenObject(open = {}) {
     var mergeObject = {};
@@ -178,20 +191,7 @@ export default function DocNavigation({
   };
 
   return (
-    <Box
-      borderRight="1px solid"
-      borderColor="divider"
-      maxWidth="300px"
-      width="100%"
-      maxHeight="calc(100vh - 65px)"
-      height="100%"
-      overflow="auto"
-      flexShrink={0}
-      p={1}
-      sx={{
-        scrollbarWidth: "thin",
-      }}
-    >
+    <Box>
       <Box mt={1} mb={2}>
         <Button
           {...btnProps}
@@ -213,6 +213,7 @@ export default function DocNavigation({
             setOpen={setOpen}
             parent={null}
             pathname={pathname}
+            onItemClick={onItemClick}
           />
         );
       })}

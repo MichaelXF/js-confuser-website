@@ -18,8 +18,6 @@ export default function PageDocGeneric({ onMetadataUpdate }) {
 
   var { docsByPath } = getDocs();
 
-  console.log(docsByPath);
-
   var doc = docsByPath[pathname];
 
   var [value, setValue] = useState("Loading...");
@@ -64,7 +62,7 @@ export default function PageDocGeneric({ onMetadataUpdate }) {
   useEffect(() => {
     if (value && hash) {
       var element = document.getElementById(hash.substring(1));
-      console.log(hash, element);
+      // console.log(hash, element);
       if (element) {
         element.scrollIntoView();
       }

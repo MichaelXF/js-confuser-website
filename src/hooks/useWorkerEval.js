@@ -50,6 +50,20 @@ export default function useWorkerEval(consoleRef) {
 
     // Delay purely for UX purposes
     setTimeout(() => {
+      // Sometimes the worker doesn't load in development?
+      if (typeof myWorker.evaluateCodeSandbox !== "function") {
+        cb({
+          data: {
+            event: "write",
+            data: {
+              requestID,
+              messages: ["Worker function not available."],
+            },
+          },
+        });
+        return;
+      }
+
       // Execute the code
       myWorker.evaluateCodeSandbox(
         requestID,

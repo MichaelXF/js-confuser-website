@@ -44,7 +44,7 @@ export default function useJSConfuser() {
       // Timeout required as multiple state updates can cause issues
       setTimeout(() => {
         callbacksIn.onError?.({
-          errorString: "Worker function not available",
+          errorString: "Worker function not available.",
         });
       });
       return;

@@ -184,9 +184,9 @@ export default function DocNavigation({
       },
       fontWeight: "normal",
       typography: "1rem",
+      alignItems: "center",
     },
     display: "flex",
-    alignItems: "center",
     fullWidth: true,
   };
 

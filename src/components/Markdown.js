@@ -11,13 +11,16 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  Button,
 } from "@mui/material";
 import CodeViewerTabbed from "./CodeViewerTabbed"; // Assume this component is imported
 import json5 from "json5";
 import useJSConfuser from "../hooks/useJSConfuser";
 import { textEllipsis, toUrlCase } from "../utils/format-utils";
-import { OpenInNew } from "@mui/icons-material";
+import { KeyboardArrowRight, OpenInNew } from "@mui/icons-material";
 import { trimRemovePrefix } from "../utils/md-utils";
+import { LocalStorageKeys } from "../constants";
+import { useNavigate } from "react-router-dom";
 
 export const parseLine = (
   line,
@@ -106,6 +109,7 @@ export default function Markdown({
   var editorRef = useRef();
 
   var JSConfuser = useJSConfuser();
+  const navigator = useNavigate();
 
   function obfuscate(value) {
     function setOutputValue(strValue) {
@@ -217,45 +221,58 @@ export default function Markdown({
       ) {
         var endLineIndex = -1;
         var endToken = trimmed.slice(0, 3);
+        var valueLines = [];
+        var optionsLines = [];
+
+        var metadataString = trimmed.slice(3).trim();
+        var metadata = {};
+
+        try {
+          if (metadataString === "js") {
+            metadata = {
+              language: "javascript",
+              live: false,
+              header: "Code",
+            };
+          } else {
+            metadata = json5.parse(metadataString);
+          }
+        } catch (e) {
+          console.error(metadataString);
+          throw new Error(e);
+        }
+
+        var collectOptions = metadata.options;
+        if (metadata.options && typeof metadata.options !== "boolean") {
+          throw new Error(metadata.options);
+        }
 
         for (let i = index + 1; i < lines.length; i++) {
           if (lines[i].trim().startsWith(endToken)) {
+            if (collectOptions) {
+              collectOptions = false;
+              continue;
+            }
+
             endLineIndex = i;
             break;
+          } else {
+            if (collectOptions) {
+              optionsLines.push(lines[i]);
+            } else {
+              valueLines.push(lines[i]);
+            }
           }
         }
-        if (endLineIndex !== -1) {
-          for (let i = index; i < endLineIndex + 1; i++) {
-            skipLines.add(i);
+
+        function fixIndentation(lines) {
+          if (!lines[0].trim() && lines.length > 1) {
+            lines.shift();
           }
 
-          var metadataString = trimmed.slice(3).trim();
-          var valueLines = lines.slice(index + 1, endLineIndex);
-          if (!valueLines[0].trim() && valueLines.length > 1) {
-            valueLines.shift();
-          }
+          var firstIndention = lines[0].length - lines[0].trimStart().length;
 
-          var firstIndention =
-            valueLines[0].length - valueLines[0].trimStart().length;
-
-          var metadata = {};
-
-          try {
-            if (metadataString === "js") {
-              metadata = {
-                language: "javascript",
-                live: false,
-                header: "Code",
-              };
-            } else {
-              metadata = json5.parse(metadataString);
-            }
-          } catch (e) {
-            console.error(metadataString);
-            throw new Error(e);
-          }
-
-          var value = valueLines
+          var value = lines
             .map((line) =>
               line.slice(0, firstIndention).trim().length === 0
                 ? line.slice(firstIndention)
@@ -264,16 +281,22 @@ export default function Markdown({
             .join("\n")
             .trim();
 
+          return value;
+        }
+
+        if (endLineIndex !== -1) {
+          for (let i = index; i < endLineIndex + 1; i++) {
+            skipLines.add(i);
+          }
+
+          var value = fixIndentation(valueLines);
+
           allowBreak = false;
           allowActualBreak = false;
 
           if (metadata.live) {
-            // eval string
-            var optionsOrJS = metadata.options;
-            if (typeof optionsOrJS === "string") {
-              throw new Error("Not implemented");
-            }
-            optionsRef.current = optionsOrJS;
+            var options = fixIndentation(optionsLines);
+            optionsRef.current = options;
           }
 
           return (
@@ -290,16 +313,39 @@ export default function Markdown({
               />
 
               {metadata.live ? (
-                <CodeViewerTabbed
-                  defaultValue={""}
-                  header={"Output.js"}
-                  language={metadata.language}
-                  onMount={(editor) => {
-                    editorRef.current = editor;
-                    obfuscate(value);
-                  }}
-                  allowEvaluate={true}
-                />
+                <>
+                  <CodeViewerTabbed
+                    defaultValue={""}
+                    header={"Output.js"}
+                    language={metadata.language}
+                    onMount={(editor) => {
+                      editorRef.current = editor;
+                      obfuscate(value);
+                    }}
+                    allowEvaluate={true}
+                  />
+
+                  <Box textAlign="center">
+                    <Button
+                      title="Try out the code in the Playground"
+                      endIcon={<KeyboardArrowRight />}
+                      onClick={() => {
+                        localStorage.setItem(
+                          LocalStorageKeys.JsConfuserMarkdownCode,
+                          JSON.stringify(value)
+                        );
+                        localStorage.setItem(
+                          LocalStorageKeys.JsConfuserOptionsJS,
+                          JSON.stringify(optionsRef.current)
+                        );
+
+                        navigator("/editor?markdown");
+                      }}
+                    >
+                      Try It Out
+                    </Button>
+                  </Box>
+                </>
               ) : null}
             </Box>
           );

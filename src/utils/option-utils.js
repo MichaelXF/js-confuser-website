@@ -1,5 +1,6 @@
 import json5 from "json5";
 import { groups } from "../groups";
+import { getRandomString } from "./random-utils";
 
 export function getHost() {
   const location = window.location;
@@ -31,61 +32,63 @@ export function getOptionSchema(fieldName) {
     .find((f) => f.name === fieldName);
 }
 
-export function convertOptionsToJS(optionsValue) {
+export function convertOptionsToJS(
+  optionsValue,
+  exportName = "module.exports"
+) {
   if (typeof optionsValue === "string") {
     return optionsValue;
   }
 
-  var objectAsString = "";
-  var keys = Object.keys(optionsValue);
-  for (var i = 0; i < keys.length; i++) {
-    var key = keys[i];
-    var rawValue = optionsValue[key];
-    var value =
-      typeof rawValue === "function"
-        ? rawValue.toString()
-        : json5.stringify(rawValue, null, 2);
+  var replaceMap = new Map();
+  var counter = 0;
+  const replacePrefix = "__R_" + getRandomString(10);
 
-    var optionSchema = getOptionSchema(key);
+  var objectAsString = json5.stringify(
+    optionsValue,
+    (key, value) => {
+      var replacementValue;
 
-    if (optionSchema) {
-      if (i !== 0) {
-        objectAsString += "\n";
+      // Convert multiline strings to template strings (If possible)
+      if (
+        typeof value === "string" &&
+        value.includes("\n") &&
+        !value.includes("${") &&
+        !value.includes("\\")
+      ) {
+        replacementValue = `\`${value}\``;
       }
 
-      var description = optionSchema.description;
-      if (typeof optionSchema.defaultValue !== "undefined") {
-        description += ` (Default: ${json5.stringify(optionSchema.defaultValue)})`;
+      // Convert functions to string
+      if (typeof value === "function") {
+        replacementValue = value.toString();
       }
 
-      description.split("\n").forEach((line) => {
-        objectAsString += "// " + line + "\n";
-      });
+      if (typeof replacementValue === "string") {
+        var index = ++counter;
+        var replaceKey = replacePrefix + index;
+        replaceMap.set(replaceKey, replacementValue);
 
-      var path = `/docs/options/${optionSchema.name}`;
-      if (optionSchema.path) {
-        path = optionSchema.path;
+        return replaceKey;
       }
-      // objectAsString += `// ${getHost()}${path}\n`;
-    }
-    objectAsString += `${key}: ${value},\n`;
+
+      // No change
+      return value;
+    },
+    2
+  );
+
+  replaceMap.forEach((value, key) => {
+    objectAsString = objectAsString.replace(`'${key}'`, value);
+  });
+
+  var newOptionsJS = `${exportName} = ${objectAsString};`;
+
+  if (exportName === "module.exports") {
+    newOptionsJS =
+      `// This file is evaluated as JavaScript. You can use JavaScript here.\n\n` +
+      newOptionsJS;
   }
-
-  // Remove last newline
-  objectAsString = objectAsString.slice(0, -1);
-
-  // Move objectAsString over by 2 spaces
-  objectAsString = objectAsString
-    .split("\n")
-    .map((line) => "  " + line)
-    .join("\n");
-
-  // Add wrapping braces
-  objectAsString = "{\n" + objectAsString + "\n}";
-
-  var newOptionsJS = `// This file is evaluated as JavaScript. You can use JavaScript here.
-  
-module.exports = ${objectAsString};`;
 
   return newOptionsJS;
 }
@@ -95,11 +98,14 @@ export function evaluateOptionsOrJS(optionsJS) {
     if (typeof optionsJS === "object" && optionsJS) {
       return optionsJS;
     }
+
     var value = eval(`
       var module = { exports: {} };
-        ${optionsJS}
-        module
-        `)?.exports;
+
+      ${optionsJS}
+
+      // Last expression of the eval is the return value
+      module`)?.exports;
 
     return value;
   } catch (err) {

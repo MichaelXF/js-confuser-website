@@ -1,5 +1,11 @@
 import packageJson from "../package.json";
 
+export const LocalStorageKeys = {
+  JsConfuserOptionsJS: "JSConfuser_Options",
+  JsConfuserEditorOptions: "JSConfuser_EditorOptions",
+  JsConfuserMarkdownCode: "JSConfuser_MarkdownCode",
+};
+
 export const JsConfuserVersion =
   packageJson.dependencies["js-confuser"].substring(1);
 

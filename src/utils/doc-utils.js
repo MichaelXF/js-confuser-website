@@ -4,6 +4,7 @@ import { camelCaseToTitleCase, toTitleCase } from "./format-utils";
 import json5 from "json5";
 import { groups } from "../groups";
 import { trimRemovePrefix } from "./md-utils";
+import { convertOptionsToJS } from "./option-utils";
 
 export const DOC_PATH_SEPARATOR = " --- ";
 
@@ -345,7 +346,7 @@ import {readFileSync, writeFileSync} from "fs";
 
 // Read input code
 const sourceCode = readFileSync("input.js", "utf8");
-const options = ${json5.stringify(baseOptions, null, 2)};
+${convertOptionsToJS(baseOptions, "const options")}
 
 JSConfuser.obfuscate(sourceCode, options).then((result)=>{
   // Write output code
@@ -435,7 +436,9 @@ Option value${optionValues.includes("/") ? "s" : ""}: \`${optionValues}\`
   
         This example showcases how \`${titleCase}\` transforms the code. Try it out by changing the input code and see changes apply in real-time.
   
-        ---{ header: "Input.js", language: "javascript", live: true, options: ${JSON.stringify(liveExampleOptions)} }
+        ---{ header: "Input.js", language: "javascript", live: true, options: true }
+        ${convertOptionsToJS(liveExampleOptions)}
+        ---
         ${item.exampleCode}
         ---
         

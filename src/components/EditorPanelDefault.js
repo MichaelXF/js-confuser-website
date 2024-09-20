@@ -1,5 +1,7 @@
 import { Button, Checkbox, Stack, Tooltip, Typography } from "@mui/material";
 import { Info, KeyboardArrowRight, Lock } from "@mui/icons-material";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { useRef, useState } from "react";
 
 export default function EditorPanelDefault({
   obfuscateCode,
@@ -10,12 +12,26 @@ export default function EditorPanelDefault({
   editOptionsFile,
   activeTab,
 }) {
+  const onConfirmRef = useRef();
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
   var isCustomPreset = options.preset === undefined;
   var isOptionsFile = activeTab?.title === "JSConfuser.ts";
   var isTypeScript = activeTab?.getLanguageId?.() === "typescript";
 
   return (
     <>
+      <ConfirmDialog
+        open={showConfirmDialog}
+        onClose={() => {
+          setShowConfirmDialog(false);
+        }}
+        onConfirm={() => {
+          setShowConfirmDialog(false);
+          onConfirmRef.current();
+        }}
+      />
+
       {!isTypeScript || isOptionsFile ? (
         <Button
           sx={{ fontWeight: "bold", width: "100%", minHeight: "42px" }}
@@ -55,10 +71,12 @@ export default function EditorPanelDefault({
             <Button
               key={index}
               onClick={() => {
-                setOptions((options) => ({
-                  ...options,
-                  target: target,
-                }));
+                setOptions((options) => {
+                  return {
+                    ...options,
+                    target,
+                  };
+                });
               }}
               sx={{
                 flexDirection: "column",
@@ -120,10 +138,22 @@ export default function EditorPanelDefault({
             <Button
               key={index}
               onClick={() => {
-                setOptions((options) => ({
-                  target: options.target,
-                  preset: presetName,
-                }));
+                onConfirmRef.current = () => {
+                  setOptions((options) => ({
+                    target: options.target || "browser",
+                    preset: presetName,
+                  }));
+                };
+
+                var userKeys = new Set(Object.keys(options));
+                userKeys.delete("target");
+                userKeys.delete("preset");
+
+                if (userKeys.size > 0) {
+                  setShowConfirmDialog(true);
+                } else {
+                  onConfirmRef.current();
+                }
               }}
               sx={{
                 flexDirection: "column",

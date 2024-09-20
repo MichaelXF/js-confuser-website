@@ -286,6 +286,34 @@ module.exports = {
       },
     },
     {
+      type: "CustomStringEncoding[]",
+      name: "customStringEncodings",
+      description:
+        "Customize the String Encoding algorithm(s) to your own implementation.",
+      exampleCode: `
+      var str = "Hello, World!";
+      console.log(str); // "Hello, World!"
+      `,
+      exampleConfig: {
+        stringConcealing: true,
+        customStringEncodings: [
+          {
+            code: `
+            function {fnName}(str){
+              return atob(str)
+            }
+            `,
+            encode: function (str) {
+              return btoa(str);
+            },
+            decode: function (str) {
+              return atob(str);
+            },
+          },
+        ],
+      },
+    },
+    {
       type: "probability",
       name: "stringEncoding",
       description:
@@ -413,7 +441,7 @@ countTo(number); // 1,2,3,4,5,6,7,8,9,10
 `,
 
       docContent: `
-Your code will be wrapped in a large, complicated switch statement. The makes the behavior of your program very hard to understand and is resistent to deobfuscators. This comes with a large performance reduction.
+Your code will be wrapped in a large, complicated switch statement. This makes the behavior of your program very hard to understand and is resistent to deobfuscators. This comes with a large performance reduction.
 
 #### Flattening Control Structures
 
@@ -491,6 +519,7 @@ This is just the simple version of things. JS-Confuser uses a variety of techniq
 
 Control Flow Flattening reduces the performance of your program. You should adjust the option \`controlFlowFlattening\` to be a percentage that is appropriate for your app.
 
+
 #### Other notes
 
 Control Flow Flattening only applies to:
@@ -552,6 +581,8 @@ print("Hello World"); // "Hello World"`,
       function add3(x, y, z){
         return x + y + z;
       }
+
+      console.log(add3(1, 2, 3)); // 6
       `,
     },
     {
@@ -745,6 +776,39 @@ Tamper Protection requires the script to run in non-strict mode. Detection of th
       name: "selfDefending",
       description:
         "Prevents the use of code beautifiers or formatters against your code.",
+    },
+    {
+      type: "CustomLock[]",
+      parentField: "lock",
+      name: "customLocks",
+      description: "Customize the lock algorithm to your own implementation.",
+      exampleCode: `
+      function countermeasures(){
+        throw new Error("Invalid browser!");
+      }
+      console.log("This only runs in Chrome!");
+      `,
+      exampleConfig: {
+        lock: {
+          countermeasures: "countermeasures",
+          customLocks: [
+            {
+              code: `
+              function checkChrome(){
+                return navigator.userAgent.includes("Chrome")
+              }
+
+              if(!checkChrome()){
+                {countermeasures}
+              }
+              `,
+              percentagePerBlock: 0.5,
+              maxCount: 100,
+              minCount: 1,
+            },
+          ],
+        },
+      },
     },
     {
       type: "probability",

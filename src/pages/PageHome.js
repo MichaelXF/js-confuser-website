@@ -3,6 +3,7 @@ import {
   Button,
   CircularProgress,
   Container,
+  Fade,
   Hidden,
   Stack,
   Typography,
@@ -93,10 +94,16 @@ export default function PageHome() {
   var [loading, setLoading] = useState(false);
   var [fileName, setFileName] = useState("App.js");
   var [editor, setEditor] = useState();
+  let [animation, setAnimation] = useState(true);
+  let [showTryIOut, setShowTryIOut] = useState(false);
 
   useEffect(() => {
     if (!editor) return;
     var exampleCode = landingPageCode;
+
+    // Initial animation state
+    setAnimation(true);
+    setShowTryIOut(false);
 
     let index = Math.max(landingPageCode.length - 101, 0);
     editor.setValue(landingPageCode.substring(0, index));
@@ -180,11 +187,17 @@ export default function PageHome() {
           onComplete: async ({ code }) => {
             setLoading(false);
 
+            // Allow user to scroll the editor
+            setAnimation(false);
+
             editor.setValue(code);
 
             setFileName("App.obfuscated.js");
 
             await timeout(2000);
+
+            // After some time, show another CTA "Try It Out"
+            setShowTryIOut(true);
           },
         }
       );
@@ -319,6 +332,30 @@ export default function PageHome() {
                   </Box>
                 )}
 
+                <Fade in={showTryIOut} timeout={1000}>
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      width: "100%",
+                      p: 1,
+                      backgroundColor: "background.default",
+                      zIndex: 99,
+                      textAlign: "center",
+                    }}
+                  >
+                    <Button
+                      LinkComponent={Link}
+                      to="/editor"
+                      endIcon={<KeyboardArrowRight />}
+                    >
+                      Try It Out
+                    </Button>
+                  </Box>
+                </Fade>
+
                 <CodeViewer
                   height="initial"
                   heightLines={landingPageCode.split("\n").length}
@@ -326,7 +363,7 @@ export default function PageHome() {
                     setEditor(editor);
                   }}
                   style={{
-                    pointerEvents: "none",
+                    pointerEvents: animation ? "none" : "auto",
                   }}
                 />
               </Box>

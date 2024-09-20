@@ -171,6 +171,7 @@ export default function EditorNav({
   closeTab,
   focusEditor,
   closeModals,
+  shareURL,
 }) {
   const snackbar = useSnackbar();
 
@@ -305,17 +306,7 @@ export default function EditorNav({
         {
           label: "Share",
           onClick: () => {
-            var searchParams = new URLSearchParams();
-            searchParams.set("code", getEditor().getValue());
-            searchParams.set("config", optionsJS);
-
-            var url =
-              window.location.origin +
-              window.location.pathname +
-              "?" +
-              searchParams.toString();
-
-            window.navigator.clipboard.writeText(url);
+            shareURL();
 
             snackbar.showSuccess("Copied URL to clipboard");
           },

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Box } from "@mui/material";
-import { defaultCode, defaultOptionsJS } from "../constants";
+import { defaultCode, defaultOptionsJS, LocalStorageKeys } from "../constants";
 
 // Import your worker
 import LoadingBackdrop from "../components/LoadingBackdrop";
@@ -19,6 +19,7 @@ import useCodeWorker from "../hooks/useCodeWorker";
 import { convertOptionsToJS, evaluateOptionsOrJS } from "../utils/option-utils";
 import useSEO from "../hooks/useSEO";
 import presets from "js-confuser/dist/presets";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 
 export default function PageEditor() {
   useSEO(
@@ -43,12 +44,13 @@ export default function PageEditor() {
       var preset = params.get("preset");
 
       if (code) {
-        var model = ref.current.editor.getModel();
+        let model = ref.current.editor.getModel();
 
-        model.setValue(code);
-        model.setIsDirty(false);
+        model.setNonDirtyValue(code);
       }
       if (config) {
+        editOptionsFile();
+
         setOptionsJS(config);
       }
       if (preset) {
@@ -72,14 +74,15 @@ export default function PageEditor() {
   let [tabs, setTabs] = useState([]);
 
   const [optionsJS, setOptionsLocalStorageJS] = useLocalStorage(
-    "JSConfuser_Options",
+    LocalStorageKeys.JsConfuserOptionsJS,
     defaultOptionsJS
   );
+
   const optionsJSRef = useRef();
   optionsJSRef.current = optionsJS;
 
   const [editorOptions, setEditorOptions] = useLocalStorage(
-    "JSConfuser_EditorOptions",
+    LocalStorageKeys.JsConfuserEditorOptions,
     {
       formatOnSave: true,
       saveToBrowser: true,
@@ -90,6 +93,7 @@ export default function PageEditor() {
   const getEditorOptions = () => editorOptionsRef.current;
 
   const setOptionsJS = (value) => {
+    optionsJSRef.current = value;
     setOptionsLocalStorageJS(value);
 
     var found = tabs.find((t) => t.identity === "internal_options");
@@ -147,7 +151,7 @@ export default function PageEditor() {
 
     if (!onSave) {
       onSave = () => {
-        if (editorOptions.saveToBrowser) {
+        if (editorOptionsRef.current.saveToBrowser) {
           saveFileToIndexedDB(newModel.title, newModel.getValue()).catch(
             (err) => {
               newTab(err.toString(), "File Error");
@@ -284,18 +288,27 @@ export default function PageEditor() {
   var [showOptionsDialog, setShowOptionsDialog] = useState(false);
   var [showConsoleDialog, setShowConsoleDialog] = useState(false);
 
-  // Function to obfuscate the code
-  const obfuscateCode = () => {
-    if (tabsRef?.current?.length === 0) {
-      alert("Please open a file to obfuscate");
-      return;
-    }
+  /**
+   * Returns the current model that isn't the JSConfuser.ts model
+   */
+  const getActiveModel = () => {
     const { editor } = ref.current;
 
     let activeModel = editor.getModel();
     if (activeModel.title === "JSConfuser.ts") {
       activeModel = tabsRef.current.find((t) => t.title !== "JSConfuser.ts");
     }
+    return activeModel;
+  };
+
+  // Function to obfuscate the code
+  const obfuscateCode = () => {
+    if (tabsRef?.current?.length === 0) {
+      alert("Please open a file to obfuscate");
+      return;
+    }
+
+    let activeModel = getActiveModel();
 
     return new Promise((resolve, reject) => {
       // Get the current value from the editor
@@ -308,8 +321,6 @@ export default function PageEditor() {
             setShowLoadingOverlay(false);
 
             var { code, profileData } = data;
-
-            console.log(profileData);
 
             var outputFileName = "Obfuscated.js";
             if (typeof activeModel.title === "string") {
@@ -546,6 +557,19 @@ export default function PageEditor() {
               editor.focus();
             }
           });
+        }}
+        shareURL={() => {
+          var searchParams = new URLSearchParams();
+          searchParams.set("code", getActiveModel().getValue());
+          searchParams.set("config", optionsJS);
+
+          var url =
+            window.location.origin +
+            window.location.pathname +
+            "?" +
+            searchParams.toString();
+
+          window.navigator.clipboard.writeText(url);
         }}
       />
 

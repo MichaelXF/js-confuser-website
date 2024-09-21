@@ -289,8 +289,10 @@ module.exports = {
       type: "CustomStringEncoding[]",
       name: "customStringEncodings",
       description:
-        "Customize the String Encoding algorithm(s) to your own implementation.",
+        "Custom String Encodings allows you to define your own string encoding/decoding functions.",
       exampleCode: `
+      // Base64 Encoding Demo
+
       var str = "Hello, World!";
       console.log(str); // "Hello, World!"
       `,
@@ -312,6 +314,161 @@ module.exports = {
           },
         ],
       },
+      docContent: `
+      #### Custom String Encoding API
+
+      The Custom String Encoding API allows you to define your own string encoding/decoding functions. These encodings will be randomly inserted throughout the code.
+      
+      ---{ header: "Options.js" }
+      module.exports = {
+        target: "node",
+
+        // Should be enabled
+        stringConcealing: true,
+
+        // Simple Base64 Encoding
+        customStringEncodings: [
+          {
+            // This template decoder function will be inserted into the code
+            code: \`
+                  function {fnName}(str){
+                    return atob(str);
+                  }\`,
+
+            // Tells the obfuscator how to encode the string
+            encode: (str) => btoa(str),
+          },
+        ],
+      };
+      ---
+
+      ---
+
+      The properties of the \`Custom String Encoding\` are:
+
+      | Property | Type | Description |
+      | \`code\` | \`string\` | Template decoder code that must contain '{fnName}'. |
+      | \`encode\` | \`Function\` | Encoding algorithm. |
+      | \`decode?\` | \`Function\` | Decoding algorithm. (Optional) |
+      | \`identity?\` | \`string\` | Distinguishes multiple encodings. (Optional) |
+
+      - The template \`code\` should contain the string \`{fnName}\`, which the obfuscator can interpolate with the function name.
+
+      - The functions \`encode\` and \`decode\` have the type: \`(strValue: string) => string\`.
+
+      - The function \`decode\` is optional. If provided, the obfuscator will validate each string to ensure it can be decoded. If the string cannot be decoded, the obfuscator will ignore the string.
+
+      ---
+     
+      #### Advanced Randomized Encoding
+
+      The following example implements a custom Base64 encoding that uses a shuffled charset to encode and decode strings.
+
+      - This encoding algorithm is instantiated multiple times, each with a different shuffled charset. This makes it difficult to reverse-engineer the encoding algorithm. 
+
+      ---{ header: "Options.js" }
+      const { default: JsConfuser } = require("js-confuser");
+      const { stringLiteral } = require("@babel/types");
+
+      function shuffle(array) {
+        // Fisher-Yates shuffle
+        let currentIndex = array.length,
+          randomIndex;
+        while (currentIndex !== 0) {
+          randomIndex = Math.floor(Math.random() * currentIndex);
+          currentIndex--;
+
+          [array[currentIndex], array[randomIndex]] = [
+            array[randomIndex],
+            array[currentIndex],
+          ];
+        }
+        return array;
+      }
+
+      function createCustomStringEncoding() {
+        function encode(input, charset) {
+          const inputBuffer = new TextEncoder().encode(input);
+          let output = "";
+
+          for (let i = 0; i < inputBuffer.length; i += 3) {
+            const chunk = [inputBuffer[i], inputBuffer[i + 1], inputBuffer[i + 2]];
+
+            const binary = (chunk[0] << 16) | (chunk[1] << 8) | (chunk[2] || 0);
+
+            output += charset[(binary >> 18) & 0x3f];
+            output += charset[(binary >> 12) & 0x3f];
+            output +=
+              typeof chunk[1] !== "undefined" ? charset[(binary >> 6) & 0x3f] : "=";
+            output += typeof chunk[2] !== "undefined" ? charset[binary & 0x3f] : "=";
+          }
+
+          return output;
+        }
+
+        const customCharset =
+          "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+        const shuffledCharset = shuffle(customCharset.split("")).join("");
+
+        return {
+          code: new JsConfuser.Template(\`
+            // Creates a reverse lookup table from the given charset
+            function createReverseCharset(charset) {
+              if (charset.length !== 64) {
+                throw new Error("Charset must be exactly 64 characters long.");
+              }
+              const reverseCharset = {};
+              for (let i = 0; i < charset.length; i++) {
+                reverseCharset[charset[i]] = i;
+              }
+              return reverseCharset;
+            }
+
+            // Base64 decode using the shuffled charset
+            function decode(input, charset) {
+              const reverseCharset = createReverseCharset(charset);
+              const cleanedInput = input.replace(/=+$/, '');  // Remove padding
+
+              const byteArray = [];
+              let buffer = 0;
+              let bitsCollected = 0;
+
+              for (let i = 0; i < cleanedInput.length; i++) {
+                buffer = (buffer << 6) | reverseCharset[cleanedInput[i]];
+                bitsCollected += 6;
+
+                if (bitsCollected >= 8) {
+                  bitsCollected -= 8;
+                  byteArray.push((buffer >> bitsCollected) & 0xFF);
+                }
+              }
+
+              // Convert to string, ensuring no extra characters
+              return new TextDecoder().decode(Uint8Array.from(byteArray));
+            }
+
+            var {fnName} = (str) => decode(str, {shuffledCharset});
+            \`).setDefaultVariables({
+            // This simply inserts 'shuffledCharset' (with proper escaping)
+            shuffledCharset: stringLiteral(shuffledCharset),
+          }),
+          encode: (input) => {
+            // Encode the string
+            return encode(input, shuffledCharset);
+          },
+
+          // Identity key to help distinguish between different variants
+          identity: shuffledCharset,
+        };
+      }
+
+      module.exports = {
+        target: "node",
+        stringConcealing: true,
+        customStringEncodings: [createCustomStringEncoding],
+      };
+      ---
+      `,
     },
     {
       type: "probability",
@@ -404,10 +561,8 @@ if ( utils.isString("Hello") ) {
     {
       type: "probability",
       name: "shuffle",
-      modes: ["hash", true, false],
       description:
         "Shuffles the initial order of arrays. The order is brought back to the original during runtime.",
-      allowMixingModes: true,
       exampleCode: `console.log([1,2,3,4,5,6,7,8,9,10]);`,
     },
     {
@@ -441,19 +596,24 @@ countTo(number); // 1,2,3,4,5,6,7,8,9,10
 `,
 
       docContent: `
+#### Requires Non-Strict Mode
+
+Control Flow Flattening requires non-strict mode to work. This is because the \`with\` statement is used to conceal local scope variables.
+
+- It is recommended to enable the [Pack](./Pack) option when using Control Flow Flattening.
+
+
+#### How It works
+
 Your code will be wrapped in a large, complicated switch statement. This makes the behavior of your program very hard to understand and is resistent to deobfuscators. This comes with a large performance reduction.
 
-#### Flattening Control Structures
-
-Control Flow Flattening is able to flatten the following statements:
-
-1. \`If Statement\`
-2. \`Function Declaration\`
 
 #### Goto style of code
 
-Control Flow Flattening converts your code into a 'goto style of code.'
-Example:
+Control Flow Flattening converts your code into a 'goto style of code.' The following statements are converted into their equivalent 'goto style of code':
+
+1. \`If Statement\`
+2. \`Function Declaration\`
 
 ---{header: "Goto style of Code"}
 // Input
@@ -509,7 +669,9 @@ while (state != 3) {
 
 This code replicates functionality of the \`goto\` statement in JavaScript by using a while-loop paired with a switch-statement.
 
+
 The 'state' variable determines which chunk will execute. Each chunk is placed as a Switch-case with a number assigned to it.
+
 
 This is just the simple version of things. JS-Confuser uses a variety of techniques to further obfuscate the switch statement:
       `,
@@ -525,6 +687,12 @@ Control Flow Flattening reduces the performance of your program. You should adju
 Control Flow Flattening only applies to:
 
 - Blocks of 3 statements or more`,
+      seeAlso: [
+        {
+          label: "Pack",
+          to: "./pack",
+        },
+      ],
     },
     {
       type: "probability",
@@ -535,6 +703,16 @@ Control Flow Flattening only applies to:
 }
 
 print("Hello World"); // "Hello World"`,
+      customImplementation: {
+        parameters: [
+          {
+            parameter: "fnName",
+            type: "string",
+            description: "The function name proposed to be changed.",
+          },
+        ],
+        description: "Control which function are changed. Returns a `boolean`.",
+      },
     },
     {
       type: "probability",
@@ -584,6 +762,16 @@ print("Hello World"); // "Hello World"`,
 
       console.log(add3(1, 2, 3)); // 6
       `,
+      customImplementation: {
+        parameters: [
+          {
+            parameter: "fnName",
+            type: "string",
+            description: "The function name proposed to be changed.",
+          },
+        ],
+        description: "Control which function are changed. Returns a `boolean`.",
+      },
     },
     {
       type: "probability",
@@ -809,6 +997,20 @@ Tamper Protection requires the script to run in non-strict mode. Detection of th
           ],
         },
       },
+      docContent: `
+      #### Custom Locks API
+
+      Custom Locks allow you to define your own lock algorithm. These locks will be randomly sprinkled throughout the code. 
+      
+      
+      The properties of the \`Custom Lock\` are:
+
+      | Property | Type | Description |
+      | \`code\` | \`string\` | Template lock code that must contain '{countermeasures}'. |
+      | \`percentagePerBlock\` | \`number\` | The percentage of blocks that will contain the lock. |
+      | \`maxCount\` | \`number\` | The maximum number of times the lock can be used. (Default = 100) |
+      | \`minCount\` | \`number\` | The minimum number of times the lock can be used. (Default = 1) |
+      `,
     },
     {
       type: "probability",

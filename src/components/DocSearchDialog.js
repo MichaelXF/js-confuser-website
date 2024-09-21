@@ -16,7 +16,10 @@ import { getRandomString } from "../utils/random-utils";
 import { textEllipsis, toUrlCase } from "../utils/format-utils";
 import useSnackbar from "../hooks/useSnackbar";
 import { parseLine } from "./Markdown";
-import { trimRemovePrefix } from "../utils/md-utils";
+import {
+  splitMarkdownIntoHeadingSections,
+  trimRemovePrefix,
+} from "../utils/md-utils";
 
 export default function DocSearchDialog({ open, onClose }) {
   var [results, setResults] = useState([]);
@@ -53,88 +56,47 @@ export default function DocSearchDialog({ open, onClose }) {
     setSearchQuery(query);
 
     if (query) {
-      for (var path in docsByPath) {
-        var doc = docsByPath[path];
+      for (let path in docsByPath) {
+        const doc = docsByPath[path];
         if (doc.content) {
-          var lines = doc.content.split("\n").map((x) => x.trimStart());
-          var headings = lines.filter((x) => x.startsWith("#"));
+          const sections = splitMarkdownIntoHeadingSections(doc);
 
-          for (var rawHeading of headings) {
-            let heading = trimRemovePrefix(rawHeading);
+          for (const section of sections) {
+            const heading = trimRemovePrefix(section.heading);
+            let headingLowerCase = heading.toLowerCase();
 
-            if (
-              ("" + heading).toLowerCase().includes(queryLowerCase) ||
-              similarity(heading.toLowerCase(), queryLowerCase) > 0.5
-            ) {
-              let nextLine = "";
-              let i = 1;
-              do {
-                nextLine = lines[lines.indexOf(rawHeading) + i];
-                i++;
-              } while (!nextLine.trim());
+            function hit(previewText, scale = 1) {
+              previewText = trimRemovePrefix(previewText);
 
               results.push({
                 title: heading,
-
                 subtitle: doc.group + " / " + doc.title,
-                description: trimRemovePrefix(nextLine),
+                description: previewText,
                 sortSort:
-                  similarity(heading, query) +
-                  similarity(doc.title.toLowerCase(), queryLowerCase),
+                  (similarity(queryLowerCase, headingLowerCase) +
+                    similarity(queryLowerCase, doc.title.toLowerCase()) +
+                    similarity(queryLowerCase, previewText.toLowerCase())) *
+                  scale,
 
-                to: "/docs/" + path + "#" + toUrlCase(heading),
+                to: "/docs/" + path + "#" + toUrlCase(section.heading),
 
                 key: getRandomString(10),
               });
             }
-          }
-        }
-      }
 
-      if (results.length === 0) {
-        // Search every line for the query
-
-        console.clear();
-        for (var path in docsByPath) {
-          var doc = docsByPath[path];
-          var content = doc.content;
-          if (typeof content !== "string") continue;
-
-          var lines = content.split("\n").map((x) => x.trim());
-          for (var index = 0; index < lines.length; index++) {
-            var line = lines[index];
-
-            if (!line) continue;
-
-            if (line.startsWith("---{")) {
-              index++;
-              for (; index < lines.length; index++) {
-                if (lines[index].startsWith("---")) break;
-              }
-              continue;
-            }
-
-            if (line.toLowerCase().includes(queryLowerCase)) {
-              var trimmed = trimRemovePrefix(line);
-
-              var heading;
-              for (var i = index - 1; i >= 0; i--) {
-                if (lines[i].trim().startsWith("#")) {
-                  heading = trimRemovePrefix(lines[i]);
+            if (
+              headingLowerCase.includes(queryLowerCase) ||
+              similarity(headingLowerCase, queryLowerCase) > 0.5
+            ) {
+              const previewText = section.lines[0];
+              hit(previewText);
+            } else {
+              for (var line of section.lines) {
+                if (line.toLowerCase().includes(queryLowerCase)) {
+                  hit(line, 0.2);
                   break;
                 }
               }
-
-              results.push({
-                title: heading,
-                subtitle: doc.group + " / " + doc.title,
-                description: trimmed,
-                sortSort:
-                  similarity(trimmed, query) +
-                  similarity(doc.title.toLowerCase(), queryLowerCase),
-                to: "/docs/" + path,
-                key: getRandomString(10),
-              });
             }
           }
         }

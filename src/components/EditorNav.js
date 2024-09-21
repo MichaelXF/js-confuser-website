@@ -21,6 +21,7 @@ import { Link } from "react-router-dom";
 import { ArrowDropDown, Close, KeyboardArrowRight } from "@mui/icons-material";
 import { defaultOptionsJS } from "../constants";
 import useSnackbar from "../hooks/useSnackbar";
+import { EDITOR_PANEL_WIDTH } from "./EditorPanel";
 
 function EditorNavItem({
   subItem,
@@ -99,6 +100,8 @@ function EditorNavItem({
             return;
           }
 
+          if (subItem.keepOpen) return;
+
           handleParentClose();
         }}
       >
@@ -172,6 +175,7 @@ export default function EditorNav({
   focusEditor,
   closeModals,
   shareURL,
+  changeTab,
 }) {
   const snackbar = useSnackbar();
 
@@ -212,6 +216,18 @@ export default function EditorNav({
     {
       label: "File",
       items: [
+        // Switch to file 1-9
+        ...new Array(9).fill(0).map((_, i) => {
+          var humanIndex = i + 1;
+          return {
+            label: "Change To File " + humanIndex,
+            shortcut: "Ctrl + " + humanIndex,
+            onClick: () => {
+              changeTab(i);
+            },
+            hidden: true,
+          };
+        }),
         {
           label: "New File",
           shortcut: "Ctrl + N",
@@ -255,6 +271,7 @@ export default function EditorNav({
                 clearAllFiles();
               },
               disabled: !recentFiles.length,
+              keepOpen: true,
             },
           ],
         },
@@ -263,9 +280,8 @@ export default function EditorNav({
           label: "Close File",
           shortcut: "Ctrl + W",
           onClick: () => {
-            if (!closeModals()) {
-              closeTab(activeTabRef.current);
-            }
+            closeModals();
+            closeTab(activeTabRef.current);
           },
           hidden: true,
         },
@@ -407,6 +423,8 @@ export default function EditorNav({
 
             if (isShiftKey && !items.includes("shift")) return;
 
+            console.log(e.key, key);
+
             if (e.key.toLowerCase() === key) {
               e.preventDefault();
 
@@ -480,7 +498,7 @@ export default function EditorNav({
               variant="body1"
               fontWeight="bold"
               color="primary.main"
-              minWidth="260px"
+              minWidth={EDITOR_PANEL_WIDTH}
               px={2}
             >
               JS-Confuser

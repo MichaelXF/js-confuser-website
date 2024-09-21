@@ -86,8 +86,9 @@ export function convertOptionsToJS(
 
   if (exportName === "module.exports") {
     newOptionsJS =
-      `// This file is evaluated as JavaScript. You can use JavaScript here.\n\n` +
-      newOptionsJS;
+      `// This file is evaluated as JavaScript. You can use JavaScript here.
+// Learn more: https://js-confuser.com/docs/getting-started/playground#jsconfuser-ts
+\n` + newOptionsJS;
   }
 
   return newOptionsJS;
@@ -95,12 +96,22 @@ export function convertOptionsToJS(
 
 export function evaluateOptionsOrJS(optionsJS) {
   try {
+    // Already in object form?
     if (typeof optionsJS === "object" && optionsJS) {
       return optionsJS;
     }
 
+    /**
+     * When the user provides a JSConfuser config file, we need to evaluate it
+     *
+     * This partially evaluates the JSConfuser config file by faking imports
+     *
+     * jsConfuserWorker.js provides concrete require() function
+     */
+
     var value = eval(`
       var module = { exports: {} };
+      var require = (id) => ({}); // Mock require
 
       ${optionsJS}
 

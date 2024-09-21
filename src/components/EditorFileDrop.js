@@ -1,7 +1,7 @@
 import { Backdrop, Typography } from "@mui/material";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
-export function EditorFileDrop({ newTab }) {
+export default function EditorFileDrop({ newTab }) {
   const [isDragging, setIsDragging] = useState(false);
 
   const handleFileDrop = (event) => {

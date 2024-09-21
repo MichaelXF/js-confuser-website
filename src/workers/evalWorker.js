@@ -4,8 +4,7 @@ const workerScope = self;
 export const evaluateCodeSandbox = function (
   requestID,
   code,
-  strictMode,
-  allowNetworkRequests
+  { strictModeEval, allowNetworkRequests }
 ) {
   if (!allowNetworkRequests) {
     workerScope.fetch = function () {
@@ -67,13 +66,24 @@ export const evaluateCodeSandbox = function (
     this.console = console;
 
     try {
-      if (strictMode) {
+      if (strictModeEval) {
         eval(code);
       } else {
         new Function(code)();
       }
     } catch (e) {
-      Write("error")(String(e?.stack || e));
+      // Each browser has a different way of handling the error object
+      const { stack, message } = e || {};
+      let output = stack || message || e;
+
+      // Safari does not include the message in the stack trace
+      if (typeof stack === "string" && typeof message === "string") {
+        if (!stack.includes(message)) {
+          output = `${message}\n${stack}`;
+        }
+      }
+
+      Write("error")(String(output));
     }
   })();
 

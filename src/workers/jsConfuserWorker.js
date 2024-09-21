@@ -12,18 +12,40 @@ function getByteSize(str) {
   return new Blob([str]).size;
 }
 
+/**
+ * Modules that JSConfuser.ts can import
+ */
+const modules = {
+  "js-confuser": JsConfuser,
+  Buffer: Buffer,
+  "@babel/types": require("@babel/types"),
+};
+
 function evaluateOptions(optionsJS) {
   if (typeof optionsJS === "object" && optionsJS) return optionsJS;
 
+  const createRequire = function () {
+    return (id) => {
+      if (modules.hasOwnProperty(id)) {
+        return modules[id];
+      }
+
+      throw new Error(`Module ${id} not found`);
+    };
+  };
+
   return eval(`
-    var module = { exports: {} };
-      ${optionsJS}
-      module
-      `)?.exports;
+    (function (require){
+        var module = { exports: {} };
+        ${optionsJS}
+        
+        return module
+    })
+      `)(createRequire())?.exports;
 }
 
 export const obfuscateCode = (requestID, code, optionsJS) => {
-  var callback = (log) => {
+  const reportProgress = (log) => {
     postMessage({
       event: "progress",
       data: {
@@ -33,28 +55,33 @@ export const obfuscateCode = (requestID, code, optionsJS) => {
     });
   };
 
-  var options = {};
-
-  try {
-    options = evaluateOptions(optionsJS);
-  } catch (err) {
+  const reportError = (error) => {
     postMessage({
       event: "error",
       data: {
         requestID,
-        errorString: err.toString(),
-        errorStack: err?.stack?.toString?.() || null,
+        errorString: error.toString(),
+        errorStack: error?.stack?.toString?.() || null,
       },
     });
+  };
+
+  // Evaluate the user's JSConfuser.ts config file
+  let options = {};
+  try {
+    options = evaluateOptions(optionsJS);
+  } catch (error) {
+    reportError(error);
 
     return;
   }
 
+  // Obfuscate code with progress callback
   JsConfuser.obfuscateWithProfiler(
     code,
     { ...options, verbose: true },
     {
-      callback,
+      callback: reportProgress,
       performance,
     }
   )
@@ -76,15 +103,6 @@ export const obfuscateCode = (requestID, code, optionsJS) => {
       });
     })
     .catch((error) => {
-      console.error(error);
-
-      postMessage({
-        event: "error",
-        data: {
-          requestID,
-          errorString: error.toString(),
-          errorStack: error?.stack?.toString?.() || null,
-        },
-      });
+      reportError(error);
     });
 };

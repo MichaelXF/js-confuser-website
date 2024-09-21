@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@mui/material";
 import { useEffect, useRef } from "react";
-import useWorkerEval from "../hooks/useWorkerEval";
+import useEvalWorker from "../hooks/useEvalWorker";
 
 export default function ConsoleDialog({
   open,
@@ -16,7 +16,7 @@ export default function ConsoleDialog({
   getEditorOptions = () => ({}),
 }) {
   var consoleRef = useRef();
-  var workerEval = useWorkerEval(consoleRef);
+  var workerEval = useEvalWorker(consoleRef);
   var running = !!workerEval.running;
 
   var onClose = () => {
@@ -29,11 +29,7 @@ export default function ConsoleDialog({
       consoleRef.current.innerText = "";
     }
 
-    workerEval.evaluateCode(
-      getEditorCode(),
-      getEditorOptions().strictModeEval,
-      getEditorOptions().allowNetworkRequests
-    );
+    workerEval.evaluateCode(getEditorCode(), getEditorOptions());
   };
 
   useEffect(() => {

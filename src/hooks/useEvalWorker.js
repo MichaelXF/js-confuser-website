@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+// Inline the worker code - Avoid spamming the network with requests
 import worker from "workerize-loader?inline!../workers/evalWorker"; // eslint-disable-line import/no-webpack-loader-syntax
 import { getRandomString } from "../utils/random-utils";
 
@@ -6,8 +7,12 @@ export default function useWorkerEval(consoleRef) {
   var [running, setRunning] = useState();
   var workerRef = useRef();
 
+  var runningRef = useRef();
+  runningRef.current = running;
+
   function evaluateCode(code, strictMode, allowNetworkRequests) {
     // If previous worker still exists, terminate it
+
     cancel();
 
     if (consoleRef.current) {

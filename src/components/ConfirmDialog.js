@@ -14,7 +14,7 @@ export function ConfirmDialog({ open, onClose, onConfirm }) {
 
       <DialogContent>
         <Typography>
-          Are you sure you want to override the existing configuration? <br />
+          Are you sure you want to override the existing options? <br />
           <br />
           You will lose any custom values or implementations.
         </Typography>

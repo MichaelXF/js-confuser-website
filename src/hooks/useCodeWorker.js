@@ -6,13 +6,14 @@ function createWorker() {
   if (workerInstance) {
     return workerInstance;
   }
-  return (workerInstance = worker()); // Attach an event listener to receive calculations from your worker
+
+  var newWorker = worker();
+  return newWorker;
 }
 
 export default function useCodeWorker() {
-  var worker = createWorker();
-
   const convertTSCodeToJSCode = (code) => {
+    const worker = createWorker();
     const requestID = getRandomString(10);
 
     return new Promise((resolve, reject) => {
@@ -20,7 +21,7 @@ export default function useCodeWorker() {
 
       var callback = (message) => {
         const { event, data } = message.data;
-        if (data.requestID !== requestID) return;
+        if (data?.requestID !== requestID) return;
 
         if (event === "success") {
           resolve(data.code);
@@ -43,6 +44,7 @@ export default function useCodeWorker() {
   };
 
   const formatCode = (code, language) => {
+    const worker = createWorker();
     const requestID = getRandomString(10);
 
     return new Promise((resolve, reject) => {
@@ -50,7 +52,7 @@ export default function useCodeWorker() {
 
       var callback = (message) => {
         const { event, data } = message.data;
-        if (data.requestID !== requestID) return;
+        if (data?.requestID !== requestID) return;
 
         if (event === "success") {
           resolve(data.code);

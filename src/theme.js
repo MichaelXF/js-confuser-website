@@ -53,7 +53,7 @@ export const theme = createTheme({
   components: {
     MuiCssBaseline: {
       styleOverrides: {
-        body: {
+        html: {
           // Apply dark color scheme for scrollbars and other UI elements
           colorScheme: "dark",
         },

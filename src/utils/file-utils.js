@@ -219,3 +219,65 @@ export async function deleteFileFromIndexedDB(fileName) {
 // deleteFileFromIndexedDB('example.txt')
 //   .then(() => console.log('File deleted'))
 //   .catch((error) => console.error('Failed to delete file:', error));
+
+export function getObfuscatedFileName(originalFileName) {
+  if (typeof originalFileName !== "string") return "Obfuscated.js";
+
+  const outputFileName = originalFileName;
+
+  // file.obfuscated.js -> file.obfuscated.2.js
+  // file.obfuscated.2.js -> file.obfuscated.3.js
+  if (
+    outputFileName.includes(".obfuscated.") &&
+    outputFileName.endsWith(".js")
+  ) {
+    var num =
+      parseInt(outputFileName.split(".obfuscated.")[1].split(".js")[0]) + 1;
+    if (Number.isNaN(num) || num < 1) {
+      num = 2;
+    }
+
+    return (
+      outputFileName.split(".obfuscated")[0] + ".obfuscated." + num + ".js"
+    );
+  } else if (outputFileName.endsWith(".js")) {
+    // Replace .js with .obfuscated.js
+    return outputFileName.replace(".js", ".obfuscated.js");
+  }
+
+  // No file extension -> file.obfuscated.js
+  return outputFileName + ".obfuscated.js";
+}
+
+export function getFileExtension(fileName) {
+  const fileExtension = fileName.split(".").pop();
+  return fileExtension;
+}
+
+export function getLanguageFromFileExtension(fileExtension) {
+  return (
+    {
+      js: "javascript",
+      ts: "typescript",
+      json: "json",
+    }[fileExtension] || "plaintext"
+  );
+}
+
+export function openNewTabWithText(content) {
+  // Open a new tab with about:blank
+  let newTab = window.open("about:blank", "_blank");
+
+  // Write content into the new tab's document
+  newTab.document.write(`
+      <html>
+          <head><title>New Tab</title></head>
+          <body>
+              <pre>${content}</pre>
+          </body>
+      </html>
+  `);
+
+  // Close the document to finalize writing
+  newTab.document.close();
+}

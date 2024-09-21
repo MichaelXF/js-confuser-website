@@ -3,11 +3,10 @@ import { Box, IconButton, useTheme } from "@mui/material";
 import { rgbToHex } from "../utils/color-utils";
 import { Add } from "@mui/icons-material";
 import { forwardRef } from "react";
-import { defaultCode, LocalStorageKeys } from "../constants";
+import { defaultCode } from "../constants";
 import EditorComponentTab from "./EditorComponentTab";
 
 import jsConfuserOptionsTS from "!!raw-loader!js-confuser/src/options.ts"; // eslint-disable-line import/no-webpack-loader-syntax
-import { useSearchParams } from "react-router-dom";
 
 const jsConfuserTypes = `
 declare module 'js-confuser' {
@@ -20,15 +19,18 @@ interface Module {
   exports: import('js-confuser').ObfuscateOptions;
 }
 
-
 // Simulate Node.js-like 'module' behavior
 declare var module: Module;
+
+// Simulate Node.js-like 'require' behavior
+type Require = (id: string) => any;
+
+declare var require: Require;
 `;
 
 export const EditorComponent = forwardRef(
   ({ tabs, activeTab, changeTab, newTab, closeTab }, ref) => {
     const theme = useTheme();
-    const [params, setSearchParams] = useSearchParams();
 
     // Access the body background color
     const bodyBackgroundColor = theme.palette.background.default;
@@ -49,12 +51,13 @@ export const EditorComponent = forwardRef(
       });
 
       monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
-        target: monaco.languages.typescript.ScriptTarget.ES2020,
+        target: monaco.languages.typescript.ScriptTarget.ES6,
         moduleResolution:
           monaco.languages.typescript.ModuleResolutionKind.NodeJs,
-        allowSyntheticDefaultImports: true,
-        strict: true,
-        esModuleInterop: true,
+        module: monaco.languages.typescript.ModuleKind.CommonJS,
+        allowNonTsExtensions: true,
+        allowJs: true,
+        checkJs: true,
       });
 
       // Register your JSConfuser types with Monaco
@@ -75,17 +78,7 @@ export const EditorComponent = forwardRef(
         minimap: { enabled: false },
       });
 
-      let readLocalStorage = typeof params.get("markdown") === "string";
-
       var initialTabCode = defaultCode;
-
-      if (readLocalStorage) {
-        function read(key) {
-          return JSON.parse(localStorage.getItem(key));
-        }
-
-        initialTabCode = read(LocalStorageKeys.JsConfuserMarkdownCode);
-      }
 
       newTab(initialTabCode, "Untitled.js");
     };

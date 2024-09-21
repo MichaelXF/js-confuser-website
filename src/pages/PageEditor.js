@@ -2,24 +2,35 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Box } from "@mui/material";
 import { defaultCode, defaultOptionsJS, LocalStorageKeys } from "../constants";
 
-// Import your worker
-import LoadingBackdrop from "../components/LoadingBackdrop";
-import EditorPanel from "../components/EditorPanel";
-import { EditorComponent } from "../components/EditorComponent";
-import { useLocalStorage } from "usehooks-ts";
-import OptionsDialog from "../components/OptionsDialog";
+// Hooks for the JSConfuser and Code Worker
 import useJSConfuser from "../hooks/useJSConfuser";
-import ConsoleDialog from "../components/ConsoleDialog";
-import { saveFileToIndexedDB } from "../utils/file-utils";
-import EditorNav from "../components/EditorNav";
-import { EditorFileDrop } from "../components/EditorFileDrop";
-import ErrorDialog from "../components/ErrorDialog";
-import { useSearchParams } from "react-router-dom";
 import useCodeWorker from "../hooks/useCodeWorker";
-import { convertOptionsToJS, evaluateOptionsOrJS } from "../utils/option-utils";
 import useSEO from "../hooks/useSEO";
+
+// File Storage And Settings
+import {
+  getFileExtension,
+  getLanguageFromFileExtension,
+  getObfuscatedFileName,
+  saveFileToIndexedDB,
+} from "../utils/file-utils";
+import { useLocalStorage } from "usehooks-ts";
+import { useSearchParams } from "react-router-dom";
+
+// Editor Components
+import EditorPanel from "../components/EditorPanel";
+import EditorNav from "../components/EditorNav";
+import EditorFileDrop from "../components/EditorFileDrop";
+import { EditorComponent } from "../components/EditorComponent";
+
+import OptionsDialog from "../components/OptionsDialog";
+import ConsoleDialog from "../components/ConsoleDialog";
+import ErrorDialog from "../components/ErrorDialog";
+import LoadingBackdrop from "../components/LoadingBackdrop";
+
+// Obfuscator Options
+import { convertOptionsToJS, evaluateOptionsOrJS } from "../utils/option-utils";
 import presets from "js-confuser/dist/presets";
-import { ConfirmDialog } from "../components/ConfirmDialog";
 
 export default function PageEditor() {
   useSEO(
@@ -49,9 +60,8 @@ export default function PageEditor() {
         model.setNonDirtyValue(code);
       }
       if (config) {
-        editOptionsFile();
-
         setOptionsJS(config);
+        editOptionsFile();
       }
       if (preset) {
         setOptions(presets[preset]);
@@ -115,21 +125,26 @@ export default function PageEditor() {
 
     var tab = tabs.find((t) => t.title === "options.js");
     if (tab) {
-      tab.setValue(newOptionsJS);
+      tab.setNonDirtyValue(newOptionsJS);
     }
   };
 
+  const tabsRef = useRef();
+  tabsRef.current = tabs;
+
   function changeTab(tabOrIndex) {
-    var tab = typeof tabOrIndex === "number" ? tabs[tabOrIndex] : tabOrIndex;
+    var tab =
+      typeof tabOrIndex === "number" ? tabsRef.current[tabOrIndex] : tabOrIndex;
+
+    // Only if a numbered tab was not found, return
+    // Else it's a logic error
+    if (typeof tabOrIndex === "number" && !tab) return;
 
     const { editor } = ref.current;
     editorSetModel(editor, tab);
 
     setActiveTab(tab);
   }
-
-  const tabsRef = useRef();
-  tabsRef.current = tabs;
 
   function editorSetModel(editor, model) {
     var currentModel = editor.getModel();
@@ -141,6 +156,10 @@ export default function PageEditor() {
     if (model.viewState) {
       editor.focus();
       editor.restoreViewState(model.viewState);
+
+      requestAnimationFrame(() => {
+        editor.focus();
+      });
 
       delete model.viewState;
     }
@@ -180,23 +199,13 @@ export default function PageEditor() {
       }
     }
 
-    const fileExtension = fileName.split(".").pop();
-
-    function getLanguageFromFileName(filName) {
-      return (
-        {
-          js: "javascript",
-          ts: "typescript",
-          json: "json",
-        }[fileExtension] || "plaintext"
-      );
-    }
+    const fileExtension = getFileExtension(fileName);
 
     var uri = monaco.Uri.parse("file:///" + identity + "." + fileExtension);
 
     const newModel = monaco.editor.createModel(
       value,
-      getLanguageFromFileName(),
+      getLanguageFromFileExtension(fileExtension),
       uri
     );
 
@@ -211,7 +220,7 @@ export default function PageEditor() {
 
       monaco.editor.setModelLanguage(
         newModel,
-        getLanguageFromFileName(newName)
+        getLanguageFromFileExtension(getFileExtension(newName))
       );
     };
 
@@ -301,7 +310,9 @@ export default function PageEditor() {
     return activeModel;
   };
 
-  // Function to obfuscate the code
+  /**
+   * Obfuscates the user's code
+   */
   const obfuscateCode = () => {
     if (tabsRef?.current?.length === 0) {
       alert("Please open a file to obfuscate");
@@ -322,40 +333,7 @@ export default function PageEditor() {
 
             var { code, profileData } = data;
 
-            var outputFileName = "Obfuscated.js";
-            if (typeof activeModel.title === "string") {
-              outputFileName = activeModel.title;
-
-              // file.obfuscated.js -> file.obfuscated.2.js
-              // file.obfuscated.2.js -> file.obfuscated.3.js
-              if (
-                outputFileName.includes(".obfuscated.") &&
-                outputFileName.endsWith(".js")
-              ) {
-                var num =
-                  parseInt(
-                    outputFileName.split(".obfuscated.")[1].split(".js")[0]
-                  ) + 1;
-                if (Number.isNaN(num) || num < 1) {
-                  num = 2;
-                }
-
-                outputFileName =
-                  outputFileName.split(".obfuscated")[0] +
-                  ".obfuscated." +
-                  num +
-                  ".js";
-              } else if (outputFileName.endsWith(".js")) {
-                // Replace .js with .obfuscated.js
-                outputFileName = activeModel.title.replace(
-                  ".js",
-                  ".obfuscated.js"
-                );
-              } else {
-                // No file extension -> file.obfuscated.js
-                outputFileName = outputFileName + ".obfuscated.js";
-              }
-            }
+            var outputFileName = getObfuscatedFileName(activeModel.title);
 
             var model = newTab(code, outputFileName);
             model.profileData = profileData;
@@ -434,6 +412,7 @@ export default function PageEditor() {
           }
         })
         .catch(() => {
+          // Should never happen
           alert("Failed to obfuscate code");
         });
       return;
@@ -465,23 +444,12 @@ export default function PageEditor() {
       });
   };
 
-  const activeModelRef = useRef();
-  activeModelRef.current = showError || showOptionsDialog || showConsoleDialog;
-
-  // Function to close all modals and return true if any were open
+  // Function to close all modals
   const closeModals = () => {
-    // Check if any modal is currently open
-    const wasAnyModalOpen = activeModelRef.current;
-
     // Close all modals
     setShowError(false);
     setShowOptionsDialog(false);
     setShowConsoleDialog(false);
-
-    activeModelRef.current = false;
-
-    // Return true if any modal was open
-    return wasAnyModalOpen;
   };
 
   return (
@@ -550,6 +518,7 @@ export default function PageEditor() {
         convertCode={convertCode}
         closeTab={closeTab}
         closeModals={closeModals}
+        changeTab={changeTab}
         focusEditor={() => {
           requestAnimationFrame(() => {
             const { editor } = ref.current;

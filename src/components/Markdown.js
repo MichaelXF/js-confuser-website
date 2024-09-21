@@ -219,13 +219,13 @@ export default function Markdown({
         trimmed.startsWith("---js") ||
         trimmed.startsWith("```")
       ) {
-        var endLineIndex = -1;
-        var endToken = trimmed.slice(0, 3);
-        var valueLines = [];
-        var optionsLines = [];
+        let endLineIndex = -1;
+        const endToken = trimmed.slice(0, 3);
+        const valueLines = [];
+        const optionsLines = [];
 
-        var metadataString = trimmed.slice(3).trim();
-        var metadata = {};
+        const metadataString = trimmed.slice(3).trim();
+        let metadata = {};
 
         try {
           if (metadataString === "js") {
@@ -248,12 +248,17 @@ export default function Markdown({
         }
 
         for (let i = index + 1; i < lines.length; i++) {
-          if (lines[i].trim().startsWith(endToken)) {
+          let currentLine = lines[i].trim();
+          if (currentLine.startsWith("===END OPTIONS===")) {
             if (collectOptions) {
               collectOptions = false;
               continue;
+            } else {
+              throw new Error("Not allowed");
             }
+          }
 
+          if (currentLine.startsWith(endToken)) {
             endLineIndex = i;
             break;
           } else {
@@ -266,13 +271,15 @@ export default function Markdown({
         }
 
         function fixIndentation(lines) {
+          if (lines.length === 0) return "";
+
           if (!lines[0].trim() && lines.length > 1) {
             lines.shift();
           }
 
-          var firstIndention = lines[0].length - lines[0].trimStart().length;
+          let firstIndention = lines[0].length - lines[0].trimStart().length;
 
-          var value = lines
+          const correctedValue = lines
             .map((line) =>
               line.slice(0, firstIndention).trim().length === 0
                 ? line.slice(firstIndention)
@@ -281,7 +288,7 @@ export default function Markdown({
             .join("\n")
             .trim();
 
-          return value;
+          return correctedValue;
         }
 
         if (endLineIndex !== -1) {
@@ -289,15 +296,21 @@ export default function Markdown({
             skipLines.add(i);
           }
 
-          var value = fixIndentation(valueLines);
+          const value = fixIndentation(valueLines);
 
           allowBreak = false;
           allowActualBreak = false;
 
           if (metadata.live) {
-            var options = fixIndentation(optionsLines);
+            const options = fixIndentation(optionsLines);
             optionsRef.current = options;
           }
+
+          const isOptionsFile = ["Options.js", "JSConfuser.ts"].includes(
+            metadata.header
+          );
+
+          const showTryItButton = metadata.live || isOptionsFile;
 
           return (
             <Box key={index} my={4}>
@@ -324,28 +337,37 @@ export default function Markdown({
                     }}
                     allowEvaluate={true}
                   />
-
-                  <Box textAlign="center">
-                    <Button
-                      title="Try out the code in the Playground"
-                      endIcon={<KeyboardArrowRight />}
-                      onClick={() => {
-                        localStorage.setItem(
-                          LocalStorageKeys.JsConfuserMarkdownCode,
-                          JSON.stringify(value)
-                        );
-                        localStorage.setItem(
-                          LocalStorageKeys.JsConfuserOptionsJS,
-                          JSON.stringify(optionsRef.current)
-                        );
-
-                        navigator("/editor?markdown");
-                      }}
-                    >
-                      Try It Out
-                    </Button>
-                  </Box>
                 </>
+              ) : null}
+
+              {showTryItButton ? (
+                <Box textAlign="center">
+                  <Button
+                    title="Try out the code in the Playground"
+                    endIcon={<KeyboardArrowRight />}
+                    onClick={() => {
+                      const searchParams = new URLSearchParams();
+
+                      // module.exports = {...}
+                      const optionsString = metadata.live
+                        ? optionsRef.current
+                        : value;
+
+                      searchParams.set("config", optionsString);
+
+                      if (metadata.live) {
+                        searchParams.set(
+                          "code",
+                          LocalStorageKeys.JsConfuserMarkdownCode
+                        );
+                      }
+
+                      navigator("/editor?" + searchParams.toString());
+                    }}
+                  >
+                    Try It Out
+                  </Button>
+                </Box>
               ) : null}
             </Box>
           );
@@ -366,21 +388,42 @@ export default function Markdown({
       }
 
       if (isValidBulletPoint(trimmed)) {
+        const isUnordered = trimmed.startsWith("- ");
         const bulletLines = [];
         var i = index;
-        do {
+        var startLineIndex = index;
+        var endLineIndex = index;
+        outer: do {
           bulletLines.push(trimmed);
+          endLineIndex = i;
+          console.log(trimmed);
+
+          do {
+            i++;
+            if (i > lines.length) break outer;
+            trimmed = lines[i]?.trim();
+
+            console.log(isValidBulletPoint(trimmed));
+          } while (typeof trimmed === "string" && !trimmed.trim());
+        } while (isValidBulletPoint(trimmed));
+
+        for (var i = startLineIndex; i <= endLineIndex; i++) {
           skipLines.add(i);
-          i++;
-          if (i > lines.length) break;
-          trimmed = lines[i]?.trim();
-        } while (
-          (typeof trimmed === "string" && !trimmed) ||
-          isValidBulletPoint(trimmed)
-        );
+        }
+
+        allowBreak = false;
+        allowActualBreak = false;
+
+        const LIST_START_PADDING = 28;
 
         return (
-          <Box key={index} mb={4}>
+          <Box
+            style={{
+              marginBlock: "8px",
+              paddingInlineStart: LIST_START_PADDING + "px",
+            }}
+            component={isUnordered ? "ul" : "ol"}
+          >
             {bulletLines.map((line, i) => {
               var bulletLevel = 0;
               var bulletPoint = line.trim();
@@ -392,18 +435,18 @@ export default function Markdown({
                 bulletLevel++;
               } while (bulletPoint.startsWith("- "));
 
-              var paddingInlineStart = bulletLevel * 28;
+              var marginInlineStart =
+                Math.max(0, (bulletLevel - 1) * LIST_START_PADDING) + "px";
 
               return (
-                <Typography variant="inherit">
-                  <ul
-                    style={{
-                      marginBlock: "8px",
-                      paddingInlineStart: paddingInlineStart + "px",
-                    }}
-                  >
-                    <li>{parseLine(bulletPoint)}</li>
-                  </ul>
+                <Typography
+                  variant="inherit"
+                  component="li"
+                  sx={{
+                    marginInlineStart,
+                  }}
+                >
+                  {parseLine(bulletPoint)}
                 </Typography>
               );
             })}
@@ -534,6 +577,7 @@ export default function Markdown({
     onMetadataUpdate({
       headings,
       lowestHeadingLevel: Math.min(...headings.map((x) => x.level)),
+      value,
     });
   }, [strValue]);
 

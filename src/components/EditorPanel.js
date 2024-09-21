@@ -2,6 +2,8 @@ import { Box, useTheme } from "@mui/material";
 import EditorPanelDefault from "./EditorPanelDefault";
 import EditorPanelDownload from "./EditorPanelDownload";
 
+export const EDITOR_PANEL_WIDTH = "270px";
+
 export default function EditorPanel({
   obfuscateCode,
   convertCode,
@@ -18,7 +20,7 @@ export default function EditorPanel({
 
   return (
     <Box
-      maxWidth="270px"
+      maxWidth={EDITOR_PANEL_WIDTH}
       width="100%"
       flexShrink={0}
       height="calc(100vh - 40px)"
@@ -26,6 +28,7 @@ export default function EditorPanel({
       p={2}
       sx={{
         overflowY: "auto",
+        scrollbarWidth: "thin",
       }}
     >
       {panelMode === "default" ? (

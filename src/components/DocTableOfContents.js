@@ -1,5 +1,6 @@
 import { OpenInNew } from "@mui/icons-material";
 import { Box, Button, Link, Typography } from "@mui/material";
+import { openNewTabWithText } from "../utils/file-utils";
 
 export default function DocTableOfContents({ metadata }) {
   return (
@@ -22,7 +23,7 @@ export default function DocTableOfContents({ metadata }) {
           Feedback
         </Typography>
 
-        <Typography color="text.secondary_darker" fontSize="0.925rem">
+        <Typography color="text.secondary_darker" variant="body2">
           Please help us improve by <br />
           <Link
             underline="none"
@@ -34,6 +35,23 @@ export default function DocTableOfContents({ metadata }) {
             <OpenInNew sx={{ ml: "3px", transform: "translate(0,3px)" }} />
           </Link>
         </Typography>
+
+        {metadata?.value ? (
+          <Typography variant="body2" mt={2}>
+            <Link
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+
+                openNewTabWithText(metadata.value);
+              }}
+              color="text.secondary_darker"
+            >
+              View Source
+              <OpenInNew sx={{ ml: "3px", transform: "translate(0,3px)" }} />
+            </Link>
+          </Typography>
+        ) : null}
       </Box>
 
       <Typography

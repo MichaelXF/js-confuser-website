@@ -357,14 +357,14 @@ JSConfuser.obfuscate(sourceCode, options).then((result)=>{
 });`;
 
       docVariables.usageExample = `
-          #### Usage Example
+#### Usage Example
 
-    The provided code example will obfuscate the file \`input.js\` and write the output to a file named \`output.js\`.
+The provided code example will obfuscate the file \`input.js\` and write the output to a file named \`output.js\`.
 
-    ---{header: "Usage Example", language: "javascript"}
-    ${usageExampleCode}
-    ---
-      `;
+---{header: "Usage Example", language: "javascript"}
+${usageExampleCode}
+---
+`;
 
       var seeAlso = [];
       if (item.parentField === "lock" && item.name !== "countermeasures") {
@@ -378,13 +378,11 @@ JSConfuser.obfuscate(sourceCode, options).then((result)=>{
       }
 
       docVariables.seeAlso = seeAlso.length
-        ? `
-          ---
-  
-        ##### See Also
-  
-        ${seeAlso.map((x) => `- [${x.label}](${x.to})`).join("\n")}
-        `
+        ? `\n---
+
+##### See Also
+
+${seeAlso.map((x) => `- [${x.label}](${x.to})`).join("\n")}`
         : "";
 
       docVariables.customImplementation = "";
@@ -397,26 +395,25 @@ JSConfuser.obfuscate(sourceCode, options).then((result)=>{
         }
 
         docVariables.customImplementation += `
-        #### Custom Implementation
-        ###### \`${optionNamePrefix}(${custom.parameters.map((x) => x.parameter).join(", ")})\`
+#### Custom Implementation
+###### \`${optionNamePrefix}(${custom.parameters.map((x) => x.parameter).join(", ")})\`
 
-        ${custom.description}
-        ${
-          custom.parameters.length
-            ? `| Parameter | Type | Description |
-        ${custom.parameters.map((x) => `| \`${x.parameter}\` | \`${x.type}\` | ${x.description} |`).join("\n")}`
-            : ""
-        }
-        ${
-          custom.exampleConfig
-            ? `---{header: "Options.js"}
-        ${custom.exampleConfig}
-        ---`
-            : ""
-        }
+${custom.description}
+${
+  custom.parameters.length
+    ? `| Parameter | Type | Description |
+${custom.parameters.map((x) => `| \`${x.parameter}\` | \`${x.type}\` | ${x.description} |`).join("\n")}`
+    : ""
+}
+${
+  custom.exampleConfig
+    ? `---{header: "Options.js"}
+${custom.exampleConfig}
+---`
+    : ""
+}
 
-        ---
-        `;
+---`;
       }
 
       docVariables.header = `
@@ -427,22 +424,24 @@ ${item.description}
 
 Option name: \`"${optionName}"\`
 Option value${optionValues.includes("/") ? "s" : ""}: \`${optionValues}\`
+
 ---
       `;
 
       docVariables.inputOutput = item.exampleCode
         ? `
-        #### Input / Output
-  
-        This example showcases how \`${titleCase}\` transforms the code. Try it out by changing the input code and see changes apply in real-time.
-  
-        ---{ header: "Input.js", language: "javascript", live: true, options: true }
-        ${convertOptionsToJS(liveExampleOptions)}
-        ---
-        ${item.exampleCode}
-        ---
-        
-        ---`
+#### Input / Output
+
+This example showcases how \`${titleCase}\` transforms the code. Try it out by changing the input code and see changes apply in real-time.
+
+---{ header: "Input.js", language: "javascript", live: true, options: true }
+${convertOptionsToJS(liveExampleOptions)}
+===END OPTIONS===
+${item.exampleCode}
+---
+
+---
+`
         : "";
 
       var content = `
@@ -471,7 +470,7 @@ Option value${optionValues.includes("/") ? "s" : ""}: \`${optionValues}\`
   // Add Preset Docs
   Object.keys(presets).forEach((presetName) => {
     var content = `
-    #### ${toTitleCase(presetName)} Preset
+    ### ${toTitleCase(presetName)} Preset
 
     Option name: \`"preset"\`
 

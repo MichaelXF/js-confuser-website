@@ -356,10 +356,7 @@ export default function Markdown({
                       searchParams.set("config", optionsString);
 
                       if (metadata.live) {
-                        searchParams.set(
-                          "code",
-                          LocalStorageKeys.JsConfuserMarkdownCode
-                        );
+                        searchParams.set("code", value);
                       }
 
                       navigator("/editor?" + searchParams.toString());

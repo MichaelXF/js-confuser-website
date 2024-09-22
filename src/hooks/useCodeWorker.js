@@ -8,6 +8,7 @@ function createWorker() {
   }
 
   var newWorker = worker();
+  workerInstance = newWorker;
   return newWorker;
 }
 

@@ -7,6 +7,7 @@ import { defaultCode } from "../constants";
 import EditorComponentTab from "./EditorComponentTab";
 
 import jsConfuserOptionsTS from "!!raw-loader!js-confuser/src/options.ts"; // eslint-disable-line import/no-webpack-loader-syntax
+import { EDITOR_PANEL_WIDTH } from "./EditorPanel";
 
 const jsConfuserTypes = `
 declare module 'js-confuser' {
@@ -99,7 +100,7 @@ export const EditorComponent = forwardRef(
             sx={{
               height: "30px",
               overflowX: "auto",
-              maxWidth: "calc(100vw - 300px)",
+              maxWidth: `calc(100vw - ${EDITOR_PANEL_WIDTH} - 50px)`,
               scrollbarWidth: "thin",
             }}
             whiteSpace="nowrap"

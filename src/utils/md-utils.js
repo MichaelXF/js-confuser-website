@@ -1,5 +1,7 @@
 export function trimRemovePrefix(trimmed) {
   if (!trimmed) return "";
+  trimmed = trimmed.trim();
+
   while (trimmed.startsWith("- ")) {
     trimmed = trimmed.substring(2);
   }
@@ -26,9 +28,29 @@ export function splitMarkdownIntoHeadingSections(doc) {
   const lines = content.split("\n");
   const sections = [];
   let currentSection = null;
+  let inCodeBlock = false;
+  let endCodeBlockToken = null;
 
   for (const line of lines) {
     const trimmed = line.trim();
+
+    // Skip Code Blocks in search
+    if (inCodeBlock) {
+      if (trimmed.startsWith(endCodeBlockToken)) {
+        inCodeBlock = false;
+      }
+      continue;
+    }
+
+    if (
+      trimmed.startsWith("---{") ||
+      trimmed.startsWith("---js") ||
+      trimmed.startsWith("```")
+    ) {
+      endCodeBlockToken = trimmed.slice(0, 3);
+      inCodeBlock = true;
+      continue;
+    }
 
     if (trimmed.startsWith("#")) {
       if (currentSection) {

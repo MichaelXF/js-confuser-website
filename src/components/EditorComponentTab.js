@@ -15,6 +15,8 @@ export default function EditorComponentTab({
   closeTab,
   tab,
 }) {
+  // State hook purely for triggering a re-render
+  // tab.title is not reactive
   var [state, setState] = useState({});
 
   return (

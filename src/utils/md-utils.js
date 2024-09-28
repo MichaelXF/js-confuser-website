@@ -2,6 +2,10 @@ export function trimRemovePrefix(trimmed) {
   if (!trimmed) return "";
   trimmed = trimmed.trim();
 
+  if (trimmed.startsWith("> ")) {
+    trimmed = trimmed.substring(2);
+  }
+
   while (trimmed.startsWith("- ")) {
     trimmed = trimmed.substring(2);
   }

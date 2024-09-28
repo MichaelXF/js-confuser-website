@@ -18,15 +18,15 @@ import { useLocalStorage } from "usehooks-ts";
 import { useSearchParams } from "react-router-dom";
 
 // Editor Components
-import EditorPanel from "../components/EditorPanel";
-import EditorNav from "../components/EditorNav";
-import EditorFileDrop from "../components/EditorFileDrop";
-import { EditorComponent } from "../components/EditorComponent";
+import EditorPanel from "../components/editor/EditorPanel";
+import EditorNav from "../components/editor/EditorNav";
+import EditorFileDrop from "../components/editor/EditorFileDrop";
+import { EditorComponent } from "../components/editor/EditorComponent";
 
-import OptionsDialog from "../components/OptionsDialog";
-import ConsoleDialog from "../components/ConsoleDialog";
-import ErrorDialog from "../components/ErrorDialog";
-import LoadingBackdrop from "../components/LoadingBackdrop";
+import OptionsDialog from "../components/dialogs/OptionsDialog";
+import ConsoleDialog from "../components/dialogs/ConsoleDialog";
+import ErrorDialog from "../components/dialogs/ErrorDialog";
+import LoadingBackdrop from "../components/dialogs/LoadingBackdrop";
 
 // Obfuscator Options
 import { convertOptionsToJS, evaluateOptionsOrJS } from "../utils/option-utils";

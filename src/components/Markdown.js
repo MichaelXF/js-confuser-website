@@ -12,14 +12,15 @@ import {
   TableCell,
   TableBody,
   Button,
+  Alert,
+  AlertTitle,
 } from "@mui/material";
-import CodeViewerTabbed from "./CodeViewerTabbed"; // Assume this component is imported
+import CodeViewerTabbed from "./codeViewer/CodeViewerTabbed";
 import json5 from "json5";
 import useJSConfuser from "../hooks/useJSConfuser";
 import { textEllipsis, toUrlCase } from "../utils/format-utils";
 import { KeyboardArrowRight, OpenInNew } from "@mui/icons-material";
 import { trimRemovePrefix } from "../utils/md-utils";
-import { LocalStorageKeys } from "../constants";
 import { useNavigate } from "react-router-dom";
 
 export const parseLine = (
@@ -198,13 +199,15 @@ export default function Markdown({
         allowBreak = false;
         allowActualBreak = false;
 
+        var isCode = headingText.trim().startsWith("`");
+
         return (
           <Typography
             variant={`h${headingLevel}`}
             color="text.primary"
             key={index}
             gutterBottom
-            mt={headingLevel === 1 ? 0 : 3}
+            mt={isCode ? 4 : headings.length === 1 ? 2 : 6}
             mb={headingLevel === 4 ? 2 : headingLevel === 5 ? 2 : undefined}
             id={headingHash}
             className="HeadingScrollMargin"
@@ -393,14 +396,11 @@ export default function Markdown({
         outer: do {
           bulletLines.push(trimmed);
           endLineIndex = i;
-          console.log(trimmed);
 
           do {
             i++;
             if (i > lines.length) break outer;
             trimmed = lines[i]?.trim();
-
-            console.log(isValidBulletPoint(trimmed));
           } while (typeof trimmed === "string" && !trimmed.trim());
         } while (isValidBulletPoint(trimmed));
 
@@ -415,9 +415,10 @@ export default function Markdown({
 
         return (
           <Box
-            style={{
+            sx={{
               marginBlock: "8px",
               paddingInlineStart: LIST_START_PADDING + "px",
+              mb: 4,
             }}
             component={isUnordered ? "ul" : "ol"}
           >
@@ -448,6 +449,43 @@ export default function Markdown({
               );
             })}
           </Box>
+        );
+      }
+
+      function isBlockQuote(trimmed) {
+        return trimmed.startsWith("> ");
+      }
+
+      if (isBlockQuote(trimmed)) {
+        const blockQuoteLines = [];
+        do {
+          blockQuoteLines.push(lines[index].trim().slice("> ".length).trim());
+          skipLines.add(index);
+        } while (index < lines.length && isBlockQuote(lines[++index]?.trim()));
+
+        let type = "";
+
+        if (blockQuoteLines[0].startsWith("[!")) {
+          type = blockQuoteLines.shift().trim().toLowerCase();
+          if (type.startsWith("[!") && type.endsWith("]")) {
+            type = type.slice(2, -1);
+          }
+        }
+
+        allowBreak = false;
+        allowActualBreak = false;
+
+        var title = blockQuoteLines.shift();
+
+        return (
+          <Alert key={index} severity={type} sx={{ borderRadius: "4px" }}>
+            <AlertTitle color="white">{parseLine(title)}</AlertTitle>
+            {blockQuoteLines.map((line, i) => (
+              <Typography key={i} sx={sx}>
+                {parseLine(line)}
+              </Typography>
+            ))}
+          </Alert>
         );
       }
 

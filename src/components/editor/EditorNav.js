@@ -5,7 +5,7 @@ import {
   getFileFromIndexedDB,
   listAllFiles,
   openJavaScriptFile,
-} from "../utils/file-utils";
+} from "../../utils/file-utils";
 import React, { useEffect, useRef, useState } from "react";
 import {
   AppBar,
@@ -19,8 +19,8 @@ import {
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import { ArrowDropDown, Close, KeyboardArrowRight } from "@mui/icons-material";
-import { defaultOptionsJS } from "../constants";
-import useSnackbar from "../hooks/useSnackbar";
+import { defaultOptionsJS } from "../../constants";
+import useSnackbar from "../../hooks/useSnackbar";
 import { EDITOR_PANEL_WIDTH } from "./EditorPanel";
 
 function EditorNavItem({
@@ -423,7 +423,7 @@ export default function EditorNav({
 
             if (isShiftKey && !items.includes("shift")) return;
 
-            console.log(e.key, key);
+            // console.log(e.key, key);
 
             if (e.key.toLowerCase() === key) {
               e.preventDefault();

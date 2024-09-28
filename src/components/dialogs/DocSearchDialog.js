@@ -8,18 +8,18 @@ import {
   LinearProgress,
   Typography,
 } from "@mui/material";
-import { ensureAllDocsLoaded, getDocs } from "../utils/doc-utils";
+import { ensureAllDocsLoaded, getDocs } from "../../utils/doc-utils";
 import { useEffect, useState } from "react";
-import { similarity } from "../utils/string-utils";
+import { similarity } from "../../utils/string-utils";
 import { Link } from "react-router-dom";
-import { getRandomString } from "../utils/random-utils";
-import { textEllipsis, toUrlCase } from "../utils/format-utils";
-import useSnackbar from "../hooks/useSnackbar";
-import { parseLine } from "./Markdown";
+import { getRandomString } from "../../utils/random-utils";
+import { toUrlCase } from "../../utils/format-utils";
+import useSnackbar from "../../hooks/useSnackbar";
+import { parseLine } from "../Markdown";
 import {
   splitMarkdownIntoHeadingSections,
   trimRemovePrefix,
-} from "../utils/md-utils";
+} from "../../utils/md-utils";
 
 export default function DocSearchDialog({ open, onClose }) {
   var [results, setResults] = useState([]);

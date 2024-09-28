@@ -9,14 +9,11 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { groups } from "../groups";
-import OptionComponent from "./OptionComponent";
+import { groups } from "../../groups";
+import OptionComponent from "../OptionComponent";
 import { useEffect, useState } from "react";
 import presets from "js-confuser/dist/presets";
-import {
-  getOptionSchema,
-  getOptionSchemasWithDefaultValues,
-} from "../utils/option-utils";
+import { getOptionSchemasWithDefaultValues } from "../../utils/option-utils";
 
 export default function OptionsDialog({ open, onClose, options, setOptions }) {
   var [proposedOptions, setProposedOptions] = useState({});

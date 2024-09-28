@@ -1,22 +1,19 @@
 import {
   Box,
   Dialog,
-  DialogActions,
   DialogContent,
-  DialogTitle,
   IconButton,
   useMediaQuery,
 } from "@mui/material";
 import Nav from "../components/Nav";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import PageDocHome from "./PageDocHome";
 import PageDocGeneric from "./PageDocGeneric";
 import { getDocs } from "../utils/doc-utils";
-import DocSearchDialog from "../components/DocSearchDialog";
-import DocNavigation from "../components/DocNavigation";
-import DocTableOfContents from "../components/DocTableOfContents";
-import useSEO from "../hooks/useSEO";
+import DocSearchDialog from "../components/dialogs/DocSearchDialog";
+import DocNavigation from "../components/docs/DocNavigation";
+import DocTableOfContents from "../components/docs/DocTableOfContents";
 import { useTheme } from "@emotion/react";
 import { Close, Menu } from "@mui/icons-material";
 

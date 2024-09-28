@@ -4,7 +4,6 @@ import {
   CircularProgress,
   Container,
   Fade,
-  Hidden,
   Stack,
   Typography,
 } from "@mui/material";
@@ -14,12 +13,11 @@ import {
   Check,
   Copyright,
   KeyboardArrowRight,
-  Lock,
   PriceCheck,
 } from "@mui/icons-material";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { CodeViewer } from "../components/CodeViewer";
+import { CodeViewer } from "../components/codeViewer/CodeViewer";
 import { landingPageCode } from "../constants";
 import useJSConfuser from "../hooks/useJSConfuser";
 import Nav from "../components/Nav";
@@ -99,7 +97,8 @@ export default function PageHome() {
 
   useEffect(() => {
     if (!editor) return;
-    var exampleCode = landingPageCode;
+    let mounted = true;
+    let exampleCode = landingPageCode;
 
     // Initial animation state
     setAnimation(true);
@@ -111,6 +110,8 @@ export default function PageHome() {
 
     const typeCharacter = () => {
       if (index <= exampleCode.length) {
+        if (!mounted) return;
+
         const model = editor.getModel();
         if (!model) return;
 
@@ -169,6 +170,8 @@ export default function PageHome() {
     };
 
     async function onDone() {
+      if (!mounted) return;
+
       editor.setValue(exampleCode);
       function timeout(ms) {
         return new Promise((resolve) => setTimeout(resolve, ms));
@@ -176,6 +179,8 @@ export default function PageHome() {
       await timeout(2500);
       setLoading(true);
       await timeout(2500);
+
+      if (!mounted) return;
 
       JSConfuser.obfuscate(
         landingPageCode,
@@ -206,6 +211,10 @@ export default function PageHome() {
     setTimeout(() => {
       typeCharacter(); // Start typing effect
     }, 50);
+
+    return () => {
+      mounted = false;
+    };
   }, [editor]);
 
   return (

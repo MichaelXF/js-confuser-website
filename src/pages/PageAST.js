@@ -6,8 +6,8 @@ import { parse } from "@babel/parser";
 import * as t from "@babel/types";
 import useSEO from "../hooks/useSEO";
 import { Buffer } from "buffer";
-import { astConsoleMessage, defaultCode } from "../constants";
-import ConsoleDialog from "../components/ConsoleDialog";
+import { astConsoleMessage, defaultCode, LocalStorageKeys } from "../constants";
+import ConsoleDialog from "../components/dialogs/ConsoleDialog";
 
 window.Buffer = Buffer;
 window.t = t;
@@ -185,7 +185,8 @@ export default function PageAST() {
 
     if (ref.current.input.editor && ref.current.output.editor) {
       ref.current.input.editor.setValue(
-        window.localStorage.getItem("astCode") || defaultCode
+        window.localStorage.getItem(LocalStorageKeys.JsConfuserASTCode) ||
+          defaultCode
       );
     }
   };
@@ -482,7 +483,10 @@ export default function PageAST() {
               if (allowValueRefresh) {
                 updateAST();
               }
-              window.localStorage.setItem("astCode", value);
+              window.localStorage.setItem(
+                LocalStorageKeys.JsConfuserASTCode,
+                value
+              );
             }}
           />
         </Box>

@@ -7,7 +7,7 @@ import {
 } from "@mui/icons-material";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { DOC_PATH_SEPARATOR } from "../utils/doc-utils";
+import { DOC_PATH_SEPARATOR } from "../../utils/doc-utils";
 
 const NAV_ITEM_HEIGHT = "36px";
 

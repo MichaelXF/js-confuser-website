@@ -12,6 +12,7 @@ export const groups = {
     {
       type: "boolean",
       name: "pack",
+      tags: ["unsafeEvalExpressions"],
       displayName: "Pack",
       description: `Packs the output code into a single \`Function()\` call. Designed to escape strict mode constraints.`,
 
@@ -284,6 +285,11 @@ module.exports = {
         ],
         description: "Control which strings are changed. Returns a `boolean`.",
       },
+      docContent: `
+      #### Custom String Encodings
+
+      [Custom String Encodings](./customStringEncodings) allows you to define your own string encoding/decoding functions.
+      `,
     },
     {
       type: "CustomStringEncoding[]",
@@ -583,6 +589,7 @@ if ( utils.isString("Hello") ) {
     {
       type: "probability",
       name: "controlFlowFlattening",
+      tags: ["nonStrictMode"],
       description:
         "Control-flow Flattening hinders program comprehension by creating convoluted switch statements.\n\n**⚠️ Significantly impacts performance, use sparingly!**",
       exampleCode: `function countTo(num){
@@ -603,7 +610,8 @@ Control Flow Flattening requires non-strict mode to work. This is because the \`
 - It is recommended to enable the [Pack](./Pack) option when using Control Flow Flattening.
 
 
-#### How It works
+---
+#### CFF Process
 
 Your code will be wrapped in a large, complicated switch statement. This makes the behavior of your program very hard to understand and is resistent to deobfuscators. This comes with a large performance reduction.
 
@@ -794,6 +802,7 @@ print("Hello World"); // "Hello World"`,
     {
       type: "probability",
       name: "rgf",
+      tags: ["unsafeEvalExpressions"],
       description: `RGF (Runtime-Generated-Functions) creates executable code from strings.
         - **This can break your code.**
         - **Due to the security concerns of arbitrary code execution, you must enable this yourself.**
@@ -884,6 +893,7 @@ printToConsole("Hello World"); // "Hello World"`,
       type: "boolean",
       parentField: "lock",
       name: "tamperProtection",
+      tags: ["nonStrictMode", "unsafeEvalExpressions"],
       description: `Tamper Protection safeguards the runtime behavior from being altered by JavaScript pitfalls.
 
 **⚠️ Tamper Protection requires eval and ran in a non-strict mode environment!**
@@ -1083,6 +1093,60 @@ If you decide to use Integrity, consider the following:
           countermeasures: "onTamperDetected",
         },
       },
+      docContent: `
+#### Crash Process
+
+The default behavior is to crash the process This is done by an infinite loop to ensure the process becomes useless.
+
+\`\`\`js
+while(true) {
+  // ...
+}
+\`\`\`
+
+#### Custom Callback
+
+By setting countermeasures to a string, it can point to a callback to invoke when a lock is triggered. The countermeasures callback function can either be a local name or an external name.
+
+
+Examples:
+- \`"onLockTriggered"\`
+- \`"window.onLockTriggered"\`
+
+If the function is defined within the locked code, it must follow the local name rules.
+
+#### Local Name rules
+
+1. The function must be defined at the top-level of your program.
+2. The function must not rely on any scoped variables.
+3. The function cannot call functions outside it's context.
+
+These rules are necessary to prevent an infinite loop from occurring.
+
+#### Test your countermeasure
+
+##### Domain Lock:
+
+Try your code within DevTools while on another website.
+
+##### Time Lock:
+
+Try setting your machine time to before or past the allowed range.
+
+##### Integrity:
+
+Try changing a string within your code.
+      `,
+      seeAlso: [
+        {
+          label: "Integrity",
+          to: "./integrity",
+        },
+        {
+          label: "Tamper Protection",
+          to: "./tamperProtection",
+        },
+      ],
     },
   ],
   Output: [
@@ -1144,7 +1208,7 @@ for (var i = 1; i <= 25; i++) {
       console.log(fullName); // "John Doe"
       `,
       docContent: `
-      #### Minify Techniques
+      #### Minification Techniques
 
       - Dead code elimination
       - Variable grouping
@@ -1174,7 +1238,7 @@ for (var i = 1; i <= 25; i++) {
       console.log(add.length); // 2
       `,
       exampleConfig: {
-        presets: "medium",
+        preset: "medium",
       },
       docContent: `
       #### Preserving Function Length

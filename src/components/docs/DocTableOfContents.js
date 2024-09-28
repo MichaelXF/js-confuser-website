@@ -1,6 +1,6 @@
 import { OpenInNew } from "@mui/icons-material";
 import { Box, Button, Link, Typography } from "@mui/material";
-import { openNewTabWithText } from "../utils/file-utils";
+import { openNewTabWithText } from "../../utils/file-utils";
 
 export default function DocTableOfContents({ metadata }) {
   return (

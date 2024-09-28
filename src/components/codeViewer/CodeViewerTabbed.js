@@ -1,7 +1,7 @@
 import { Box, Button, Typography } from "@mui/material";
 import { CodeViewer } from "./CodeViewer";
 import { useRef, useState } from "react";
-import ConsoleDialog from "./ConsoleDialog";
+import ConsoleDialog from "../dialogs/ConsoleDialog";
 import { KeyboardArrowRight } from "@mui/icons-material";
 
 export default function CodeViewerTabbed({

@@ -1,6 +1,6 @@
 import { Button, Checkbox, Stack, Tooltip, Typography } from "@mui/material";
 import { Info, KeyboardArrowRight, Lock } from "@mui/icons-material";
-import { ConfirmDialog } from "./ConfirmDialog";
+import { ConfirmDialog } from "../dialogs/ConfirmDialog";
 import { useRef, useState } from "react";
 
 export default function EditorPanelDefault({

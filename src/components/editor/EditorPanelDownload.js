@@ -1,12 +1,10 @@
 import {
-  Info,
   InsertDriveFile,
   KeyboardArrowDown,
   KeyboardArrowRight,
   KeyboardArrowUp,
-  OpenInNew,
 } from "@mui/icons-material";
-import { Button, Link, Stack, Tooltip, Typography } from "@mui/material";
+import { Button, Stack, Tooltip, Typography } from "@mui/material";
 import { useState } from "react";
 import {
   camelCaseToTitleCase,
@@ -14,8 +12,8 @@ import {
   formatPercentage,
   formatSize,
   formatTimeDuration,
-} from "../utils/format-utils";
-import { downloadJavaScriptFile } from "../utils/file-utils";
+} from "../../utils/format-utils";
+import { downloadJavaScriptFile } from "../../utils/file-utils";
 
 function InfoRow({ label, value, tooltip }) {
   return (

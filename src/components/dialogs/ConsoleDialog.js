@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@mui/material";
 import { useEffect, useRef } from "react";
-import useEvalWorker from "../hooks/useEvalWorker";
+import useEvalWorker from "../../hooks/useEvalWorker";
 
 export default function ConsoleDialog({
   open,

@@ -341,6 +341,35 @@ function createContentDocs(addDoc) {
 
       var docVariables = {};
 
+      docVariables.warnings = "";
+
+      if (Array.isArray(item.tags) && item.tags.length > 0) {
+        var warnings = [];
+
+        for (const tagName of item.tags) {
+          const tagInfo = {
+            unsafeEvalExpressions: {
+              title: "Requires Eval",
+              description:
+                "> The obfuscated code will contain unsafe eval expressions.\n> The code will not work properly in [environments that have disabled eval](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/script-src#unsafe_eval_expressions)",
+            },
+            nonStrictMode: {
+              title: "Requires Non-Strict Mode",
+              description:
+                "> The obfuscated code will not work properly in Strict Mode.\n> You can use the [Pack](./Pack) option to bypass Strict Mode constraints.",
+            },
+          }[tagName];
+
+          warnings.push(`
+> [!WARNING]
+> ${tagInfo.title}
+${tagInfo.description}
+`);
+        }
+
+        docVariables.warnings = "\n" + warnings.join("\n");
+      }
+
       const usageExampleCode = `import JSConfuser from "js-confuser";
 import {readFileSync, writeFileSync} from "fs";
 
@@ -424,8 +453,9 @@ ${item.description}
 
 Option name: \`"${optionName}"\`
 Option value${optionValues.includes("/") ? "s" : ""}: \`${optionValues}\`
-
+${docVariables.warnings}
 ---
+
       `;
 
       docVariables.inputOutput = item.exampleCode

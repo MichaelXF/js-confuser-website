@@ -1,5 +1,5 @@
 import { useTheme } from "@mui/material";
-import { rgbToHex } from "../utils/color-utils";
+import { rgbToHex } from "../../utils/color-utils";
 import { Editor } from "@monaco-editor/react";
 import { forwardRef, useRef } from "react";
 

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 // Inline the worker code - Avoid spamming the network with requests
 import worker from "workerize-loader?inline!../workers/evalWorker"; // eslint-disable-line import/no-webpack-loader-syntax
 import { getRandomString } from "../utils/random-utils";
@@ -85,6 +85,13 @@ export default function useWorkerEval(consoleRef) {
       workerRef.current = null;
     }
   }
+
+  // Stop the worker when the component unmounts
+  useEffect(() => {
+    return () => {
+      cancel();
+    };
+  }, []);
 
   return {
     evaluateCode,

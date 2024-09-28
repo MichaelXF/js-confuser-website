@@ -23,7 +23,7 @@ import { Link } from "react-router-dom";
 import Markdown from "./Markdown";
 
 export default function OptionComponent({ option, value, setValue }) {
-  var titleCase = camelCaseToTitleCase(option.name)
+  let titleCase = camelCaseToTitleCase(option.name)
     .replace("Es5", "ES5")
     .replace("Os", "OS");
 
@@ -40,7 +40,7 @@ export default function OptionComponent({ option, value, setValue }) {
     typeof value === "number" && value !== 0 && value !== 1
   );
 
-  var info = (
+  let info = (
     <Tooltip
       title={
         <Markdown
@@ -79,7 +79,7 @@ export default function OptionComponent({ option, value, setValue }) {
     </Tooltip>
   );
 
-  var percentButton = (
+  let percentButton = (
     <Tooltip title="Use percentage instead">
       <Button
         sx={{

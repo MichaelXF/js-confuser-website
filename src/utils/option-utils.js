@@ -12,10 +12,17 @@ export function getHost() {
   );
 }
 
+const optionsByID = {};
+Object.values(groups)
+  .flat()
+  .forEach((option) => {
+    optionsByID[option.name] = option;
+  });
+
 export function getOptionSchemasWithDefaultValues() {
-  return Object.values(groups)
-    .flat()
-    .filter((f) => typeof f.defaultValue !== "undefined");
+  return Object.values(optionsByID).filter(
+    (f) => typeof f.defaultValue !== "undefined"
+  );
 }
 
 export function getOptionSchema(fieldName) {
@@ -27,9 +34,7 @@ export function getOptionSchema(fieldName) {
     };
   }
 
-  return Object.values(groups)
-    .flat()
-    .find((f) => f.name === fieldName);
+  return optionsByID[fieldName];
 }
 
 export function convertOptionsToJS(

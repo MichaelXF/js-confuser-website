@@ -1,9 +1,10 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import Worker from "workerize-loader!../workers/jsConfuserWorker.js"; // eslint-disable-line import/no-webpack-loader-syntax
 import { getRandomString } from "../utils/random-utils";
 
 export default function useJSConfuser() {
   var workerRef = useRef();
+  var isObfuscatingRef = useRef(false);
 
   function obfuscate(
     code,
@@ -22,9 +23,13 @@ export default function useJSConfuser() {
       if (data?.requestID !== requestID) return;
 
       if (event === "success") {
+        isObfuscatingRef.current = false;
+
         callbacksIn.onComplete?.(data);
         dispose();
       } else if (event === "error") {
+        isObfuscatingRef.current = false;
+
         callbacksIn.onError?.(data);
         dispose();
       } else if (event === "progress") {
@@ -52,6 +57,7 @@ export default function useJSConfuser() {
 
     worker.addEventListener("message", callback);
 
+    isObfuscatingRef.current = true;
     worker.obfuscateCode(requestID, code, options);
   }
 
@@ -61,6 +67,15 @@ export default function useJSConfuser() {
       workerRef.current = null;
     }
   }
+
+  useEffect(() => {
+    // On unmount, cancel any obfuscation
+    return () => {
+      if (isObfuscatingRef.current) {
+        cancel();
+      }
+    };
+  }, []);
 
   return {
     obfuscate,

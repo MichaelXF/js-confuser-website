@@ -85,7 +85,9 @@ export default function CodeViewerTabbed({
             onClick={() => {
               setCopied(true);
 
-              window.navigator.clipboard.writeText(value);
+              window.navigator.clipboard.writeText(
+                editorRef.current?.getValue()
+              );
 
               setTimeout(() => {
                 setCopied(false);

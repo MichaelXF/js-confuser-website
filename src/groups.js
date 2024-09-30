@@ -798,6 +798,16 @@ print("Hello World"); // "Hello World"`,
         printString(); // "Hello World"
       })();
 `,
+      customImplementation: {
+        parameters: [
+          {
+            parameter: "fnName",
+            type: "string",
+            description: "The function name proposed to be changed.",
+          },
+        ],
+        description: "Control which function are changed. Returns a `boolean`.",
+      },
     },
     {
       type: "probability",

@@ -29,7 +29,7 @@ console.log(myVar); // "Modified Value"
       The \`Pack\` option is designed to bypass strict mode constraints. This is achieved by wrapping the output code in a \`Function()\` call. This allows the code to be executed in a different context, where strict mode is not enforced.
       
       
-      Several features from the \`medium\` and \`high\` presets rely on non-strict mode execution. \`Pack\` is recommended to be used with these presets.
+      Several features from the medium and high presets rely on non-strict mode execution. \`Pack\` is recommended to be used with these presets.
       
       ##### Features
 

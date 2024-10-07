@@ -11,6 +11,7 @@ import {
   TextField,
   Tooltip,
   Typography,
+  Link as MaterialLink,
 } from "@mui/material";
 import {
   camelCaseToTitleCase,
@@ -18,14 +19,12 @@ import {
   textEllipsis,
   toTitleCase,
 } from "../utils/format-utils";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Markdown from "./Markdown";
 
 export default function OptionComponent({ option, value, setValue }) {
-  let titleCase = camelCaseToTitleCase(option.name)
-    .replace("Es5", "ES5")
-    .replace("Os", "OS");
+  let titleCase = camelCaseToTitleCase(option.name);
 
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -90,6 +89,9 @@ export default function OptionComponent({ option, value, setValue }) {
         }}
         onClick={() => {
           setShowPercentEditor(true);
+          if (option.allowMixingModes) {
+            normalizeValues(true);
+          }
         }}
       >
         %
@@ -108,35 +110,132 @@ export default function OptionComponent({ option, value, setValue }) {
       .join(", ");
   }
 
+  function normalizeValues(forDisplayPurposes) {
+    let newValue = value;
+
+    // "randomized" -> {randomized: 1}
+    if (typeof newValue !== "object" && newValue) {
+      newValue = {
+        [newValue]: 1,
+      };
+    }
+
+    // {randomized: 1} -> "randomized"
+    if (
+      !forDisplayPurposes &&
+      typeof newValue === "object" &&
+      Object.keys(newValue).length === 1
+    ) {
+      newValue = Object.keys(newValue)[0];
+    } else {
+      newValue = { ...newValue };
+
+      let sum = 0;
+      for (let key in newValue) {
+        sum += parseFloat(newValue[key]);
+      }
+
+      for (let key in newValue) {
+        newValue[key] = newValue[key] / sum;
+        if (forDisplayPurposes) {
+          newValue[key] = Math.floor(newValue[key] * 100);
+        }
+
+        if (Number.isNaN(newValue[key])) {
+          delete newValue[key];
+        }
+      }
+
+      if (Object.keys(newValue).length === 0) {
+        newValue = option.defaultValue;
+      }
+    }
+
+    setValue(newValue);
+  }
+
   if (option.modes) {
     // Use the modes array to render a dropdown menu allowing user to pick one mode
-
     return (
       <Box mb={2}>
-        <Stack direction="row" alignItems="center" spacing={1}>
+        <Stack direction="row" alignItems="center" spacing={1} mb="3px">
           <Typography>{titleCase}</Typography>
           {info}
         </Stack>
 
-        <Stack mt={"3px"} direction="row" alignItems="center" spacing={1}>
-          <Button
-            sx={{
-              textTransform: "none",
-              bgcolor: "divider",
-            }}
-            endIcon={<ArrowDropDown />}
-            onClick={handleClick}
-          >
-            {textEllipsis(
-              typeof value === "object" && value
-                ? objectToTitleCase(value)
-                : value
-                  ? toTitleCase(value)
-                  : "False"
-            )}
-          </Button>
-          {option.allowMixingModes && percentButton}
-        </Stack>
+        {showPercentEditor ? (
+          <>
+            {option.modes.map((modeName, index) => {
+              return (
+                <Stack key={modeName}>
+                  <TextField
+                    size="small"
+                    label={toTitleCase(modeName)}
+                    value={value[modeName] || 0}
+                    onInput={(e) => {
+                      var newValue = { ...value, [modeName]: e.target.value };
+
+                      value = newValue;
+                      setValue(newValue);
+                    }}
+                    sx={{
+                      maxWidth: "150px",
+                      my: 1,
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">%</InputAdornment>
+                      ),
+                    }}
+                  ></TextField>
+                </Stack>
+              );
+            })}
+
+            <Typography mt="2px">
+              <MaterialLink
+                href="#"
+                sx={{ mr: 2 }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  normalizeValues();
+                  setShowPercentEditor(false);
+                }}
+              >
+                Back to Single Mode
+              </MaterialLink>
+              <MaterialLink
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  normalizeValues(true);
+                }}
+              >
+                Normalize Values
+              </MaterialLink>
+            </Typography>
+          </>
+        ) : (
+          <Stack mt={"3px"} direction="row" alignItems="center" spacing={1}>
+            <Button
+              sx={{
+                textTransform: "none",
+                bgcolor: "divider",
+              }}
+              endIcon={<ArrowDropDown />}
+              onClick={handleClick}
+            >
+              {textEllipsis(
+                typeof value === "object" && value
+                  ? objectToTitleCase(value)
+                  : value
+                    ? toTitleCase(value)
+                    : "False"
+              )}
+            </Button>
+            {option.allowMixingModes && percentButton}
+          </Stack>
+        )}
         <Menu
           id="basic-menu"
           anchorEl={anchorEl}

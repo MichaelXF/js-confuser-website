@@ -367,7 +367,7 @@ ${tagInfo.description}
 `);
         }
 
-        docVariables.warnings = "\n" + warnings.join("\n");
+        docVariables.warnings = "\n" + warnings.join("\n<br>");
       }
 
       const usageExampleCode = `import JSConfuser from "js-confuser";

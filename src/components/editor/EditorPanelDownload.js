@@ -30,13 +30,13 @@ function InfoRow({ label, value, tooltip }) {
 
 export default function EditorPanelDownload({ evaluateCode, activeTab }) {
   const profileData = activeTab?.profileData;
-  var avgTransformTime = 0;
+  let avgTransformTime = 0;
 
-  var displayTransforms = [];
-  var [showMore, setShowMore] = useState(false);
+  const displayTransforms = [];
+  const [showMore, setShowMore] = useState(false);
 
   if (typeof profileData === "object" && profileData) {
-    var { transforms } = profileData;
+    const { transforms } = profileData;
 
     // Calculate the average transformation time
     avgTransformTime =
@@ -46,19 +46,23 @@ export default function EditorPanelDownload({ evaluateCode, activeTab }) {
       ) / Object.keys(transforms).length;
 
     // Sort the keys based on obfuscation time
-    var sortedKeys = Object.keys(transforms);
+    const sortedKeys = Object.keys(transforms);
 
     sortedKeys.sort(
       (a, b) => transforms[b].transformTime - transforms[a].transformTime
     );
 
-    for (var transformName of sortedKeys) {
+    for (const transformName of sortedKeys) {
       displayTransforms.push({
         transformName: transformName,
         ...transforms[transformName],
       });
     }
   }
+
+  const fileSizeIncrease =
+    (profileData?.newSize - profileData?.originalSize) /
+      profileData?.originalSize || 0;
 
   return (
     <>
@@ -117,9 +121,7 @@ export default function EditorPanelDownload({ evaluateCode, activeTab }) {
         },
         {
           label: "File size increase",
-          value: formatPercentage(
-            profileData?.newSize / profileData?.originalSize
-          ),
+          value: formatPercentage(fileSizeIncrease),
         },
       ].map(({ label, value }, i) => {
         return <InfoRow key={i} label={label} value={value} />;

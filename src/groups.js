@@ -1253,7 +1253,7 @@ for (var i = 1; i <= 25; i++) {
       docContent: `
       #### Preserving Function Length
 
-      The \`function.length\` property returns the number of arguments expected by the function. This property is read-only and cannot be changed.
+      The property \`function.length\` returns the number of arguments expected by the function. This property is read-only and cannot be changed.
 
       The obfuscator will most likely change the function length property. This option preserves the original function length property by adding a subsequent assignment to mock the original length.
       

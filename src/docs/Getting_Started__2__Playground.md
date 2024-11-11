@@ -28,7 +28,7 @@ JS-Confuser.com comes with Prettier enabled by default. You can disable the auto
 
 #### JSConfuser.ts
 
-The `JSConfuser.ts` can be edited by navigating to **Tools** > **Edit JSConfuser.ts**. The file serves a JSON representation for your obfuscator settings. The file is evaluated and can additionally include custom implementations.
+The file `JSConfuser.ts` can be edited by navigating to **Tools** > **Edit JSConfuser.ts**. The file serves as a JSON representation for your obfuscator settings. The file is evaluated and can additionally include custom implementations.
 
 ---{header: "JSConfuser.ts"}
 var counter = 0;

@@ -45,11 +45,11 @@ export default function ModalConfig({ isOpen, onClose }) {
       });
       delete display.globalVariables;
 
+      // Delete lock if empty
       if (
+        typeof display.lock === "object" &&
         display.lock &&
-        Object.keys(display.lock).filter(
-          (x) => !display.lock[x] || !display.lock[x].length
-        ).length === 0
+        Object.keys(display.lock).filter((x) => !!display.lock[x]).length === 0
       ) {
         delete display.lock;
       }

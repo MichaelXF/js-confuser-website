@@ -149,7 +149,6 @@ export default function PageEditor() {
         // Obfuscate the code using JS-Confuser
         JSConfuser.obfuscate(originalCode, optionsJSRef.current, {
           onComplete: (data) => {
-            return;
             setShowLoadingOverlay(false);
 
             var { code, profileData } = data;
@@ -172,8 +171,6 @@ export default function PageEditor() {
             resolve(false);
           },
           onProgress: (data) => {
-            if (data.index > 18) return;
-
             setLoadingInfo({
               progress:
                 (data.nextTransform || data.currentTransform) +

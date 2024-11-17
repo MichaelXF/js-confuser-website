@@ -43,26 +43,32 @@ function WebsiteAnimation() {
   const images = [websiteImage1, websiteImage2, websiteImage3, websiteImage4];
   const [index, setIndex] = useState(0);
   const [lastIndex, setLastIndex] = useState();
+
+  /**
+   * @type {React.MutableRefObject<HTMLImageElement>}
+   */
   const lastImageElementRef = useRef();
 
   function changeImage(newIndex) {
-    setLastIndex(index);
+    const newLastIndex = index;
+    setLastIndex(newLastIndex);
     setIndex(newIndex);
+
+    if (lastImageElementRef.current) {
+      lastImageElementRef.current.src = images[newLastIndex];
+      lastImageElementRef.current.style.transition = "none";
+      lastImageElementRef.current.style.opacity = "1";
+
+      setTimeout(() => {
+        lastImageElementRef.current.style.transition = "opacity 0.3s";
+        lastImageElementRef.current.style.opacity = 0;
+      }, 50);
+    }
   }
 
   function nextImage() {
     changeImage((index + 1) % images.length);
   }
-
-  useEffect(() => {
-    lastImageElementRef.current.style.transition = "none";
-    lastImageElementRef.current.style.opacity = "1";
-
-    setTimeout(() => {
-      lastImageElementRef.current.style.transition = "opacity 0.3s";
-      lastImageElementRef.current.style.opacity = 0;
-    });
-  }, [lastIndex]);
 
   return (
     <Box>

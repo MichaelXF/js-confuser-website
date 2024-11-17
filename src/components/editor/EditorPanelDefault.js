@@ -10,13 +10,15 @@ export default function EditorPanelDefault({
   setOptions,
   openOptionsDialog,
   editOptionsFile,
-  activeTab,
+  editorComponent,
 }) {
   const onConfirmRef = useRef();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
+  const { activeTab } = editorComponent;
+
   var isCustomPreset = options.preset === undefined;
-  var isOptionsFile = activeTab?.title === "JSConfuser.ts";
+  var isOptionsFile = activeTab?.identity === "internal_options";
   var isTypeScript = activeTab?.getLanguageId?.() === "typescript";
 
   return (

@@ -6,7 +6,10 @@ const { Buffer } = require("buffer");
 global.Buffer = Buffer;
 workerScope.Buffer = Buffer;
 
+const { default: traverse } = require("@babel/traverse");
+
 const JsConfuser = require("js-confuser");
+const { default: Obfuscator } = require("js-confuser/dist/obfuscator");
 
 function getByteSize(str) {
   return new Blob([str]).size;
@@ -105,4 +108,49 @@ export const obfuscateCode = (requestID, code, optionsJS) => {
     .catch((error) => {
       reportError(error);
     });
+};
+
+// Collects Pre-obfuscation analysis (Preparation transformation)
+export const preObfuscationAnalysis = (requestID, code) => {
+  const obfuscator = new Obfuscator({
+    target: "node",
+    compact: true,
+  });
+  const ast = Obfuscator.parseCode(code);
+
+  obfuscator.obfuscateAST(ast);
+
+  const meaningfulNodesToSymbols = new Map();
+
+  // Find the symbols
+  traverse(ast, {
+    enter(path) {
+      // Only process objects
+      if (!(typeof path.node === "object" && path.node)) return;
+
+      // Get all the symbols
+      const propertySymbols = Object.getOwnPropertySymbols(path.node);
+
+      // Store the symbols found as strings in this output object
+      const symbolMap = {};
+
+      propertySymbols.forEach((symbol) => {
+        const value = path.node[symbol];
+        symbolMap[String(symbol)] = !!value;
+      });
+
+      // Only save if there are symbols found
+      if (Object.keys(symbolMap).length > 0) {
+        meaningfulNodesToSymbols.set(path.node, symbolMap);
+      }
+    },
+  });
+
+  postMessage({
+    event: "success",
+    data: {
+      requestID,
+      nodes: Array.from(meaningfulNodesToSymbols),
+    },
+  });
 };

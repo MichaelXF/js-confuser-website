@@ -16,7 +16,7 @@ import {
   PriceCheck,
 } from "@mui/icons-material";
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { CodeViewer } from "../components/codeViewer/CodeViewer";
 import { landingPageCode } from "../constants";
 import useJSConfuser from "../hooks/useJSConfuser";
@@ -24,6 +24,134 @@ import Nav from "../components/Nav";
 import QuickActions from "../components/QuickActions";
 import * as monaco from "monaco-editor";
 import useSEO from "../hooks/useSEO";
+import websiteImage1 from "../static/websiteImage1.png";
+import websiteImage2 from "../static/websiteImage2.png";
+import websiteImage3 from "../static/websiteImage3.png";
+import websiteImage4 from "../static/websiteImage4.png";
+
+function WebsiteAnimation() {
+  const images = [websiteImage1, websiteImage2, websiteImage3, websiteImage4];
+  const [index, setIndex] = useState(0);
+  const [lastIndex, setLastIndex] = useState(0);
+  const lastImageElementRef = useRef();
+
+  function changeImage(newIndex) {
+    setLastIndex(index);
+    setIndex(newIndex);
+  }
+
+  function nextImage() {
+    changeImage((index + 1) % images.length);
+  }
+
+  useLayoutEffect(() => {
+    if (lastImageElementRef.current) {
+      lastImageElementRef.current.style.transition = "none";
+      lastImageElementRef.current.style.opacity = "1";
+    }
+  }, [lastIndex]);
+
+  useEffect(() => {
+    if (typeof lastIndex !== "number") return;
+    setTimeout(() => {
+      lastImageElementRef.current.style.transition = "opacity 0.3s";
+      lastImageElementRef.current.style.opacity = 0;
+    }, 0);
+  }, [lastIndex]);
+
+  return (
+    <Box>
+      <Box
+        position="relative"
+        boxShadow={
+          "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)"
+        }
+        bgcolor="white"
+        onClick={() => {
+          nextImage();
+        }}
+        sx={{
+          cursor: "pointer",
+        }}
+        border="2px solid"
+        borderColor="divider_opaque"
+        borderRadius={"8px"}
+        overflow="hidden"
+      >
+        <Box
+          ref={lastImageElementRef}
+          component="img"
+          src={images[lastIndex]}
+          width="100%"
+          sx={{
+            aspectRatio: "2880/1624",
+            opacity: 1,
+            position: "absolute",
+            zIndex: 2,
+            verticalAlign: "middle",
+          }}
+          key={lastIndex}
+        />
+        <Box
+          component="img"
+          src={images[index]}
+          width="100%"
+          sx={{
+            aspectRatio: "2880/1624",
+            verticalAlign: "middle",
+          }}
+        />
+      </Box>
+
+      <Box mt={3}>
+        <Stack
+          direction="row"
+          justifyContent="center"
+          alignItems="center"
+          spacing={2}
+        >
+          {images.map((_image, i) => {
+            const hoverBg = "rgba(109, 127, 145, 0.9)";
+            return (
+              <Box
+                onClick={() => changeImage(i)}
+                key={i}
+                alt={`${i + 1}`}
+                sx={{
+                  width: "14px",
+                  height: "14px",
+                  borderRadius: "50%",
+                  padding: 0,
+                  margin: 0,
+                  border: "none",
+                  cursor: "pointer",
+
+                  transition: "background-color 0.25s",
+                  backgroundColor:
+                    i === index ? hoverBg : "rgba(61, 71, 81, 0.5)",
+                  "&:hover": {
+                    backgroundColor:
+                      i === index ? hoverBg : "rgba(61, 71, 81, 0.8)",
+                  },
+                }}
+                component="button"
+              />
+            );
+          })}
+        </Stack>
+      </Box>
+
+      <Typography
+        textAlign="center"
+        color="text.secondary"
+        typography="body2"
+        mt={2}
+      >
+        Animation of JS-Confuser.com Playground in Action
+      </Typography>
+    </Box>
+  );
+}
 
 function FeatureRow({ item }) {
   const [Icon, title, description] = item;
@@ -217,6 +345,14 @@ export default function PageHome() {
     };
   }, [editor]);
 
+  const ctaButton = (
+    <Link to="/editor">
+      <Button variant="contained" size="large" endIcon={<KeyboardArrowRight />}>
+        Get Started
+      </Button>
+    </Link>
+  );
+
   return (
     <Box>
       <Nav />
@@ -228,6 +364,7 @@ export default function PageHome() {
         minHeight="calc(100vh - 65px)"
         width="100%"
         className="LandingBackground"
+        position="relative"
       >
         <Container maxWidth="lg">
           <Stack direction="row" spacing={10} alignItems="center" width="100%">
@@ -257,15 +394,7 @@ export default function PageHome() {
                 without authorization.
               </Typography>
 
-              <Link to="/editor">
-                <Button
-                  variant="contained"
-                  size="large"
-                  endIcon={<KeyboardArrowRight />}
-                >
-                  Get Started
-                </Button>
-              </Link>
+              {ctaButton}
 
               <Box mt={6}>
                 {["Free", "Open Source"].map((item, i) => {
@@ -290,6 +419,7 @@ export default function PageHome() {
               border="1px solid"
               borderColor="divider"
               height="100%"
+              maxWidth="800px"
               maxHeight="calc(100vh - 56px)"
               overflow="hidden"
               flex={"1 1 58%"}
@@ -440,6 +570,68 @@ export default function PageHome() {
           ].map((items, i) => {
             return <FeatureRows key={i} items={items} />;
           })}
+        </Container>
+      </Box>
+
+      <Box
+        minHeight="100vh"
+        height="100%"
+        borderTop="1px solid"
+        borderColor="divider"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Container maxWidth="lg" sx={{ py: 10 }}>
+          <Typography
+            variant="h3"
+            className="GradientText"
+            fontWeight="bold"
+            mb={6}
+          >
+            Obfuscation Done Right
+          </Typography>
+
+          <Stack spacing={8}>
+            <Box>
+              <WebsiteAnimation />
+            </Box>
+
+            <Stack spacing={4} direction="row" width="100%">
+              {[
+                {
+                  header: "Highly Configurable",
+                  description:
+                    "Choose from Low, Medium, or High presets levels, or create custom configurations for tailored obfuscation.",
+                },
+                {
+                  header: "Fast & Privacy-Focused",
+                  description:
+                    "Runs entirely in your browser, ensuring lightning-fast performance and complete code privacy.",
+                },
+                {
+                  header: "Advanced Tooling",
+                  description:
+                    "Evaluate and debug obfuscated code, customize the options using a JavaScript file, use the built-in Prettier, and more.",
+                },
+              ].map((entry, i) => {
+                return (
+                  <Box key={i} flex="1">
+                    <Typography
+                      variant="h5"
+                      fontWeight="bold"
+                      color="primary.main"
+                    >
+                      {entry.header}
+                    </Typography>
+                    <Typography mt={2}>{entry.description}</Typography>
+                  </Box>
+                );
+              })}
+            </Stack>
+
+            <Box textAlign="center">{ctaButton}</Box>
+          </Stack>
         </Container>
       </Box>
 

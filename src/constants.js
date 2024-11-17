@@ -51,7 +51,13 @@ function greet(name) {
 
 greet('Internet User');`;
 
-export const defaultOptionsJS = `module.exports = {
+export const optionsJSHeader = `// This file is evaluated as JavaScript. You can use JavaScript here.
+// Learn more: https://js-confuser.com/docs/getting-started/playground#jsconfuser-ts
+\n`;
+
+export const defaultOptionsJS =
+  optionsJSHeader +
+  `module.exports = {
   preset: "medium",
   target: "browser",
 };`;

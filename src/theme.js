@@ -2,7 +2,7 @@ import { createTheme } from "@mui/material/styles";
 
 export const theme = createTheme({
   typography: {
-    fontFamily: '"IBM Plex Sans", Arial, sans-serif', // Set the default font family to Fire Sans
+    fontFamily: `"IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif`, // Set the default font family to Fire Sans
     code: {
       fontFamily: "Fira Code, monospace", // Set the custom font family for the code variant
       fontSize: "0.875rem", // Set the font size for the code variant

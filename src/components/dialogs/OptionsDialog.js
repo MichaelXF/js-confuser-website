@@ -11,34 +11,53 @@ import {
 } from "@mui/material";
 import { groups } from "../../groups";
 import OptionComponent from "../OptionComponent";
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import presets from "js-confuser/dist/presets";
 import { getOptionSchemasWithDefaultValues } from "../../utils/option-utils";
 
 export default function OptionsDialog({ open, onClose, options, setOptions }) {
-  var [proposedOptions, setProposedOptions] = useState({});
+  var [proposedOptions, setProposedOptions] = useState();
+  // Avoid using useEffect() to avoid delayed state rendering
+  // First render would have stale data, initializing OptionComponents to behave incorrectly
+  var openRef = useRef(false);
 
-  useEffect(() => {
-    if (open) {
-      let value = { ...options };
-      if (value.preset) {
-        value = { ...presets[value.preset], ...value };
-      }
-
-      const defaultOptionSchemas = getOptionSchemasWithDefaultValues();
-
-      for (const optionSchema of defaultOptionSchemas) {
-        if (typeof value[optionSchema.name] === "undefined") {
-          value[optionSchema.name] = optionSchema.defaultValue;
-        }
-      }
-
-      setProposedOptions(value);
+  if ((open && !openRef.current) || !proposedOptions) {
+    openRef.current = true;
+    let value = { ...options };
+    if (value.preset) {
+      value = { ...presets[value.preset], ...value };
     }
-  }, [!!open]);
+
+    const defaultOptionSchemas = getOptionSchemasWithDefaultValues();
+
+    for (const optionSchema of defaultOptionSchemas) {
+      if (typeof value[optionSchema.name] === "undefined") {
+        value[optionSchema.name] = optionSchema.defaultValue;
+      }
+    }
+
+    proposedOptions = value;
+    setProposedOptions(value);
+  } else if (!open) {
+    openRef.current = false;
+  }
+
+  const saveChanges = () => {
+    var value = { ...proposedOptions };
+    delete value.preset;
+    setOptions(value);
+    setProposedOptions(null);
+    onClose();
+  };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      keepMounted={false}
+    >
       <DialogTitle sx={{ fontWeight: "bold" }}>Options</DialogTitle>
 
       <DialogContent>
@@ -56,6 +75,7 @@ export default function OptionsDialog({ open, onClose, options, setOptions }) {
               <Stack spacing={0}>
                 {group.map((option, index) => {
                   var value = proposedOptions?.[option.name];
+
                   if (option.parentField) {
                     value =
                       proposedOptions?.[option.parentField]?.[option.name];
@@ -111,16 +131,7 @@ export default function OptionsDialog({ open, onClose, options, setOptions }) {
 
       <DialogActions>
         <Button onClick={onClose}>Close</Button>
-        <Button
-          onClick={() => {
-            var value = { ...proposedOptions };
-            delete value.preset;
-            setOptions(value);
-            onClose();
-          }}
-        >
-          Save Changes
-        </Button>
+        <Button onClick={saveChanges}>Save Changes</Button>
       </DialogActions>
     </Dialog>
   );

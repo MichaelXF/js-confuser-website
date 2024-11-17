@@ -1,6 +1,10 @@
 import presets from "js-confuser/dist/presets";
 import Docs from "../docs/";
-import { camelCaseToTitleCase, toTitleCase } from "./format-utils";
+import {
+  camelCaseToTitleCase,
+  formatPercentage,
+  toTitleCase,
+} from "./format-utils";
 import json5 from "json5";
 import { groups } from "../groups";
 import { trimRemovePrefix } from "./md-utils";
@@ -393,6 +397,34 @@ The provided code example will obfuscate the file \`input.js\` and write the out
 ---{header: "Usage Example", language: "javascript"}
 ${usageExampleCode}
 ---
+
+---
+
+##### Enabled In
+
+${Object.keys(presets)
+  .map((presetName) => {
+    const preset = presets[presetName];
+    let configObject = preset;
+    if (item.parentField) {
+      configObject = configObject[item.parentField] || {};
+    }
+    let configValue = configObject[item.name];
+    if (
+      !(item.name in configObject) &&
+      typeof item.defaultValue !== "undefined"
+    ) {
+      configValue = item.defaultValue;
+    }
+
+    let displayText = configValue ? "Yes" : "No";
+    if (typeof configValue === "number" && configValue > 0) {
+      displayText = "Yes (" + formatPercentage(configValue) + ")";
+    }
+
+    return `- [${toTitleCase(presetName)} Preset](/docs/presets/${presetName}): ${displayText}`;
+  })
+  .join("\n")} 
 `;
 
       var seeAlso = [];

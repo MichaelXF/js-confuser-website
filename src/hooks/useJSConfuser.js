@@ -6,6 +6,39 @@ export default function useJSConfuser() {
   var workerRef = useRef();
   var isObfuscatingRef = useRef(false);
 
+  function preObfuscationAnalysis(code) {
+    return new Promise((resolve, reject) => {
+      var requestID = getRandomString(10);
+      var worker = workerRef.current || (workerRef.current = Worker());
+
+      var callback = (message) => {
+        const { event, data } = message.data;
+        if (data?.requestID !== requestID) return;
+
+        isObfuscatingRef.current = false;
+        dispose();
+
+        if (event === "success") {
+          resolve(data);
+        } else if (event === "error") {
+          reject(data);
+        }
+      };
+
+      var dispose = () => {
+        if (callback) {
+          worker.removeEventListener("message", callback);
+          callback = null;
+        }
+      };
+
+      worker.addEventListener("message", callback);
+
+      isObfuscatingRef.current = true;
+      worker.preObfuscationAnalysis(requestID, code);
+    });
+  }
+
   function obfuscate(
     code,
     options,
@@ -78,6 +111,7 @@ export default function useJSConfuser() {
   }, []);
 
   return {
+    preObfuscationAnalysis,
     obfuscate,
     cancel,
   };

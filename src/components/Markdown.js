@@ -415,6 +415,7 @@ export default function Markdown({
 
         return (
           <Box
+            key={index}
             sx={{
               marginBlock: "8px",
               paddingInlineStart: LIST_START_PADDING + "px",
@@ -443,6 +444,7 @@ export default function Markdown({
                   sx={{
                     marginInlineStart,
                   }}
+                  key={i}
                 >
                   {parseLine(bulletPoint)}
                 </Typography>
@@ -546,8 +548,8 @@ export default function Markdown({
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {rows.map((row) => (
-                    <TableRow key={row.name}>
+                  {rows.map((row, rowIndex) => (
+                    <TableRow key={rowIndex}>
                       {row.map((cell, i) => {
                         var content = parseLine(cell);
                         var sx = {};
@@ -562,9 +564,9 @@ export default function Markdown({
                         if (i === 0) {
                           return (
                             <TableCell
+                              key={i}
                               component="th"
                               scope="row"
-                              key={i}
                               sx={sx}
                             >
                               {content}

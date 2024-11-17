@@ -1,4 +1,4 @@
-import { ArrowDropDown, Info } from "@mui/icons-material";
+import { ArrowDropDown, Info, Remove } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -19,12 +19,80 @@ import {
   textEllipsis,
   toTitleCase,
 } from "../utils/format-utils";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import Markdown from "./Markdown";
 
-export default function OptionComponent({ option, value, setValue }) {
+/**
+ * @type {import("@mui/material").TooltipProps}
+ */
+const tooltipProps = {
+  slotProps: {
+    popper: {
+      modifiers: [
+        {
+          name: "offset",
+          options: {
+            offset: [0, -8],
+          },
+        },
+      ],
+    },
+  },
+  disableInteractive: true,
+};
+
+const inputProps = {
+  sx: {
+    width: "120px",
+    fontSize: "0.875rem",
+    overflow: "hidden",
+    height: "32px",
+  },
+  inputProps: {
+    style: {
+      height: "32px",
+    },
+  },
+};
+
+export default function OptionComponent({
+  option,
+  value: valueObject,
+  setValue: setValueObject,
+}) {
   let titleCase = camelCaseToTitleCase(option.name);
+
+  // Parse the value if it has a 'limit' property
+  let value = valueObject;
+  let limit;
+  if (
+    typeof valueObject === "object" &&
+    valueObject &&
+    ("value" in valueObject || "limit" in valueObject)
+  ) {
+    limit = parseInt(valueObject.limit);
+    value = valueObject.value;
+  }
+
+  function setValue(newValue) {
+    if (typeof limit === "number") {
+      setValueObject({
+        ...valueObject,
+        value: newValue,
+        limit: limit,
+      });
+    } else {
+      setValueObject(newValue);
+    }
+  }
+
+  function setLimit(newLimit) {
+    setValueObject({
+      ...valueObject,
+      limit: newLimit,
+    });
+  }
 
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -39,13 +107,18 @@ export default function OptionComponent({ option, value, setValue }) {
     typeof value === "number" && value !== 0 && value !== 1
   );
 
+  const [showLimitEditor, setShowLimitEditor] = useState(
+    typeof limit === "number"
+  );
+  const [performAutoFocus, setPerformAutoFocus] = useState(false);
+
   let info = (
     <Tooltip
       title={
         <Markdown
-          value={option.description}
+          value={option.description.split("\n")[0]}
           sx={{
-            fontSize: "1rem",
+            fontSize: "0.875rem",
             lineHeight: "1.6",
           }}
         />
@@ -57,6 +130,7 @@ export default function OptionComponent({ option, value, setValue }) {
           },
         },
       }}
+      {...tooltipProps}
     >
       <Button
         sx={{
@@ -78,8 +152,40 @@ export default function OptionComponent({ option, value, setValue }) {
     </Tooltip>
   );
 
+  let limitButton = (
+    <Tooltip title="Configure a limit" {...tooltipProps}>
+      <Button
+        sx={{
+          width: "34px",
+          height: "34px",
+          p: 0,
+          minWidth: 0,
+          typography: "body1",
+        }}
+        onClick={(e) => {
+          if (
+            !(
+              typeof valueObject === "object" &&
+              valueObject &&
+              "limit" in valueObject
+            )
+          ) {
+            setValueObject({
+              value: value,
+              limit: 10,
+            });
+          }
+          setShowLimitEditor(true);
+          setPerformAutoFocus(true);
+        }}
+      >
+        <Remove sx={{ fontSize: "inherit" }} />
+      </Button>
+    </Tooltip>
+  );
+
   let percentButton = (
-    <Tooltip title="Use percentage instead">
+    <Tooltip title="Use percentage instead" {...tooltipProps}>
       <Button
         sx={{
           width: "34px",
@@ -89,6 +195,8 @@ export default function OptionComponent({ option, value, setValue }) {
         }}
         onClick={() => {
           setShowPercentEditor(true);
+          setPerformAutoFocus(true);
+
           if (option.allowMixingModes) {
             normalizeValues(true);
           }
@@ -226,11 +334,13 @@ export default function OptionComponent({ option, value, setValue }) {
               onClick={handleClick}
             >
               {textEllipsis(
-                typeof value === "object" && value
-                  ? objectToTitleCase(value)
-                  : value
-                    ? toTitleCase(value)
-                    : "False"
+                typeof value === "function"
+                  ? "<Function>"
+                  : typeof value === "object" && value
+                    ? objectToTitleCase(value)
+                    : value
+                      ? toTitleCase(value)
+                      : "False"
               )}
             </Button>
             {option.allowMixingModes && percentButton}
@@ -278,20 +388,29 @@ export default function OptionComponent({ option, value, setValue }) {
   if (option.type === "boolean" || option.type === "probability") {
     return (
       <Box>
-        <Stack alignItems="center" direction="row">
+        <Stack alignItems="center" direction="row" spacing={1}>
           <FormControlLabel
             control={
               <Checkbox
                 checked={!!value}
                 indeterminate={showPercentEditor}
                 onChange={(e) => {
-                  setValue(e.target.checked);
+                  const checked = e.target.checked;
                   setShowPercentEditor(false);
+                  if (!checked) {
+                    setShowLimitEditor(false);
+                    setValueObject(false);
+                  } else {
+                    setValue(true);
+                  }
                 }}
               />
             }
             sx={{
-              mr: 2,
+              pr: 1,
+              flexShrink: 0,
+              userSelect: "none",
+              ml: "-10px!important",
             }}
             label={<>{titleCase}</>}
           />
@@ -301,31 +420,32 @@ export default function OptionComponent({ option, value, setValue }) {
               variant="outlined"
               size="small"
               InputProps={{
-                endAdornment: <InputAdornment position="end">%</InputAdornment>,
-                sx: {
-                  width: "120px",
-                  fontSize: "0.875rem",
-                  overflow: "hidden",
-                  height: "32px",
-                  mr: 1,
-                },
-                inputProps: {
-                  style: {
-                    height: "32px",
-                  },
-                },
+                endAdornment: (
+                  <InputAdornment
+                    position="end"
+                    title="Percentage for option"
+                    onClick={() => {
+                      setShowPercentEditor(false);
+                    }}
+                  >
+                    %
+                  </InputAdornment>
+                ),
+                ...inputProps,
               }}
-              autoFocus={true}
+              autoFocus={performAutoFocus}
               defaultValue={String(
-                typeof value === "undefined" || value === null
-                  ? 0
-                  : value === true
-                    ? 100
-                    : value === false
-                      ? 0
-                      : typeof value === "number"
-                        ? value * 100
-                        : value
+                typeof value === "function"
+                  ? 100
+                  : typeof value === "undefined" || value === null
+                    ? 0
+                    : value === true
+                      ? 100
+                      : value === false
+                        ? 0
+                        : typeof value === "number"
+                          ? value * 100
+                          : value
               )}
               onBlur={(e) => {
                 if (e.target.value === "") {
@@ -336,8 +456,44 @@ export default function OptionComponent({ option, value, setValue }) {
               }}
             />
           ) : option.type !== "boolean" ? (
-            <Box mr={1}>{percentButton}</Box>
+            <Box>{percentButton}</Box>
           ) : null}
+
+          {option.type !== "probability" ? null : showLimitEditor ? (
+            <TextField
+              variant="outlined"
+              size="small"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment
+                    position="end"
+                    onClick={() => {
+                      setShowLimitEditor(false);
+                      setLimit(-1);
+                    }}
+                    title="Configure a limit (-1 = No limit)"
+                  >
+                    <Remove />
+                  </InputAdornment>
+                ),
+                ...inputProps,
+              }}
+              autoFocus={performAutoFocus}
+              defaultValue={String(limit ?? "")}
+              onBlur={(e) => {
+                var parsed = parseInt(e.target.value);
+                if (e.target.value === "" || parsed < 0) {
+                  setShowLimitEditor(false);
+                }
+
+                if (!Number.isNaN(parsed)) {
+                  setLimit(parsed);
+                }
+              }}
+            />
+          ) : (
+            <Box>{limitButton}</Box>
+          )}
 
           {info}
         </Stack>

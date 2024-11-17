@@ -28,7 +28,9 @@ function InfoRow({ label, value, tooltip }) {
   );
 }
 
-export default function EditorPanelDownload({ evaluateCode, activeTab }) {
+export default function EditorPanelDownload({ evaluateCode, editorComponent }) {
+  const { activeTab } = editorComponent;
+
   const profileData = activeTab?.profileData;
   let avgTransformTime = 0;
 

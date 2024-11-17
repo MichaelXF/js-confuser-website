@@ -71,11 +71,12 @@ console.log(myVar); // "Modified Value"
       | \`"number"\` | Numbered sequence | var_1, var_2 |
       | \`<function>\` | Write a custom name generator | See Below |
       `,
-      endDocContent: `
-      ##### See also
-
-      - [Rename Variables](./renameVariables)
-      `,
+      seeAlso: [
+        {
+          label: "Rename Variables",
+          to: "./renameVariables",
+        },
+      ],
     },
     {
       type: "boolean",
@@ -139,7 +140,6 @@ console["log"]("message was renamed to", "nSgZyJf") // message was renamed to nS
 ---
 
 Even if \`Rename Variables\` is disabled, the function \`__JS_CONFUSER_VAR__\` will still be removed. (The original name will be returned as a string)
-
 
 #### Never rename a variable
 
@@ -615,7 +615,6 @@ Control Flow Flattening requires non-strict mode to work. This is because the \`
 
 Your code will be wrapped in a large, complicated switch statement. This makes the behavior of your program very hard to understand and is resistent to deobfuscators. This comes with a large performance reduction.
 
-
 #### Goto style of code
 
 Control Flow Flattening converts your code into a 'goto style of code.' The following statements are converted into their equivalent 'goto style of code':
@@ -685,12 +684,11 @@ This is just the simple version of things. JS-Confuser uses a variety of techniq
       `,
 
       endDocContent: `
-#### Performance reduction
+##### Performance reduction
 
 Control Flow Flattening reduces the performance of your program. You should adjust the option \`controlFlowFlattening\` to be a percentage that is appropriate for your app.
 
-
-#### Other notes
+##### Other notes
 
 Control Flow Flattening only applies to:
 

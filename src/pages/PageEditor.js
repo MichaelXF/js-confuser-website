@@ -8,12 +8,7 @@ import useCodeWorker from "../hooks/useCodeWorker";
 import useSEO from "../hooks/useSEO";
 
 // File Storage And Settings
-import {
-  getFileExtension,
-  getLanguageFromFileExtension,
-  getObfuscatedFileName,
-  saveFileToIndexedDB,
-} from "../utils/file-utils";
+import { getObfuscatedFileName } from "../utils/file-utils";
 import { useLocalStorage } from "usehooks-ts";
 import { useSearchParams } from "react-router-dom";
 
@@ -21,7 +16,6 @@ import { useSearchParams } from "react-router-dom";
 import EditorPanel from "../components/editor/EditorPanel";
 import EditorNav from "../components/editor/EditorNav";
 import EditorFileDrop from "../components/editor/EditorFileDrop";
-import { EditorComponent } from "../components/editor/EditorComponent";
 
 import OptionsDialog from "../components/dialogs/OptionsDialog";
 import ConsoleDialog from "../components/dialogs/ConsoleDialog";
@@ -31,6 +25,8 @@ import LoadingBackdrop from "../components/dialogs/LoadingBackdrop";
 // Obfuscator Options
 import { convertOptionsToJS, evaluateOptionsOrJS } from "../utils/option-utils";
 import presets from "js-confuser/dist/presets";
+import useEditorComponent from "../hooks/useEditorComponent";
+import json5 from "json5";
 
 export default function PageEditor() {
   useSEO(
@@ -42,46 +38,6 @@ export default function PageEditor() {
   const codeWorker = useCodeWorker();
 
   const [params, setSearchParams] = useSearchParams();
-
-  /**
-   * @type {React.MutableRefObject<{monaco: Monaco, editor: Monaco.editor}>}
-   */
-  const ref = useRef();
-
-  useEffect(() => {
-    if (ref.current) {
-      var code = params.get("code");
-      var config = params.get("config");
-      var preset = params.get("preset");
-
-      if (code) {
-        let model = ref.current.editor.getModel();
-
-        model.setNonDirtyValue(code);
-      }
-      if (config) {
-        setOptionsJS(config);
-        editOptionsFile();
-      }
-      if (preset) {
-        setOptions(presets[preset]);
-      }
-
-      if (code || config) {
-        setSearchParams({});
-      }
-    }
-  }, [ref?.current]);
-
-  /**
-   * @type {Monaco.editor.ITextModel}
-   */
-  let [activeTab, setActiveTab] = useState();
-
-  /**
-   * @type {Monaco.editor.ITextModel[]}
-   */
-  let [tabs, setTabs] = useState([]);
 
   const [optionsJS, setOptionsLocalStorageJS] = useLocalStorage(
     LocalStorageKeys.JsConfuserOptionsJS,
@@ -106,11 +62,44 @@ export default function PageEditor() {
     optionsJSRef.current = value;
     setOptionsLocalStorageJS(value);
 
-    var found = tabs.find((t) => t.identity === "internal_options");
+    var found = editorComponent.tabs.find(
+      (t) => t.identity === "internal_options"
+    );
     if (found) {
       found.setNonDirtyValue(value);
     }
   };
+
+  const editorComponent = useEditorComponent({
+    optionsJSRef,
+    setOptionsJS,
+    editorOptionsRef,
+  });
+
+  useEffect(() => {
+    if (editorComponent.ref.current) {
+      var code = params.get("code");
+      var config = params.get("config");
+      var preset = params.get("preset");
+
+      if (code) {
+        let model = editorComponent.editor.getModel();
+
+        model.setNonDirtyValue(code);
+      }
+      if (config) {
+        setOptionsJS(config);
+        editorComponent.openOptionsFile();
+      }
+      if (preset) {
+        setOptions(presets[preset]);
+      }
+
+      if (code || config) {
+        setSearchParams({});
+      }
+    }
+  }, [editorComponent.ref.current]);
 
   const options = useMemo(() => {
     return evaluateOptionsOrJS(optionsJS);
@@ -122,164 +111,7 @@ export default function PageEditor() {
     var newOptionsJS = convertOptionsToJS(optionsValue);
 
     setOptionsJS(newOptionsJS);
-
-    var tab = tabs.find((t) => t.title === "options.js");
-    if (tab) {
-      tab.setNonDirtyValue(newOptionsJS);
-    }
   };
-
-  const tabsRef = useRef();
-  tabsRef.current = tabs;
-
-  function changeTab(tabOrIndex) {
-    var tab =
-      typeof tabOrIndex === "number" ? tabsRef.current[tabOrIndex] : tabOrIndex;
-
-    // Only if a numbered tab was not found, return
-    // Else it's a logic error
-    if (typeof tabOrIndex === "number" && !tab) return;
-
-    const { editor } = ref.current;
-    editorSetModel(editor, tab);
-
-    setActiveTab(tab);
-  }
-
-  function editorSetModel(editor, model) {
-    var currentModel = editor.getModel();
-    if (currentModel) {
-      currentModel.viewState = editor.saveViewState();
-    }
-    editor.setModel(model);
-
-    if (model.viewState) {
-      editor.focus();
-      editor.restoreViewState(model.viewState);
-
-      requestAnimationFrame(() => {
-        editor.focus();
-      });
-
-      delete model.viewState;
-    }
-  }
-
-  function newTab(value = "", fileName = "Untitled.js", onSave, identity) {
-    const { monaco, editor } = ref.current;
-
-    if (!onSave) {
-      onSave = () => {
-        if (editorOptionsRef.current.saveToBrowser) {
-          saveFileToIndexedDB(newModel.title, newModel.getValue()).catch(
-            (err) => {
-              newTab(err.toString(), "File Error");
-            }
-          );
-        } else {
-          // Not implemented
-        }
-      };
-    }
-
-    if (!identity) {
-      identity = Math.random();
-    } else {
-      var alreadyOpen = monaco.editor
-        .getModels()
-        .find((t) => t.identity === identity);
-      if (alreadyOpen) {
-        setTabs((tabs) =>
-          tabs.includes(alreadyOpen) ? tabs : [...tabs, alreadyOpen]
-        );
-        alreadyOpen.onSave = onSave;
-        alreadyOpen.setValue(value);
-        changeTab(alreadyOpen);
-        return;
-      }
-    }
-
-    const fileExtension = getFileExtension(fileName);
-
-    var uri = monaco.Uri.parse("file:///" + identity + "." + fileExtension);
-
-    const newModel = monaco.editor.createModel(
-      value,
-      getLanguageFromFileExtension(fileExtension),
-      uri
-    );
-
-    newModel.title = fileName;
-    newModel.identity = identity;
-
-    newModel.onSave = onSave;
-
-    newModel.rename = (newName) => {
-      newModel.title = newName;
-      newModel.setIsDirty(true);
-
-      monaco.editor.setModelLanguage(
-        newModel,
-        getLanguageFromFileExtension(getFileExtension(newName))
-      );
-    };
-
-    var lastSavedContent = value;
-
-    newModel.onDidChangeContent(() => {
-      const currentContent = editor.getValue();
-      const isModified = currentContent !== lastSavedContent;
-
-      newModel.setIsDirty(isModified);
-    });
-
-    newModel.setNonDirtyValue = (value) => {
-      lastSavedContent = value;
-      newModel.setValue(value);
-    };
-
-    newModel.setIsDirty = (isDirty) => {
-      newModel.isDirty = isDirty;
-      const el = document.getElementById("tab-" + newModel.identity);
-      if (el) {
-        el.style.opacity = isDirty ? 1 : 0;
-      }
-    };
-
-    newModel.saveContent = () => {
-      lastSavedContent = editor.getValue();
-      newModel.setIsDirty(false);
-      newModel.onSave(lastSavedContent);
-    };
-
-    editorSetModel(editor, newModel);
-
-    setTabs((tabs) => [...tabs, newModel]);
-    setActiveTab(newModel);
-
-    setTimeout(() => {
-      editor.focus();
-    }, 16);
-
-    return newModel;
-  }
-
-  function closeTab(tab) {
-    var { editor } = ref.current;
-
-    var newTabs = tabsRef.current?.filter((t, i) => t !== tab);
-    setTabs(newTabs);
-
-    if (editor) {
-      const activeTab = editor.getModel();
-      if (activeTab === tab && newTabs.length) {
-        changeTab(newTabs[Math.max(0, newTabs.length - 1)]);
-      }
-      if (newTabs.length === 0) {
-        editor.setValue("// Open a new file to start");
-      }
-    }
-  }
 
   var [error, setError] = useState();
 
@@ -298,28 +130,17 @@ export default function PageEditor() {
   var [showConsoleDialog, setShowConsoleDialog] = useState(false);
 
   /**
-   * Returns the current model that isn't the JSConfuser.ts model
-   */
-  const getActiveModel = () => {
-    const { editor } = ref.current;
-
-    let activeModel = editor.getModel();
-    if (activeModel.title === "JSConfuser.ts") {
-      activeModel = tabsRef.current.find((t) => t.title !== "JSConfuser.ts");
-    }
-    return activeModel;
-  };
-
-  /**
    * Obfuscates the user's code
    */
   const obfuscateCode = () => {
-    if (tabsRef?.current?.length === 0) {
+    const { tabs } = editorComponent;
+
+    if (tabs.length === 0) {
       alert("Please open a file to obfuscate");
       return;
     }
 
-    let activeModel = getActiveModel();
+    let activeModel = editorComponent.getActiveModel();
 
     return new Promise((resolve, reject) => {
       // Get the current value from the editor
@@ -329,13 +150,14 @@ export default function PageEditor() {
         // Obfuscate the code using JS-Confuser
         JSConfuser.obfuscate(originalCode, optionsJSRef.current, {
           onComplete: (data) => {
+            return;
             setShowLoadingOverlay(false);
 
             var { code, profileData } = data;
 
             var outputFileName = getObfuscatedFileName(activeModel.title);
 
-            var model = newTab(code, outputFileName);
+            var model = editorComponent.newTab(code, outputFileName);
             model.profileData = profileData;
 
             resolve(true);
@@ -351,6 +173,8 @@ export default function PageEditor() {
             resolve(false);
           },
           onProgress: (data) => {
+            if (data.index > 18) return;
+
             setLoadingInfo({
               progress:
                 (data.nextTransform || data.currentTransform) +
@@ -373,34 +197,8 @@ export default function PageEditor() {
     });
   };
 
-  const editOptionsFile = () => {
-    newTab(
-      optionsJSRef.current,
-      "JSConfuser.ts",
-      (value) => {
-        setOptionsJS(value);
-      },
-      "internal_options"
-    );
-  };
-
-  const getSelectedTextOrFullContent = () => {
-    const editor = ref.current?.editor;
-    if (!editor) return "";
-
-    const selection = editor.getSelection();
-
-    // Check if there is a selection
-    if (selection && !selection.isEmpty()) {
-      return editor.getModel().getValueInRange(selection);
-    } else {
-      // Return the entire content if no selection is present
-      return editor.getValue();
-    }
-  };
-
   const evaluateCode = () => {
-    const { editor } = ref.current;
+    const { editor } = editorComponent;
     var model = editor?.getModel();
     if (model.title === "JSConfuser.ts") {
       model.saveContent();
@@ -425,7 +223,7 @@ export default function PageEditor() {
   };
 
   const convertCode = async () => {
-    const { editor } = ref.current;
+    const { editor } = editorComponent;
     if (!editor) return;
 
     const code = editor.getValue();
@@ -433,7 +231,7 @@ export default function PageEditor() {
     codeWorker
       .convertTSCodeToJSCode(code)
       .then((jsCode) => {
-        newTab(jsCode, "Output.js");
+        editorComponent.newTab(jsCode, "Output.js");
       })
       .catch((err) => {
         setShowError(true);
@@ -479,14 +277,14 @@ export default function PageEditor() {
         onClose={() => {
           setShowConsoleDialog(false);
           requestAnimationFrame(() => {
-            const { editor } = ref.current;
+            const { editor } = editorComponent;
             if (editor) {
               editor.focus();
             }
           });
         }}
         getEditorCode={() => {
-          return getSelectedTextOrFullContent();
+          return editorComponent.getSelectedTextOrFullContent();
         }}
       />
 
@@ -501,27 +299,48 @@ export default function PageEditor() {
       <EditorNav
         getEditorOptions={getEditorOptions}
         setEditorOptions={setEditorOptions}
-        editOptionsFile={editOptionsFile}
-        newTab={newTab}
         obfuscateCode={obfuscateCode}
         evaluateCode={evaluateCode}
         resetEditor={() => {
-          setTabs([]);
-          newTab(defaultCode, "Untitled.js");
+          editorComponent.setTabs([]);
+          editorComponent.newTab(defaultCode, "Untitled.js");
         }}
         setOptionsJS={setOptionsJS}
-        optionsJS={optionsJS}
-        getRef={() => ref}
-        activeTab={activeTab}
-        getEditor={() => ref.current?.editor}
+        preObfuscationAnalysis={() => {
+          JSConfuser.preObfuscationAnalysis(
+            editorComponent.getActiveModel().getValue()
+          )
+            .then((data) => {
+              var map = new Map(data.nodes);
+
+              var display = {};
+
+              for (var [key, value] of map) {
+                if (key.type === "FunctionDeclaration") {
+                  display[key.id.name] = value;
+                }
+              }
+
+              editorComponent.newTab(
+                JSON.stringify(display, null, 2),
+                "PreObfuscation.json"
+              );
+            })
+            .catch((err) => {
+              setShowError(true);
+              setError({
+                errorString: err.toString(),
+                errorStack: err.stack,
+              });
+            });
+        }}
         codeWorker={codeWorker}
         convertCode={convertCode}
-        closeTab={closeTab}
         closeModals={closeModals}
-        changeTab={changeTab}
+        editorComponent={editorComponent}
         focusEditor={() => {
           requestAnimationFrame(() => {
-            const { editor } = ref.current;
+            const { editor } = editorComponent;
             if (editor) {
               editor.focus();
             }
@@ -529,7 +348,7 @@ export default function PageEditor() {
         }}
         shareURL={() => {
           var searchParams = new URLSearchParams();
-          searchParams.set("code", getActiveModel().getValue());
+          searchParams.set("code", editorComponent.getActiveModel().getValue());
           searchParams.set("config", optionsJS);
 
           var url =
@@ -542,29 +361,21 @@ export default function PageEditor() {
         }}
       />
 
-      <EditorFileDrop newTab={newTab} />
+      <EditorFileDrop newTab={editorComponent.newTab} />
 
       <Box display="flex" height="calc(100vh - 40px)">
         <EditorPanel
-          activeTab={activeTab}
           options={options}
           setOptions={setOptions}
           obfuscateCode={obfuscateCode}
           openOptionsDialog={() => {
             setShowOptionsDialog(true);
           }}
-          editOptionsFile={editOptionsFile}
           evaluateCode={evaluateCode}
           convertCode={convertCode}
+          editorComponent={editorComponent}
         />
-        <EditorComponent
-          activeTab={activeTab}
-          tabs={tabs}
-          newTab={newTab}
-          closeTab={closeTab}
-          changeTab={changeTab}
-          ref={ref}
-        />
+        {editorComponent.element}
       </Box>
     </div>
   );

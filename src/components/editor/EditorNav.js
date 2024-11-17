@@ -161,21 +161,16 @@ export default function EditorNav({
   setEditorOptions,
   resetEditor,
   editOptionsFile,
-  newTab,
   obfuscateCode,
   evaluateCode,
-  optionsJS,
   setOptionsJS,
-  activeTab,
-  getRef,
-  getEditor,
+  preObfuscationAnalysis,
   codeWorker,
   convertCode,
-  closeTab,
   focusEditor,
   closeModals,
   shareURL,
-  changeTab,
+  editorComponent,
 }) {
   const snackbar = useSnackbar();
 
@@ -199,9 +194,6 @@ export default function EditorNav({
     focusEditor();
   };
 
-  const activeTabRef = useRef();
-  activeTabRef.current = activeTab;
-
   var [recentFiles, setRecentFiles] = useState([]);
   useEffect(() => {
     async function load() {
@@ -223,7 +215,7 @@ export default function EditorNav({
             label: "Change To File " + humanIndex,
             shortcut: "Ctrl + " + humanIndex,
             onClick: () => {
-              changeTab(i);
+              editorComponent.ArrowDropDownchangeTab(i);
             },
             hidden: true,
           };
@@ -232,7 +224,7 @@ export default function EditorNav({
           label: "New File",
           shortcut: "Ctrl + N",
           onClick: () => {
-            newTab("");
+            editorComponent.newTab("");
           },
         },
         {
@@ -241,10 +233,10 @@ export default function EditorNav({
           onClick: () => {
             openJavaScriptFile()
               .then(({ content, filename }) => {
-                newTab(content, filename);
+                editorComponent.newTab(content, filename);
               })
               .catch((err) => {
-                alert(err);
+                snackbar.showError(err);
               });
           },
         },
@@ -256,7 +248,7 @@ export default function EditorNav({
                 label: file,
                 onClick: async () => {
                   const content = await getFileFromIndexedDB(file);
-                  newTab(content, file);
+                  editorComponent.newTab(content, file);
                 },
                 onRemove: async () => {
                   await deleteFileFromIndexedDB(file);
@@ -281,7 +273,7 @@ export default function EditorNav({
           shortcut: "Ctrl + W",
           onClick: () => {
             closeModals();
-            closeTab(activeTabRef.current);
+            editorComponent.closeTab(editorComponent.activeTab);
           },
           hidden: true,
         },
@@ -293,14 +285,14 @@ export default function EditorNav({
             if (getEditorOptions().formatOnSave) {
               await formatDocument();
             }
-            activeTabRef.current?.saveContent?.();
+            editorComponent.activeTab.saveContent?.();
           },
         },
         {
           label: "Download File",
           shortcut: "Ctrl + Shift + S",
           onClick: async () => {
-            var model = activeTabRef.current;
+            var model = editorComponent.activeTab;
             if (model) {
               model.setIsDirty(false);
               downloadJavaScriptFile(model.getValue(), model.title);
@@ -324,7 +316,7 @@ export default function EditorNav({
           onClick: () => {
             shareURL();
 
-            snackbar.showSuccess("Copied URL to clipboard");
+            snackbar.showSuccess("Copied link to clipboard");
           },
         },
       ],
@@ -360,6 +352,17 @@ export default function EditorNav({
           label: "Edit JSConfuser.ts",
           shortcut: "Ctrl + P",
           onClick: editOptionsFile,
+        },
+        {
+          label: "Advanced Tools",
+          items: [
+            {
+              label: "Pre-Obfuscation Analysis",
+              onClick: () => {
+                preObfuscationAnalysis();
+              },
+            },
+          ],
         },
       ],
     },
@@ -443,7 +446,7 @@ export default function EditorNav({
   }, []);
 
   async function formatDocument() {
-    const editor = getRef()?.current?.editor;
+    const { editor } = editorComponent;
     if (!editor) return;
 
     // Add custom shortcut for formatting (Ctrl + Shift + F)

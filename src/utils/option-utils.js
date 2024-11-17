@@ -1,6 +1,7 @@
 import json5 from "json5";
 import { groups } from "../groups";
 import { getRandomString } from "./random-utils";
+import { optionsJSHeader } from "../constants";
 
 export function getHost() {
   const location = window.location;
@@ -90,10 +91,7 @@ export function convertOptionsToJS(
   var newOptionsJS = `${exportName} = ${objectAsString};`;
 
   if (exportName === "module.exports") {
-    newOptionsJS =
-      `// This file is evaluated as JavaScript. You can use JavaScript here.
-// Learn more: https://js-confuser.com/docs/getting-started/playground#jsconfuser-ts
-\n` + newOptionsJS;
+    newOptionsJS = optionsJSHeader + newOptionsJS;
   }
 
   return newOptionsJS;
@@ -123,7 +121,15 @@ export function evaluateOptionsOrJS(optionsJS) {
       // Last expression of the eval is the return value
       module`)?.exports;
 
-    return value;
+    // Make sure result is an object
+    if (typeof value === "object" && value) {
+      return value;
+    }
+
+    return {
+      target: "browser",
+      error: "Invalid JSConfuser config file",
+    };
   } catch (err) {
     return {
       target: "browser",

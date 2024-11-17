@@ -11,10 +11,12 @@ export default function EditorPanel({
   setOptions,
   openOptionsDialog,
   editOptionsFile,
-  activeTab,
   evaluateCode,
+  editorComponent,
 }) {
   const theme = useTheme();
+
+  const { activeTab } = editorComponent;
 
   const panelMode = activeTab?.profileData ? "download" : "default";
 
@@ -39,12 +41,12 @@ export default function EditorPanel({
           setOptions={setOptions}
           openOptionsDialog={openOptionsDialog}
           editOptionsFile={editOptionsFile}
-          activeTab={activeTab}
+          editorComponent={editorComponent}
         />
       ) : panelMode === "download" ? (
         <EditorPanelDownload
           evaluateCode={evaluateCode}
-          activeTab={activeTab}
+          editorComponent={editorComponent}
         />
       ) : null}
     </Box>

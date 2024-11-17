@@ -16,7 +16,7 @@ import {
   PriceCheck,
 } from "@mui/icons-material";
 import { Link } from "react-router-dom";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CodeViewer } from "../components/codeViewer/CodeViewer";
 import { landingPageCode } from "../constants";
 import useJSConfuser from "../hooks/useJSConfuser";
@@ -28,6 +28,16 @@ import websiteImage1 from "../static/websiteImage1.png";
 import websiteImage2 from "../static/websiteImage2.png";
 import websiteImage3 from "../static/websiteImage3.png";
 import websiteImage4 from "../static/websiteImage4.png";
+import websiteImageDocs from "../static/websiteImageDocs.png";
+
+const imageContainerProps = {
+  boxShadow:
+    "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
+  border: "2px solid",
+  borderColor: "divider_opaque",
+  borderRadius: "8px",
+  overflow: "hidden",
+};
 
 function WebsiteAnimation() {
   const images = [websiteImage1, websiteImage2, websiteImage3, websiteImage4];
@@ -57,21 +67,14 @@ function WebsiteAnimation() {
   return (
     <Box>
       <Box
+        {...imageContainerProps}
         position="relative"
-        boxShadow={
-          "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)"
-        }
-        bgcolor="white"
         onClick={() => {
           nextImage();
         }}
         sx={{
           cursor: "pointer",
         }}
-        border="2px solid"
-        borderColor="divider_opaque"
-        borderRadius={"8px"}
-        overflow="hidden"
       >
         <Box
           ref={lastImageElementRef}
@@ -80,9 +83,9 @@ function WebsiteAnimation() {
           width="100%"
           sx={{
             aspectRatio: "2880/1624",
+            verticalAlign: "middle",
             position: "absolute",
             zIndex: 2,
-            verticalAlign: "middle",
           }}
         />
         <Box
@@ -637,6 +640,41 @@ export default function PageHome() {
         alignItems="center"
         justifyContent="center"
       >
+        <Container maxWidth="lg" sx={{ py: 10, textAlign: "center" }}>
+          <Typography
+            variant="h3"
+            className="GradientText"
+            fontWeight="bold"
+            mb={6}
+          >
+            Ready to Protect Your Code?
+          </Typography>
+
+          <Typography mb={6} fontSize="1.125rem" lineHeight="2">
+            <strong>Start Using JS-Confuser Today</strong>
+            <br />
+            <br />
+            Secure your JavaScript with the most advanced and comprehensive
+            obfuscation tool available. <br />
+            Protect sensitive business logic, your intellectual property, or
+            personal projects with ease using JS-Confuser. <br />
+            Experience powerful obfuscation, seamless configuration, and
+            complete documentation—all for free.
+          </Typography>
+
+          <Box>{ctaButton}</Box>
+        </Container>
+      </Box>
+
+      <Box
+        minHeight="100vh"
+        height="100%"
+        borderTop="1px solid"
+        borderColor="divider"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
         <Container maxWidth="lg" sx={{ py: 10 }}>
           <Typography
             variant="h3"
@@ -644,7 +682,7 @@ export default function PageHome() {
             fontWeight="bold"
             mb={6}
           >
-            Get Started
+            More Options
           </Typography>
 
           <QuickActions />

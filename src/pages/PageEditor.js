@@ -26,7 +26,6 @@ import LoadingBackdrop from "../components/dialogs/LoadingBackdrop";
 import { convertOptionsToJS, evaluateOptionsOrJS } from "../utils/option-utils";
 import presets from "js-confuser/dist/presets";
 import useEditorComponent from "../hooks/useEditorComponent";
-import json5 from "json5";
 
 export default function PageEditor() {
   useSEO(

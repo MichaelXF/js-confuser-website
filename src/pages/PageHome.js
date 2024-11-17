@@ -32,7 +32,7 @@ import websiteImage4 from "../static/websiteImage4.png";
 function WebsiteAnimation() {
   const images = [websiteImage1, websiteImage2, websiteImage3, websiteImage4];
   const [index, setIndex] = useState(0);
-  const [lastIndex, setLastIndex] = useState(0);
+  const [lastIndex, setLastIndex] = useState();
   const lastImageElementRef = useRef();
 
   function changeImage(newIndex) {
@@ -44,19 +44,14 @@ function WebsiteAnimation() {
     changeImage((index + 1) % images.length);
   }
 
-  useLayoutEffect(() => {
-    if (lastImageElementRef.current) {
-      lastImageElementRef.current.style.transition = "none";
-      lastImageElementRef.current.style.opacity = "1";
-    }
-  }, [lastIndex]);
-
   useEffect(() => {
-    if (typeof lastIndex !== "number") return;
+    lastImageElementRef.current.style.transition = "none";
+    lastImageElementRef.current.style.opacity = "1";
+
     setTimeout(() => {
       lastImageElementRef.current.style.transition = "opacity 0.3s";
       lastImageElementRef.current.style.opacity = 0;
-    }, 0);
+    });
   }, [lastIndex]);
 
   return (
@@ -85,12 +80,10 @@ function WebsiteAnimation() {
           width="100%"
           sx={{
             aspectRatio: "2880/1624",
-            opacity: 1,
             position: "absolute",
             zIndex: 2,
             verticalAlign: "middle",
           }}
-          key={lastIndex}
         />
         <Box
           component="img"

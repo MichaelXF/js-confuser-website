@@ -1,20 +1,8 @@
 import { Close } from "@mui/icons-material";
-import {
-  Box,
-  Button,
-  IconButton,
-  Menu,
-  MenuItem,
-  Typography,
-} from "@mui/material";
-import React, { useState } from "react";
+import { Box, Button, IconButton, Typography } from "@mui/material";
+import { useState } from "react";
 
-export default function EditorComponentTab({
-  isActive,
-  changeTab,
-  closeTab,
-  tab,
-}) {
+export default function EditorComponentTab({ isActive, tab, editorComponent }) {
   // State hook purely for triggering a re-render
   // tab.title is not reactive
   var [state, setState] = useState({});
@@ -38,7 +26,7 @@ export default function EditorComponentTab({
       }}
       color="inherit"
       display="flex"
-      onClick={() => changeTab(tab)}
+      onClick={() => editorComponent.changeTab(tab)}
       title="Right click to rename"
       component="div"
     >
@@ -77,7 +65,7 @@ export default function EditorComponentTab({
           e.preventDefault();
           e.stopPropagation();
 
-          closeTab(tab);
+          editorComponent.closeTab(tab);
         }}
       >
         <Close sx={{ fontSize: "14px" }} />

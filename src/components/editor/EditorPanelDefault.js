@@ -4,7 +4,6 @@ import { ConfirmDialog } from "../dialogs/ConfirmDialog";
 import { useRef, useState } from "react";
 
 export default function EditorPanelDefault({
-  obfuscateCode,
   convertCode,
   options,
   setOptions,
@@ -15,7 +14,7 @@ export default function EditorPanelDefault({
   const onConfirmRef = useRef();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
-  const { activeTab } = editorComponent;
+  const { activeTab, obfuscateCode } = editorComponent;
 
   var isCustomPreset = options.preset === undefined;
   var isOptionsFile = activeTab?.identity === "internal_options";

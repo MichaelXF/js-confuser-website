@@ -161,10 +161,8 @@ export default function EditorNav({
   setEditorOptions,
   resetEditor,
   editOptionsFile,
-  obfuscateCode,
   evaluateCode,
   setOptionsJS,
-  preObfuscationAnalysis,
   codeWorker,
   convertCode,
   focusEditor,
@@ -327,7 +325,9 @@ export default function EditorNav({
         {
           label: "Obfuscate Code",
           shortcut: "Ctrl + Enter",
-          onClick: obfuscateCode,
+          onClick: () => {
+            editorComponent.obfuscateCode();
+          },
         },
         {
           label: "Evaluate Code",
@@ -359,7 +359,58 @@ export default function EditorNav({
             {
               label: "Pre-Obfuscation Analysis",
               onClick: () => {
-                preObfuscationAnalysis();
+                editorComponent.JSConfuser.preObfuscationAnalysis(
+                  editorComponent.getActiveModel().getValue()
+                )
+                  .then((data) => {
+                    var map = new Map(data.nodes);
+
+                    var display = {};
+
+                    for (var [key, value] of map) {
+                      if (key.type === "FunctionDeclaration") {
+                        display[key.id.name] = value;
+                      }
+                    }
+
+                    editorComponent.newTab(
+                      JSON.stringify(display, null, 2),
+                      "PreObfuscation.json"
+                    );
+                  })
+                  .catch((err) => {
+                    alert(err.toString());
+                  });
+              },
+            },
+            {
+              label: "Apply Transformation",
+              onClick: async () => {
+                var names = await editorComponent.JSConfuser.getTransformations(
+                  editorComponent.optionsJS
+                );
+                var name = prompt(
+                  "Enter the transformation name:\n" +
+                    names.map((name, i) => `${i + 1}. ${name}`).join("\n")
+                );
+
+                if (name && !isNaN(name)) {
+                  name = names[parseInt(name) - 1];
+                }
+                if (!name) return;
+                if (!names.includes(name)) {
+                  alert("Invalid transformation name");
+                  return;
+                }
+
+                var activeTab = editorComponent.getActiveModel();
+                var { code } =
+                  await editorComponent.JSConfuser.applyTransformations(
+                    activeTab.getValue(),
+                    editorComponent.optionsJS,
+                    [name]
+                  );
+                activeTab.setValue(code);
               },
             },
           ],

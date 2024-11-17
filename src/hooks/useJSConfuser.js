@@ -2,42 +2,64 @@ import { useEffect, useRef } from "react";
 import Worker from "workerize-loader!../workers/jsConfuserWorker.js"; // eslint-disable-line import/no-webpack-loader-syntax
 import { getRandomString } from "../utils/random-utils";
 
-export default function useJSConfuser() {
+export default function useJSConfuser({ onError } = {}) {
   var workerRef = useRef();
   var isObfuscatingRef = useRef(false);
 
-  function preObfuscationAnalysis(code) {
-    return new Promise((resolve, reject) => {
-      var requestID = getRandomString(10);
-      var worker = workerRef.current || (workerRef.current = Worker());
+  function createWrapper(methodName) {
+    return (...args) => {
+      return new Promise((resolve, reject) => {
+        var requestID = getRandomString(10);
+        var worker = workerRef.current || (workerRef.current = Worker());
 
-      var callback = (message) => {
-        const { event, data } = message.data;
-        if (data?.requestID !== requestID) return;
+        var callback = (message) => {
+          const { event, data } = message.data;
+          if (data?.requestID !== requestID) return;
 
-        isObfuscatingRef.current = false;
-        dispose();
+          isObfuscatingRef.current = false;
+          dispose();
 
-        if (event === "success") {
-          resolve(data);
-        } else if (event === "error") {
-          reject(data);
+          if (event === "success") {
+            resolve(data);
+          } else if (event === "error") {
+            reject(data);
+          }
+        };
+
+        var dispose = () => {
+          if (callback) {
+            worker.removeEventListener("message", callback);
+            callback = null;
+          }
+        };
+
+        // Sometimes the worker doesn't load in development?
+        if (typeof worker[methodName] !== "function") {
+          // Timeout required as multiple state updates can cause issues
+          setTimeout(() => {
+            onError?.({
+              errorString: "Worker function not available.",
+            });
+          });
+          return;
         }
-      };
 
-      var dispose = () => {
-        if (callback) {
-          worker.removeEventListener("message", callback);
-          callback = null;
-        }
-      };
+        worker.addEventListener("message", callback);
 
-      worker.addEventListener("message", callback);
-
-      isObfuscatingRef.current = true;
-      worker.preObfuscationAnalysis(requestID, code);
-    });
+        isObfuscatingRef.current = true;
+        worker[methodName](requestID, ...args);
+      });
+    };
   }
+
+  const preObfuscationAnalysis = createWrapper("preObfuscationAnalysis");
+  const applyTransformations = createWrapper("applyTransformations");
+
+  const getTransformations = async (optionsJS) => {
+    var result = await applyTransformations(null, optionsJS, []);
+
+    return result.transformationNames;
+  };
 
   function obfuscate(
     code,
@@ -111,8 +133,10 @@ export default function useJSConfuser() {
   }, []);
 
   return {
-    preObfuscationAnalysis,
     obfuscate,
+    preObfuscationAnalysis,
+    applyTransformations,
+    getTransformations,
     cancel,
   };
 }

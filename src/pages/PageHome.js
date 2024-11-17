@@ -42,12 +42,20 @@ const imageContainerProps = {
 function WebsiteAnimation() {
   const images = [websiteImage1, websiteImage2, websiteImage3, websiteImage4];
   const [index, setIndex] = useState(0);
-  const [lastIndex, setLastIndex] = useState();
+  const [lastIndex, setLastIndex] = useState(0);
 
   /**
    * @type {React.MutableRefObject<HTMLImageElement>}
    */
   const lastImageElementRef = useRef();
+
+  // Preload images
+  useEffect(() => {
+    images.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, []);
 
   function changeImage(newIndex) {
     const newLastIndex = index;

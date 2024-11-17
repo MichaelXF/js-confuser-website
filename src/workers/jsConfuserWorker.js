@@ -110,6 +110,55 @@ export const obfuscateCode = (requestID, code, optionsJS) => {
     });
 };
 
+/**
+ * Start of Advanced Tools
+ * Most features regular users won't use
+ */
+
+let walkthroughAst = null;
+export const applyTransformations = (
+  requestID,
+  code,
+  optionsJS,
+  transformationNames
+) => {
+  if (typeof code === "string") {
+    walkthroughAst = Obfuscator.parseCode(code);
+  }
+
+  // Evaluate the user's JSConfuser.ts config file
+  let options = {};
+  try {
+    options = evaluateOptions(optionsJS);
+  } catch (error) {
+    return;
+  }
+
+  const obfuscator = new Obfuscator(options);
+  let output = "";
+
+  if (transformationNames.length) {
+    obfuscator.plugins = obfuscator.plugins.filter(({ pluginInstance }) =>
+      transformationNames.includes(pluginInstance.name)
+    );
+
+    walkthroughAst = obfuscator.obfuscateAST(walkthroughAst);
+
+    output = obfuscator.generateCode(walkthroughAst);
+  }
+
+  postMessage({
+    event: "success",
+    data: {
+      requestID,
+      code: output,
+      transformationNames: obfuscator.plugins.map(
+        ({ pluginInstance }) => pluginInstance.name
+      ),
+    },
+  });
+};
+
 // Collects Pre-obfuscation analysis (Preparation transformation)
 export const preObfuscationAnalysis = (requestID, code) => {
   const obfuscator = new Obfuscator({

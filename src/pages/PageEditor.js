@@ -3,12 +3,9 @@ import { Box } from "@mui/material";
 import { defaultCode, defaultOptionsJS, LocalStorageKeys } from "../constants";
 
 // Hooks for the JSConfuser and Code Worker
-import useJSConfuser from "../hooks/useJSConfuser";
 import useCodeWorker from "../hooks/useCodeWorker";
 import useSEO from "../hooks/useSEO";
 
-// File Storage And Settings
-import { getObfuscatedFileName } from "../utils/file-utils";
 import { useLocalStorage } from "usehooks-ts";
 import { useSearchParams } from "react-router-dom";
 
@@ -20,7 +17,6 @@ import EditorFileDrop from "../components/editor/EditorFileDrop";
 import OptionsDialog from "../components/dialogs/OptionsDialog";
 import ConsoleDialog from "../components/dialogs/ConsoleDialog";
 import ErrorDialog from "../components/dialogs/ErrorDialog";
-import LoadingBackdrop from "../components/dialogs/LoadingBackdrop";
 
 // Obfuscator Options
 import { convertOptionsToJS, evaluateOptionsOrJS } from "../utils/option-utils";
@@ -33,7 +29,6 @@ export default function PageEditor() {
     "A JavaScript obfuscator that runs in your browser."
   );
 
-  const JSConfuser = useJSConfuser();
   const codeWorker = useCodeWorker();
 
   const [params, setSearchParams] = useSearchParams();
@@ -73,6 +68,10 @@ export default function PageEditor() {
     optionsJSRef,
     setOptionsJS,
     editorOptionsRef,
+    onError: (error) => {
+      setError(error);
+      setShowError(true);
+    },
   });
 
   useEffect(() => {
@@ -121,77 +120,9 @@ export default function PageEditor() {
     };
   }
 
-  var [loadingInfo, setLoadingInfo] = useState({ progress: "", percent: "" });
-
-  var [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
   var [showError, setShowError] = useState(false);
   var [showOptionsDialog, setShowOptionsDialog] = useState(false);
   var [showConsoleDialog, setShowConsoleDialog] = useState(false);
-
-  /**
-   * Obfuscates the user's code
-   */
-  const obfuscateCode = () => {
-    const { tabs } = editorComponent;
-
-    if (tabs.length === 0) {
-      alert("Please open a file to obfuscate");
-      return;
-    }
-
-    let activeModel = editorComponent.getActiveModel();
-
-    return new Promise((resolve, reject) => {
-      // Get the current value from the editor
-      let originalCode = activeModel.getValue();
-
-      try {
-        // Obfuscate the code using JS-Confuser
-        JSConfuser.obfuscate(originalCode, optionsJSRef.current, {
-          onComplete: (data) => {
-            setShowLoadingOverlay(false);
-
-            var { code, profileData } = data;
-
-            var outputFileName = getObfuscatedFileName(activeModel.title);
-
-            var model = editorComponent.newTab(code, outputFileName);
-            model.profileData = profileData;
-
-            resolve(true);
-          },
-          onError: (data) => {
-            setShowLoadingOverlay(false);
-            setError({
-              errorString: data.errorString,
-              errorStack: data.errorStack,
-            });
-            setShowError(true);
-
-            resolve(false);
-          },
-          onProgress: (data) => {
-            setLoadingInfo({
-              progress:
-                (data.nextTransform || data.currentTransform) +
-                " (" +
-                data.index +
-                "/" +
-                data.totalTransforms +
-                ")",
-              percent: data.index / data.totalTransforms,
-            });
-          },
-        });
-        setLoadingInfo({ progress: "Starting...", percent: 0 });
-        setShowLoadingOverlay(true);
-        setShowError(false);
-      } catch (error) {
-        resolve(false);
-        console.error("Obfuscation failed:", error);
-      }
-    });
-  };
 
   const evaluateCode = () => {
     const { editor } = editorComponent;
@@ -199,7 +130,8 @@ export default function PageEditor() {
     if (model.title === "JSConfuser.ts") {
       model.saveContent();
 
-      obfuscateCode()
+      editorComponent
+        .obfuscateCode()
         .then((success) => {
           if (success) {
             evaluateCode();
@@ -248,16 +180,6 @@ export default function PageEditor() {
 
   return (
     <div style={{ height: "100vh", width: "100%" }}>
-      <LoadingBackdrop
-        open={showLoadingOverlay}
-        loadingInfo={loadingInfo}
-        handleClose={() => {}}
-        onCancel={() => {
-          JSConfuser.cancel();
-          setShowLoadingOverlay(false);
-        }}
-      />
-
       <OptionsDialog
         open={showOptionsDialog}
         onClose={() => {
@@ -295,41 +217,12 @@ export default function PageEditor() {
       <EditorNav
         getEditorOptions={getEditorOptions}
         setEditorOptions={setEditorOptions}
-        obfuscateCode={obfuscateCode}
         evaluateCode={evaluateCode}
         resetEditor={() => {
           editorComponent.setTabs([]);
           editorComponent.newTab(defaultCode, "Untitled.js");
         }}
         setOptionsJS={setOptionsJS}
-        preObfuscationAnalysis={() => {
-          JSConfuser.preObfuscationAnalysis(
-            editorComponent.getActiveModel().getValue()
-          )
-            .then((data) => {
-              var map = new Map(data.nodes);
-
-              var display = {};
-
-              for (var [key, value] of map) {
-                if (key.type === "FunctionDeclaration") {
-                  display[key.id.name] = value;
-                }
-              }
-
-              editorComponent.newTab(
-                JSON.stringify(display, null, 2),
-                "PreObfuscation.json"
-              );
-            })
-            .catch((err) => {
-              setShowError(true);
-              setError({
-                errorString: err.toString(),
-                errorStack: err.stack,
-              });
-            });
-        }}
         codeWorker={codeWorker}
         convertCode={convertCode}
         closeModals={closeModals}
@@ -359,11 +252,12 @@ export default function PageEditor() {
 
       <EditorFileDrop newTab={editorComponent.newTab} />
 
+      {editorComponent.overlayElement}
+
       <Box display="flex" height="calc(100vh - 40px)">
         <EditorPanel
           options={options}
           setOptions={setOptions}
-          obfuscateCode={obfuscateCode}
           openOptionsDialog={() => {
             setShowOptionsDialog(true);
           }}

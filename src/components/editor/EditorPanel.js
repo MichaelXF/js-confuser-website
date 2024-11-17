@@ -5,7 +5,6 @@ import EditorPanelDownload from "./EditorPanelDownload";
 export const EDITOR_PANEL_WIDTH = "270px";
 
 export default function EditorPanel({
-  obfuscateCode,
   convertCode,
   options,
   setOptions,
@@ -35,7 +34,6 @@ export default function EditorPanel({
     >
       {panelMode === "default" ? (
         <EditorPanelDefault
-          obfuscateCode={obfuscateCode}
           convertCode={convertCode}
           options={options}
           setOptions={setOptions}

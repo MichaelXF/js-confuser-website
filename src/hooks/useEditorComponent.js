@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { EditorComponent } from "../components/editor/EditorComponent";
 
 // File Storage And Settings
@@ -8,21 +8,26 @@ import {
   getObfuscatedFileName,
   saveFileToIndexedDB,
 } from "../utils/file-utils";
+import useJSConfuser from "./useJSConfuser";
+import LoadingBackdrop from "../components/dialogs/LoadingBackdrop";
 
 export default function useEditorComponent({
   optionsJSRef,
   setOptionsJS,
   editorOptionsRef,
+  onError,
 }) {
+  const JSConfuser = useJSConfuser({
+    onError: onError,
+  });
+
+  const [loadingInfo, setLoadingInfo] = useState({ progress: "", percent: "" });
+  const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
+
   /**
    * @type {React.MutableRefObject<{monaco: Monaco, editor: Monaco.editor}>}
    */
   const ref = useRef();
-
-  /**
-   * @type {Monaco.editor.ITextModel}
-   */
-  let [activeTab, setActiveTab] = useState();
 
   /**
    * @type {Monaco.editor.ITextModel[]}
@@ -31,6 +36,66 @@ export default function useEditorComponent({
 
   const tabsRef = useRef();
   tabsRef.current = tabs;
+
+  /**
+   * Obfuscates the user's code
+   */
+  function obfuscateCode() {
+    const tabs = tabsRef.current;
+
+    if (tabs.length === 0) {
+      alert("Please open a file to obfuscate");
+      return;
+    }
+
+    let activeModel = getActiveModel();
+
+    return new Promise((resolve, reject) => {
+      // Get the current value from the editor
+      let originalCode = activeModel.getValue();
+
+      try {
+        // Obfuscate the code using JS-Confuser
+        JSConfuser.obfuscate(originalCode, optionsJSRef.current, {
+          onComplete: (data) => {
+            setShowLoadingOverlay(false);
+
+            var { code, profileData } = data;
+
+            var outputFileName = getObfuscatedFileName(activeModel.title);
+
+            var model = newTab(code, outputFileName);
+            model.profileData = profileData;
+
+            resolve(true);
+          },
+          onError: (data) => {
+            setShowLoadingOverlay(false);
+
+            onError(data);
+            resolve(false);
+          },
+          onProgress: (data) => {
+            setLoadingInfo({
+              progress:
+                (data.nextTransform || data.currentTransform) +
+                " (" +
+                data.index +
+                "/" +
+                data.totalTransforms +
+                ")",
+              percent: data.index / data.totalTransforms,
+            });
+          },
+        });
+        setLoadingInfo({ progress: "Starting...", percent: 0 });
+        setShowLoadingOverlay(true);
+      } catch (error) {
+        resolve(false);
+        console.error("Obfuscation failed:", error);
+      }
+    });
+  }
 
   function changeTab(tabOrIndex) {
     var tab =
@@ -42,8 +107,6 @@ export default function useEditorComponent({
 
     const { editor } = ref.current;
     editorSetModel(editor, tab);
-
-    setActiveTab(tab);
   }
 
   function editorSetModel(editor, model) {
@@ -155,7 +218,6 @@ export default function useEditorComponent({
     editorSetModel(editor, newModel);
 
     setTabs((tabs) => [...tabs, newModel]);
-    setActiveTab(newModel);
 
     setTimeout(() => {
       editor.focus();
@@ -220,7 +282,10 @@ export default function useEditorComponent({
     }
   };
 
-  return {
+  const editorComponent = {
+    get JSConfuser() {
+      return JSConfuser;
+    },
     ref,
     get editor() {
       return ref.current.editor;
@@ -234,6 +299,11 @@ export default function useEditorComponent({
     get activeTab() {
       return ref.current?.editor.getModel();
     },
+    get optionsJS() {
+      return optionsJSRef.current;
+    },
+
+    obfuscateCode,
     setTabs,
     closeTab,
     changeTab,
@@ -241,15 +311,28 @@ export default function useEditorComponent({
     openOptionsFile,
     getActiveModel,
     getSelectedTextOrFullContent,
-    element: (
-      <EditorComponent
-        activeTab={activeTab}
-        tabs={tabs}
-        newTab={newTab}
-        closeTab={closeTab}
-        changeTab={changeTab}
-        ref={ref}
+
+    overlayElement: (
+      <LoadingBackdrop
+        open={showLoadingOverlay}
+        loadingInfo={loadingInfo}
+        handleClose={() => {}}
+        onCancel={() => {
+          JSConfuser.cancel();
+          setShowLoadingOverlay(false);
+        }}
       />
     ),
+
+    /**
+     * @type {React.ReactElement}
+     */
+    element: null,
   };
+
+  editorComponent.element = (
+    <EditorComponent editorComponent={editorComponent} ref={ref} />
+  );
+
+  return editorComponent;
 }

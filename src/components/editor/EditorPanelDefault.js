@@ -8,7 +8,6 @@ export default function EditorPanelDefault({
   options,
   setOptions,
   openOptionsDialog,
-  editOptionsFile,
   editorComponent,
 }) {
   const onConfirmRef = useRef();
@@ -211,7 +210,7 @@ export default function EditorPanelDefault({
         sx={{ width: "100%", mt: 1, textTransform: "none" }}
         endIcon={<KeyboardArrowRight />}
         onClick={() => {
-          editOptionsFile();
+          editorComponent.openOptionsFile();
         }}
       >
         Edit JS-Confuser Options

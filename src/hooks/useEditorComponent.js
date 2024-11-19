@@ -33,6 +33,7 @@ export default function useEditorComponent({
    * @type {Monaco.editor.ITextModel[]}
    */
   let [tabs, setTabs] = useState([]);
+  let [activeTab, setActiveTab] = useState(null);
 
   const tabsRef = useRef();
   tabsRef.current = tabs;
@@ -107,6 +108,7 @@ export default function useEditorComponent({
 
     const { editor } = ref.current;
     editorSetModel(editor, tab);
+    setActiveTab(tab);
   }
 
   function editorSetModel(editor, model) {

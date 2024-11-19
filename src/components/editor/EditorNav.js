@@ -160,7 +160,6 @@ export default function EditorNav({
   getEditorOptions,
   setEditorOptions,
   resetEditor,
-  editOptionsFile,
   evaluateCode,
   setOptionsJS,
   codeWorker,
@@ -351,7 +350,7 @@ export default function EditorNav({
         {
           label: "Edit JSConfuser.ts",
           shortcut: "Ctrl + P",
-          onClick: editOptionsFile,
+          onClick: editorComponent.openOptionsFile,
         },
         {
           label: "Advanced Tools",

@@ -124,7 +124,7 @@ test();`,
       docContent: `
       #### Access the renamed variable
 
-The \`__JS_CONFUSER_VAR__\` function provides a method to access variable mappings. This is especially useful for \`eval()\` scenarios where you want preserve the mapping.
+The function \`__JS_CONFUSER_VAR__\` provides a method to access variable mappings. This is especially useful for \`eval()\` scenarios where you want preserve the mapping.
 
 ---js
 // Input

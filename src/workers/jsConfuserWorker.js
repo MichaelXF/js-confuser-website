@@ -47,8 +47,51 @@ function evaluateOptions(optionsJS) {
       `)(createRequire())?.exports;
 }
 
-export const obfuscateCode = (requestID, code, optionsJS) => {
-  const reportProgress = (log) => {
+export const obfuscateCode = (requestID, code, optionsJS, editorOptions) => {
+  const { captureInsights, capturePerformanceInsights } = editorOptions;
+
+  let originalExecutionTime;
+  if (captureInsights && capturePerformanceInsights) {
+    editorOptions.performanceIterations = parseInt(
+      editorOptions.performanceIterations
+    );
+
+    originalExecutionTime = getExecutionTime(code, editorOptions);
+  }
+
+  const reportProgress = (log, entry, ast) => {
+    if (captureInsights) {
+      // Calculate the size of the code
+      var code = Obfuscator.generateCode(ast);
+      entry.fileSize = getByteSize(code);
+
+      // Calculate the execution time (if enabled)
+      if (capturePerformanceInsights && log.index !== log.totalTransforms - 1) {
+        entry.executionTime = getExecutionTime(code, editorOptions);
+      }
+
+      // Count the number of nodes
+      var nodeCounts = {
+        functions: 0,
+        blocks: 0,
+        controlFlow: 0,
+      };
+
+      traverse(ast, {
+        Function(_path) {
+          nodeCounts.functions++;
+        },
+        Block(_path) {
+          nodeCounts.blocks++;
+        },
+        "IfStatement|For|While|SwitchStatement"(_path) {
+          nodeCounts.controlFlow++;
+        },
+      });
+
+      entry.nodeCounts = nodeCounts;
+    }
+
     postMessage({
       event: "progress",
       data: {
@@ -91,6 +134,17 @@ export const obfuscateCode = (requestID, code, optionsJS) => {
     .then((resultObject) => {
       console.log("Successfully obfuscated code");
 
+      // Calculate the execution time (if enabled)
+      if (capturePerformanceInsights) {
+        const lastEntry = Object.values(resultObject.profileData.transforms).at(
+          -1
+        );
+        lastEntry.executionTime = getExecutionTime(
+          resultObject.code,
+          editorOptions
+        );
+      }
+
       postMessage({
         event: "success",
         data: {
@@ -98,7 +152,9 @@ export const obfuscateCode = (requestID, code, optionsJS) => {
           code: resultObject.code,
           profileData: {
             ...resultObject.profileData,
-
+            captureInsights,
+            capturePerformanceInsights: capturePerformanceInsights,
+            originalExecutionTime,
             originalSize: getByteSize(code),
             newSize: getByteSize(resultObject.code),
           },
@@ -109,6 +165,28 @@ export const obfuscateCode = (requestID, code, optionsJS) => {
       reportError(error);
     });
 };
+
+function getExecutionTime(code, editorOptions) {
+  const iterations = editorOptions.performanceIterations;
+  let times = [];
+
+  for (let i = 0; i < iterations; i++) {
+    const start = performance.now();
+    if (editorOptions.strictModeEval) {
+      eval(code);
+    } else {
+      new Function(code)();
+    }
+    const executionTime = performance.now() - start;
+    times.push(executionTime);
+  }
+
+  // Average times
+  const sum = times.reduce((a, b) => a + b, 0);
+  const avg = sum / times.length;
+
+  return avg;
+}
 
 /**
  * Start of Advanced Tools

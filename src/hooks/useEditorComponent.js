@@ -51,44 +51,51 @@ export default function useEditorComponent({
 
     let activeModel = getActiveModel();
 
+    let advancedOptions = editorOptionsRef.current;
+
     return new Promise((resolve, reject) => {
       // Get the current value from the editor
       let originalCode = activeModel.getValue();
 
       try {
         // Obfuscate the code using JS-Confuser
-        JSConfuser.obfuscate(originalCode, optionsJSRef.current, {
-          onComplete: (data) => {
-            setShowLoadingOverlay(false);
+        JSConfuser.obfuscate(
+          originalCode,
+          optionsJSRef.current,
+          {
+            onComplete: (data) => {
+              setShowLoadingOverlay(false);
 
-            var { code, profileData } = data;
+              var { code, profileData } = data;
 
-            var outputFileName = getObfuscatedFileName(activeModel.title);
+              var outputFileName = getObfuscatedFileName(activeModel.title);
 
-            var model = newTab(code, outputFileName);
-            model.profileData = profileData;
+              var model = newTab(code, outputFileName);
+              model.profileData = profileData;
 
-            resolve(true);
+              resolve(true);
+            },
+            onError: (data) => {
+              setShowLoadingOverlay(false);
+
+              onError(data);
+              resolve(false);
+            },
+            onProgress: (data) => {
+              setLoadingInfo({
+                progress:
+                  (data.nextTransform || data.currentTransform) +
+                  " (" +
+                  data.index +
+                  "/" +
+                  data.totalTransforms +
+                  ")",
+                percent: data.index / data.totalTransforms,
+              });
+            },
           },
-          onError: (data) => {
-            setShowLoadingOverlay(false);
-
-            onError(data);
-            resolve(false);
-          },
-          onProgress: (data) => {
-            setLoadingInfo({
-              progress:
-                (data.nextTransform || data.currentTransform) +
-                " (" +
-                data.index +
-                "/" +
-                data.totalTransforms +
-                ")",
-              percent: data.index / data.totalTransforms,
-            });
-          },
-        });
+          advancedOptions
+        );
         setLoadingInfo({ progress: "Starting...", percent: 0 });
         setShowLoadingOverlay(true);
       } catch (error) {

@@ -37,6 +37,7 @@ export const theme = createTheme({
     primary: {
       main: "hsl(210, 100%, 60%)",
       alpha: "hsla(210, 100%, 60%, 0.1)",
+      main_darker: "hsl(210, 100%, 50%)",
     },
     text: {
       secondary: "rgb(182, 190, 201)",

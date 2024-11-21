@@ -9,6 +9,7 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import {
   AppBar,
+  Box,
   Button,
   Checkbox,
   Menu,
@@ -18,10 +19,16 @@ import {
   Typography,
 } from "@mui/material";
 import { Link } from "react-router-dom";
-import { ArrowDropDown, Close, KeyboardArrowRight } from "@mui/icons-material";
+import {
+  ArrowDropDown,
+  Close,
+  Edit,
+  KeyboardArrowRight,
+} from "@mui/icons-material";
 import { defaultOptionsJS } from "../../constants";
 import useSnackbar from "../../hooks/useSnackbar";
 import { EDITOR_PANEL_WIDTH } from "./EditorPanel";
+import { textEllipsis } from "../../utils/format-utils";
 
 function EditorNavItem({
   subItem,
@@ -41,6 +48,15 @@ function EditorNavItem({
   };
 
   const id = open ? "simple-popover" : undefined;
+
+  let disabled = subItem.disabled;
+  if (subItem.onlyIf) {
+    var items = subItem.onlyIf.split(",");
+    var foundDisabled = items.find((item) => !editorOptions[item]);
+    if (foundDisabled) {
+      disabled = true;
+    }
+  }
 
   return (
     <React.Fragment>
@@ -81,7 +97,7 @@ function EditorNavItem({
 
       <MenuItem
         ref={anchorEl}
-        disabled={subItem.disabled}
+        disabled={disabled}
         onClick={(e) => {
           subItem.onClick && subItem.onClick();
 
@@ -95,6 +111,22 @@ function EditorNavItem({
               return {
                 ...editorOptions,
                 [subItem.key]: !editorOptions[subItem.key],
+              };
+            });
+            return;
+          }
+
+          if (subItem.type === "input") {
+            var newValue = prompt(
+              "Enter a new value for " + subItem.label,
+              editorOptions[subItem.key]
+            );
+            if (newValue === null) return;
+
+            setEditorOptions((editorOptions) => {
+              return {
+                ...editorOptions,
+                [subItem.key]: newValue,
               };
             });
             return;
@@ -114,6 +146,20 @@ function EditorNavItem({
             color="primary"
             checked={!!editorOptions[subItem.key]}
           />
+        ) : null}
+        {subItem.type === "input" ? (
+          <Box display="flex" color="text.secondary_darker" alignItems="center">
+            <Typography
+              fontSize="0.875rem"
+              display="inline-block"
+              component="span"
+            >
+              {textEllipsis(editorOptions[subItem.key] || "", 10)}
+            </Typography>
+            <Box ml={"4px"}>
+              <Edit sx={{ transform: "translateY(2px)" }} />
+            </Box>
+          </Box>
         ) : null}
         {subItem.items ? (
           <KeyboardArrowRight
@@ -411,6 +457,23 @@ export default function EditorNav({
                   );
                 activeTab.setValue(code);
               },
+            },
+            {
+              label: "Capture In-Depth Insights",
+              type: "checkbox",
+              key: "captureInsights",
+            },
+            {
+              onlyIf: "captureInsights",
+              label: "Capture Performance Insights",
+              type: "checkbox",
+              key: "capturePerformanceInsights",
+            },
+            {
+              onlyIf: "captureInsights,capturePerformanceInsights",
+              label: "Performance Iterations",
+              type: "input",
+              key: "performanceIterations",
             },
           ],
         },

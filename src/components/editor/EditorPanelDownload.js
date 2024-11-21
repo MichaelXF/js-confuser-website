@@ -3,8 +3,9 @@ import {
   KeyboardArrowDown,
   KeyboardArrowRight,
   KeyboardArrowUp,
+  OpenInNew,
 } from "@mui/icons-material";
-import { Button, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, Button, Link, Stack, Tooltip, Typography } from "@mui/material";
 import { useState } from "react";
 import {
   camelCaseToTitleCase,
@@ -14,6 +15,7 @@ import {
   formatTimeDuration,
 } from "../../utils/format-utils";
 import { downloadJavaScriptFile } from "../../utils/file-utils";
+import InsightsDialog from "../dialogs/InsightsDialog";
 
 function InfoRow({ label, value, tooltip }) {
   return (
@@ -66,6 +68,8 @@ export default function EditorPanelDownload({ evaluateCode, editorComponent }) {
     (profileData?.newSize - profileData?.originalSize) /
       profileData?.originalSize || 0;
 
+  const [showInsights, setShowInsights] = useState(false);
+
   return (
     <>
       <Button
@@ -104,6 +108,37 @@ export default function EditorPanelDownload({ evaluateCode, editorComponent }) {
       >
         Evaluate Code
       </Button>
+
+      {profileData?.captureInsights ? (
+        <>
+          <InsightsDialog
+            open={showInsights}
+            onClose={() => {
+              setShowInsights(false);
+            }}
+            profileData={profileData}
+          />
+          <Box my={4} textAlign="center">
+            <Link
+              href="#"
+              sx={{
+                cursor: "pointer",
+                wordBreak: "break-word",
+                width: "max-content",
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                setShowInsights(true);
+              }}
+            >
+              View In-Depth Insights
+              <OpenInNew sx={{ ml: "4px", transform: "translateY(3px)" }} />
+            </Link>
+          </Box>
+        </>
+      ) : null}
 
       <Typography mt={4} mb={4} variant="h6">
         Obfuscation Info

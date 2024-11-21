@@ -46,6 +46,9 @@ export default function PageEditor() {
     {
       formatOnSave: true,
       saveToBrowser: true,
+      captureInsights: false,
+      capturePerformanceInsights: false,
+      performanceIterations: 10,
     }
   );
   const editorOptionsRef = useRef();

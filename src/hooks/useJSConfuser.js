@@ -68,7 +68,8 @@ export default function useJSConfuser({ onError } = {}) {
       onComplete: () => {},
       onError: () => {},
       onProgress: () => {},
-    }
+    },
+    advancedOptions = {}
   ) {
     var requestID = getRandomString(10);
     var worker = workerRef.current || (workerRef.current = Worker());
@@ -113,7 +114,7 @@ export default function useJSConfuser({ onError } = {}) {
     worker.addEventListener("message", callback);
 
     isObfuscatingRef.current = true;
-    worker.obfuscateCode(requestID, code, options);
+    worker.obfuscateCode(requestID, code, options, advancedOptions);
   }
 
   function cancel() {

@@ -548,39 +548,43 @@ export default function Markdown({
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {rows.map((row, rowIndex) => (
-                    <TableRow key={rowIndex}>
-                      {row.map((cell, i) => {
-                        var content = parseLine(cell);
-                        var sx = {};
+                  {rows.map((row, rowIndex) => {
+                    if (row[0].trim?.() === "---") return null;
 
-                        var trimmed = cell.trim();
-                        if (trimmed === "Yes") {
-                          sx = { color: "primary.main" };
-                        } else if (trimmed === "No") {
-                          sx = { color: "error.main", fontWeight: "bold" };
-                        }
+                    return (
+                      <TableRow key={rowIndex}>
+                        {row.map((cell, i) => {
+                          var content = parseLine(cell);
+                          var sx = {};
 
-                        if (i === 0) {
+                          var trimmed = cell.trim();
+                          if (trimmed === "Yes") {
+                            sx = { color: "primary.main" };
+                          } else if (trimmed === "No") {
+                            sx = { color: "error.main", fontWeight: "bold" };
+                          }
+
+                          if (i === 0) {
+                            return (
+                              <TableCell
+                                key={i}
+                                component="th"
+                                scope="row"
+                                sx={sx}
+                              >
+                                {content}
+                              </TableCell>
+                            );
+                          }
                           return (
-                            <TableCell
-                              key={i}
-                              component="th"
-                              scope="row"
-                              sx={sx}
-                            >
+                            <TableCell key={i} sx={sx}>
                               {content}
                             </TableCell>
                           );
-                        }
-                        return (
-                          <TableCell key={i} sx={sx}>
-                            {content}
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  ))}
+                        })}
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>

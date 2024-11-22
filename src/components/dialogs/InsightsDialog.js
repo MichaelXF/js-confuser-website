@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import ReactECharts from "echarts-for-react";
 import {
   Box,
@@ -126,7 +126,7 @@ function createFileSizeChart(profileData, theme) {
 
   const categories = transforms.map((t) => t.name);
   const sizes = transforms.map((t) =>
-    t < conversionFactor
+    t.fileSize < conversionFactor
       ? Math.floor((t.fileSize / conversionFactor) * 10) / 10
       : Math.floor(t.fileSize / conversionFactor)
   );
@@ -475,22 +475,20 @@ export default function InsightsDialog({ open, onClose, profileData }) {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth={true}>
-      <DialogTitle sx={{ pb: 1 }}>Insights</DialogTitle>
+      <DialogTitle component="div">
+        <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
+          <Tabs value={tab} onChange={(e, newValue) => setTab(newValue)}>
+            <Tab label="Obfuscation Times" />
+            <Tab label="File Size" />
+            <Tab label="Node Counts" />
+            {profileData.capturePerformanceInsights && (
+              <Tab label="Performance" />
+            )}
+          </Tabs>
+        </Box>
+      </DialogTitle>
       <DialogContent sx={{ px: 0 }}>
         <Box sx={{ minWidth: "600px" }}>
-          <Box px={3}>
-            <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 4 }}>
-              <Tabs value={tab} onChange={(e, newValue) => setTab(newValue)}>
-                <Tab label="Obfuscation Times" />
-                <Tab label="File Size" />
-                <Tab label="Node Counts" />
-                {profileData.capturePerformanceInsights && (
-                  <Tab label="Performance" />
-                )}
-              </Tabs>
-            </Box>
-          </Box>
-
           {chartOptions ? (
             <ReactECharts
               key={tab}

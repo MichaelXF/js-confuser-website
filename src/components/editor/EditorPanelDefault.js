@@ -2,6 +2,7 @@ import { Button, Checkbox, Stack, Tooltip, Typography } from "@mui/material";
 import { Info, KeyboardArrowRight, Lock } from "@mui/icons-material";
 import { ConfirmDialog } from "../dialogs/ConfirmDialog";
 import { useRef, useState } from "react";
+import { presetInfo } from "../../constants";
 
 export default function EditorPanelDefault({
   convertCode,
@@ -117,77 +118,72 @@ export default function EditorPanelDefault({
         Options
       </Typography>
       <Stack spacing={2}>
-        {[
-          {
-            name: "Low",
-            performance: 20,
-          },
-          {
-            name: "Medium",
-            performance: 50,
-          },
-          {
-            name: "High",
-            performance: 98,
-          },
-        ].map((level, index) => {
-          var presetName = level.name.toLowerCase();
-          var isChecked = options?.preset === presetName;
+        {Object.values(presetInfo)
+          .reverse()
+          .map((level, index) => {
+            var presetName = level.name.toLowerCase();
+            var isChecked = options?.preset === presetName;
 
-          return (
-            <Button
-              key={index}
-              onClick={() => {
-                onConfirmRef.current = () => {
-                  setOptions((options) => ({
-                    target: options.target || "browser",
-                    preset: presetName,
-                  }));
-                };
+            return (
+              <Button
+                key={index}
+                onClick={() => {
+                  onConfirmRef.current = () => {
+                    setOptions((options) => ({
+                      target: options.target || "browser",
+                      preset: presetName,
+                    }));
+                  };
 
-                var userKeys = new Set(Object.keys(options));
-                userKeys.delete("target");
-                userKeys.delete("preset");
+                  var userKeys = new Set(Object.keys(options));
+                  userKeys.delete("target");
+                  userKeys.delete("preset");
 
-                if (userKeys.size > 0) {
-                  setShowConfirmDialog(true);
-                } else {
-                  onConfirmRef.current();
-                }
-              }}
-              sx={{
-                flexDirection: "column",
-                alignItems: "flex-start",
-                justifyContent: "flex-start",
-                textAlign: "left",
-                fontWeight: "normal",
-                textTransform: "none",
-                backgroundColor: isChecked ? "primary.alpha" : "transparent",
-                border: "1px solid",
-                p: 1,
-                pr: 2,
+                  if (userKeys.size > 0) {
+                    setShowConfirmDialog(true);
+                  } else {
+                    onConfirmRef.current();
+                  }
+                }}
+                sx={{
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                  justifyContent: "flex-start",
+                  textAlign: "left",
+                  fontWeight: "normal",
+                  textTransform: "none",
+                  backgroundColor: isChecked ? "primary.alpha" : "transparent",
+                  border: "1px solid",
+                  p: 1,
+                  pr: 2,
 
-                borderColor: isChecked ? "primary.main" : "divider",
-              }}
-            >
-              <Stack
-                direction="row"
-                alignItems="center"
-                width="100%"
-                color="text.primary"
+                  borderColor: isChecked ? "primary.main" : "divider",
+                }}
               >
-                <Checkbox checked={isChecked} size="small" />
-                <Typography fontWeight="bold" flexGrow={1} fontSize="0.875rem">
-                  {level.name} Preset
-                </Typography>
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  width="100%"
+                  color="text.primary"
+                >
+                  <Checkbox checked={isChecked} size="small" />
+                  <Typography
+                    fontWeight="bold"
+                    flexGrow={1}
+                    fontSize="0.875rem"
+                  >
+                    {level.name} Preset
+                  </Typography>
 
-                <Tooltip title={`${level.performance}% performance reduction`}>
-                  <Info sx={{ color: "text.secondary", fontSize: "1rem" }} />
-                </Tooltip>
-              </Stack>
-            </Button>
-          );
-        })}
+                  <Tooltip
+                    title={`${level.performanceReduction}% performance reduction`}
+                  >
+                    <Info sx={{ color: "text.secondary", fontSize: "1rem" }} />
+                  </Tooltip>
+                </Stack>
+              </Button>
+            );
+          })}
       </Stack>
       <Button
         sx={{

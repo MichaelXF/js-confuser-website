@@ -81,3 +81,18 @@ This tool allows you to explore the Abstract Syntax Tree (AST) of your JavaScrip
 
 - Disable automatic updates with \`updates = false\`
 `;
+
+export const presetInfo = {
+  high: {
+    name: "High",
+    performanceReduction: 98,
+  },
+  medium: {
+    name: "Medium",
+    performanceReduction: 52,
+  },
+  low: {
+    name: "Low",
+    performanceReduction: 30,
+  },
+};

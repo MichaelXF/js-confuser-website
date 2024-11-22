@@ -4,6 +4,7 @@ import { EditorComponent } from "../components/editor/EditorComponent";
 // File Storage And Settings
 import {
   getFileExtension,
+  getFileFromIndexedDB,
   getLanguageFromFileExtension,
   getObfuscatedFileName,
   saveFileToIndexedDB,
@@ -70,8 +71,10 @@ export default function useEditorComponent({
 
               var outputFileName = getObfuscatedFileName(activeModel.title);
 
-              var model = newTab(code, outputFileName);
-              model.profileData = profileData;
+              newTabFromFile(outputFileName, code, true).then((model) => {
+                // Attach 'profileData' to the tab
+                model.profileData = profileData;
+              });
 
               resolve(true);
             },
@@ -137,6 +140,25 @@ export default function useEditorComponent({
     }
   }
 
+  async function newTabFromFile(
+    fileName,
+    defaultValue,
+    overrideIndexedDB = true
+  ) {
+    var value = defaultValue;
+    if (!value || !overrideIndexedDB) {
+      try {
+        value = await getFileFromIndexedDB(fileName);
+      } catch (_error) {
+        // Do nothing
+      }
+    }
+
+    const identity = "indexed_db_" + fileName;
+
+    return newTab(value, fileName, undefined, identity);
+  }
+
   function newTab(value = "", fileName = "Untitled.js", onSave, identity) {
     const { monaco, editor } = ref.current;
 
@@ -164,10 +186,10 @@ export default function useEditorComponent({
         setTabs((tabs) =>
           tabs.includes(alreadyOpen) ? tabs : [...tabs, alreadyOpen]
         );
-        alreadyOpen.onSave = onSave;
-        alreadyOpen.setValue(value);
         changeTab(alreadyOpen);
-        return;
+        alreadyOpen.setNonDirtyValue(value);
+
+        return alreadyOpen;
       }
     }
 
@@ -176,11 +198,12 @@ export default function useEditorComponent({
     var uri = monaco.Uri.parse("file:///" + identity + "." + fileExtension);
 
     const newModel = monaco.editor.createModel(
-      value,
+      typeof value === "string" ? value : "",
       getLanguageFromFileExtension(fileExtension),
       uri
     );
 
+    newModel.customElement = typeof value === "object" ? value : null;
     newModel.title = fileName;
     newModel.identity = identity;
 
@@ -317,6 +340,7 @@ export default function useEditorComponent({
     closeTab,
     changeTab,
     newTab,
+    newTabFromFile,
     openOptionsFile,
     getActiveModel,
     getSelectedTextOrFullContent,

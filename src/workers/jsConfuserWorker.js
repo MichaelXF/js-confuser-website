@@ -135,7 +135,7 @@ export const obfuscateCode = (requestID, code, optionsJS, editorOptions) => {
       console.log("Successfully obfuscated code");
 
       // Calculate the execution time (if enabled)
-      if (capturePerformanceInsights) {
+      if (captureInsights && capturePerformanceInsights) {
         const lastEntry = Object.values(resultObject.profileData.transforms).at(
           -1
         );
@@ -170,15 +170,20 @@ function getExecutionTime(code, editorOptions) {
   const iterations = editorOptions.performanceIterations;
   let times = [];
 
-  for (let i = 0; i < iterations; i++) {
-    const start = performance.now();
-    if (editorOptions.strictModeEval) {
-      eval(code);
-    } else {
-      new Function(code)();
+  try {
+    for (let i = 0; i < iterations; i++) {
+      const start = performance.now();
+      if (editorOptions.strictModeEval) {
+        eval(code);
+      } else {
+        new Function(code)();
+      }
+      const executionTime = performance.now() - start;
+      times.push(executionTime);
     }
-    const executionTime = performance.now() - start;
-    times.push(executionTime);
+  } catch (_error) {
+    // Script failed to execute
+    return null;
   }
 
   // Average times

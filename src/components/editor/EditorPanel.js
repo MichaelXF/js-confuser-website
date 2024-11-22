@@ -9,7 +9,6 @@ export default function EditorPanel({
   options,
   setOptions,
   openOptionsDialog,
-  editOptionsFile,
   evaluateCode,
   editorComponent,
 }) {
@@ -26,11 +25,11 @@ export default function EditorPanel({
       flexShrink={0}
       height="calc(100vh - 40px)"
       borderRight={`1px solid ${theme.palette.divider}`}
-      p={2}
       sx={{
         overflowY: "auto",
         scrollbarWidth: "thin",
       }}
+      p={2}
     >
       {panelMode === "default" ? (
         <EditorPanelDefault
@@ -38,7 +37,6 @@ export default function EditorPanel({
           options={options}
           setOptions={setOptions}
           openOptionsDialog={openOptionsDialog}
-          editOptionsFile={editOptionsFile}
           editorComponent={editorComponent}
         />
       ) : panelMode === "download" ? (

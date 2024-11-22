@@ -56,6 +56,13 @@ const inputProps = {
   },
 };
 
+const iconButtonSx = {
+  width: "32px",
+  height: "32px",
+  p: 0,
+  minWidth: 0,
+};
+
 export default function OptionComponent({
   option,
   value: valueObject,
@@ -134,10 +141,7 @@ export default function OptionComponent({
     >
       <Button
         sx={{
-          width: "34px",
-          height: "34px",
-          p: 0,
-          minWidth: 0,
+          ...iconButtonSx,
           typography: "body1",
         }}
         onClick={(e) => {
@@ -156,10 +160,7 @@ export default function OptionComponent({
     <Tooltip title="Configure a limit" {...tooltipProps}>
       <Button
         sx={{
-          width: "34px",
-          height: "34px",
-          p: 0,
-          minWidth: 0,
+          ...iconButtonSx,
           typography: "body1",
         }}
         onClick={(e) => {
@@ -187,12 +188,7 @@ export default function OptionComponent({
   let percentButton = (
     <Tooltip title="Use percentage instead" {...tooltipProps}>
       <Button
-        sx={{
-          width: "34px",
-          height: "34px",
-          p: 0,
-          minWidth: 0,
-        }}
+        sx={iconButtonSx}
         onClick={() => {
           setShowPercentEditor(true);
           setPerformAutoFocus(true);

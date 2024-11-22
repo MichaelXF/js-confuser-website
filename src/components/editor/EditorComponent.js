@@ -1,33 +1,12 @@
 import Editor from "@monaco-editor/react";
-import { Box, IconButton, useTheme } from "@mui/material";
+import { Box, CircularProgress, IconButton, useTheme } from "@mui/material";
 import { rgbToHex } from "../../utils/color-utils";
 import { Add } from "@mui/icons-material";
 import { forwardRef } from "react";
 import { defaultCode } from "../../constants";
 import EditorComponentTab from "./EditorComponentTab";
-
-import jsConfuserOptionsTS from "!!raw-loader!js-confuser/src/options.ts"; // eslint-disable-line import/no-webpack-loader-syntax
 import { EDITOR_PANEL_WIDTH } from "./EditorPanel";
-
-const jsConfuserTypes = `
-declare module 'js-confuser' {
-  export class Template {}
-  
-  ${jsConfuserOptionsTS}
-}
-
-interface Module {
-  exports: import('js-confuser').ObfuscateOptions;
-}
-
-// Simulate Node.js-like 'module' behavior
-declare var module: Module;
-
-// Simulate Node.js-like 'require' behavior
-type Require = (id: string) => any;
-
-declare var require: Require;
-`;
+import { getJSConfuserTypes } from "../../utils/docLib-utils";
 
 export const EditorComponent = forwardRef(({ editorComponent }, ref) => {
   const theme = useTheme();
@@ -61,7 +40,7 @@ export const EditorComponent = forwardRef(({ editorComponent }, ref) => {
 
     // Register your JSConfuser types with Monaco
     monaco.languages.typescript.typescriptDefaults.addExtraLib(
-      jsConfuserTypes,
+      getJSConfuserTypes(),
       "file:///node_modules/@types/obfuscateOptions/index.d.ts"
     );
 
@@ -79,10 +58,17 @@ export const EditorComponent = forwardRef(({ editorComponent }, ref) => {
 
     var initialTabCode = defaultCode;
 
-    editorComponent.newTab(initialTabCode, "Untitled.js");
+    editorComponent.newTabFromFile("Untitled.js", initialTabCode, true);
+    // editorComponent.newTab(
+    //   <EditorWelcome />,
+    //   "Changelog.md",
+    //   () => {},
+    //   "internal_markdown"
+    // );
   };
 
   const editorTopMargin = 70;
+  const customElement = editorComponent.activeTab?.customElement;
 
   return (
     <Box height="calc(100vh - 40px)" width="100%">
@@ -134,6 +120,17 @@ export const EditorComponent = forwardRef(({ editorComponent }, ref) => {
         </IconButton>
       </Box>
 
+      {customElement ? (
+        <Box
+          sx={{
+            maxHeight: `calc(100vh - ${editorTopMargin}px)`,
+            overflowY: "auto",
+          }}
+        >
+          {customElement}
+        </Box>
+      ) : null}
+
       <Editor
         height={`calc(100vh - ${editorTopMargin}px)`}
         defaultLanguage="typescript"
@@ -143,7 +140,11 @@ export const EditorComponent = forwardRef(({ editorComponent }, ref) => {
           wordWrap: "on", // Enable word wrap
           minimap: { enabled: false }, // Disable minimap (optional)
         }}
+        wrapperProps={{
+          className: customElement ? "hidden" : "",
+        }}
         onMount={handleEditorDidMount} // Use the onMount callback
+        loading={<CircularProgress />}
       />
     </Box>
   );

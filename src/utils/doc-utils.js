@@ -5,7 +5,6 @@ import {
   formatPercentage,
   toTitleCase,
 } from "./format-utils";
-import json5 from "json5";
 import { groups } from "../groups";
 import { trimRemovePrefix } from "./md-utils";
 import { convertOptionsToJS } from "./option-utils";

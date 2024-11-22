@@ -910,6 +910,10 @@ printToConsole("Hello World"); // "Hello World"`,
 - **Due to the security concerns of arbitrary code execution, you must enable this yourself.**
 `,
       exampleCode: `
+      function onTamperDetected(){
+        throw new Error('Tampering detected!');
+      }
+
       fetch('https://jsonplaceholder.typicode.com/users')
         .then(response => response.json())
         .then(data => {
@@ -929,6 +933,10 @@ printToConsole("Hello World"); // "Hello World"`,
       },
       exampleConfig: {
         globalConcealing: true,
+        lock: {
+          tamperProtection: true,
+          countermeasures: "onTamperDetected",
+        },
       },
       docContent: `
 #### Improves Global Concealing

@@ -88,6 +88,7 @@ function WebsiteAnimation() {
         }}
         sx={{
           cursor: "pointer",
+          userSelect: "none",
         }}
       >
         <Box

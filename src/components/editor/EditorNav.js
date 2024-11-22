@@ -258,7 +258,7 @@ export default function EditorNav({
             label: "Change To File " + humanIndex,
             shortcut: "Ctrl + " + humanIndex,
             onClick: () => {
-              editorComponent.ArrowDropDownchangeTab(i);
+              editorComponent.changeTab(i);
             },
             hidden: true,
           };
@@ -290,8 +290,7 @@ export default function EditorNav({
               return {
                 label: file,
                 onClick: async () => {
-                  const content = await getFileFromIndexedDB(file);
-                  editorComponent.newTab(content, file);
+                  editorComponent.newTabFromFile(file);
                 },
                 onRemove: async () => {
                   await deleteFileFromIndexedDB(file);

@@ -265,6 +265,11 @@ export function getLanguageFromFileExtension(fileExtension) {
 }
 
 export function openNewTabWithText(content) {
+  if (typeof content === "object" && content) {
+    // Content is JSON
+    content = JSON.stringify(content, null, 4);
+  }
+
   // Open a new tab with about:blank
   let newTab = window.open("about:blank", "_blank");
 

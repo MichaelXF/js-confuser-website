@@ -92,8 +92,14 @@ export default function PageEditor() {
         setOptionsJS(config);
         editorComponent.openOptionsFile();
       }
+      // Preset in URL - Update options (Preserve target field)
       if (preset) {
-        setOptions(presets[preset]);
+        setOptions((options) => {
+          return {
+            ...presets[preset],
+            target: options.target || "browser",
+          };
+        });
       }
 
       if (code || config) {

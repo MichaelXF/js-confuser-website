@@ -17,6 +17,7 @@ import { getOptionSchemasWithDefaultValues } from "../../utils/option-utils";
 
 export default function OptionsDialog({ open, onClose, options, setOptions }) {
   var [proposedOptions, setProposedOptions] = useState();
+
   // Avoid using useEffect() to avoid delayed state rendering
   // First render would have stale data, initializing OptionComponents to behave incorrectly
   var openRef = useRef(false);
@@ -62,6 +63,7 @@ export default function OptionsDialog({ open, onClose, options, setOptions }) {
 
       <DialogContent>
         {Object.keys(groups).map((groupName, index) => {
+          // A group represents an array of option entries
           var group = groups[groupName];
 
           return (
@@ -82,15 +84,19 @@ export default function OptionsDialog({ open, onClose, options, setOptions }) {
                   }
 
                   var setValue = (newValue) => {
+                    // Strategically update options JSON
                     setProposedOptions((currentOptions) => {
                       var newOptions = { ...currentOptions };
 
+                      // If parentField is defined, it means this option is a child (Only 'lock')
                       if (option.parentField) {
+                        // Ensure nested object is created
                         newOptions[option.parentField] = {
                           ...(newOptions[option.parentField] || {}),
                         };
                         newOptions[option.parentField][option.name] = newValue;
 
+                        // False values are removed
                         if (newValue === false) {
                           delete newOptions[option.parentField][option.name];
                         }
@@ -104,6 +110,7 @@ export default function OptionsDialog({ open, onClose, options, setOptions }) {
                       } else {
                         newOptions[option.name] = newValue;
 
+                        // False values are removed
                         if (newValue === false) {
                           delete newOptions[option.name];
                         }

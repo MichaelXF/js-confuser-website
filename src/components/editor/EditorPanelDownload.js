@@ -224,6 +224,9 @@ export default function EditorPanelDownload({ evaluateCode, editorComponent }) {
                   if (key === "opaquePredicates") {
                     prefix = "created";
                   }
+                  if (key === "decryptionFunctions") {
+                    prefix = "created";
+                  }
 
                   if (number === 1 && noun.endsWith("s")) {
                     noun = noun.slice(0, -1);

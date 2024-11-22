@@ -580,6 +580,9 @@ export default function EditorNav({
       // Get the full range of the current content
       const fullModelRange = model.getFullModelRange();
 
+      // Tab was closed before the format was complete
+      if (editor.getModel() !== model) return;
+
       // Apply the edit using executeEdits without moving the cursor
       editor.executeEdits(null, [
         {

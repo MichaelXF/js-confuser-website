@@ -230,6 +230,12 @@ export default function useEditorComponent({
 
     newModel.setNonDirtyValue = (value) => {
       lastSavedContent = value;
+
+      // Prevent moving the cursor
+      if (value === newModel.getValue()) {
+        newModel.setIsDirty(false);
+        return;
+      }
       newModel.setValue(value);
     };
 
@@ -242,7 +248,7 @@ export default function useEditorComponent({
     };
 
     newModel.saveContent = () => {
-      lastSavedContent = editor.getValue();
+      lastSavedContent = newModel.getValue();
       newModel.setIsDirty(false);
       newModel.onSave(lastSavedContent);
     };

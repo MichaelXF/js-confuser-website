@@ -1,4 +1,5 @@
 import {
+  East,
   InsertDriveFile,
   KeyboardArrowDown,
   KeyboardArrowRight,
@@ -64,9 +65,14 @@ export default function EditorPanelDownload({ evaluateCode, editorComponent }) {
     }
   }
 
-  const fileSizeIncrease =
-    (profileData?.newSize - profileData?.originalSize) /
-      profileData?.originalSize || 0;
+  const getPercentChange = (originalValue, newValue) => {
+    return (newValue - originalValue) / originalValue || 0;
+  };
+
+  const fileSizeIncrease = getPercentChange(
+    profileData?.originalSize,
+    profileData?.newSize
+  );
 
   const [showInsights, setShowInsights] = useState(false);
 
@@ -166,6 +172,34 @@ export default function EditorPanelDownload({ evaluateCode, editorComponent }) {
 
       {showMore
         ? [
+            ...(profileData?.capturePerformanceInsights
+              ? [
+                  {
+                    label: "Original performance",
+                    value: formatTimeDuration(
+                      profileData?.originalExecutionTime,
+                      true
+                    ),
+                  },
+                  {
+                    label: "New performance",
+                    value: formatTimeDuration(
+                      profileData?.newExecutionTime,
+                      true
+                    ),
+                  },
+                  {
+                    label: "Performance reduction",
+                    value: formatPercentage(
+                      -getPercentChange(
+                        profileData?.originalExecutionTime,
+                        profileData?.newExecutionTime
+                      )
+                    ),
+                  },
+                ]
+              : []),
+
             {
               label: "Avg. Transform Time",
               value: formatTimeDuration(avgTransformTime),
@@ -194,15 +228,102 @@ export default function EditorPanelDownload({ evaluateCode, editorComponent }) {
       {displayTransforms
         .slice(0, showMore ? displayTransforms.length : 3)
         .map(({ transformName, transformTime, changeData }, i) => {
-          var tooltip = undefined;
+          var tooltip = null;
 
           var keys = Object.keys(changeData || {});
           var allZero =
             keys.length && keys.every((key) => changeData[key] === 0);
 
+          if (profileData?.captureInsights) {
+            const transformNames = Object.keys(profileData.transforms);
+            let transformNameIndex = transformNames.indexOf(transformName);
+            if (transformNameIndex !== -1) {
+              let beforeTransformInfo =
+                transformNameIndex === 0
+                  ? {
+                      fileSize: profileData.originalSize,
+                      executionTime: profileData.originalExecutionTime,
+                    }
+                  : profileData.transforms?.[
+                      transformNames[transformNameIndex - 1]
+                    ];
+              let transformInfo = profileData.transforms?.[transformName];
+
+              let performanceTitle =
+                "Performance " +
+                (transformInfo.executionTime < beforeTransformInfo.executionTime
+                  ? "improvement"
+                  : "reduction");
+
+              let createSection = (
+                title,
+                originalValue,
+                newValue,
+                formatFn,
+                flipPercent = false
+              ) => {
+                let percentChange = getPercentChange(originalValue, newValue);
+                if (flipPercent) {
+                  percentChange = -percentChange;
+                }
+
+                return (
+                  <Box mb={1}>
+                    <Typography>
+                      {title}: {formatPercentage(percentChange, true)}
+                    </Typography>
+
+                    <Stack direction="row" alignItems="center" mt="2px">
+                      <Box
+                        bgcolor="custom_error_alpha"
+                        color="custom_error"
+                        px="6px"
+                        pt="2px"
+                        borderRadius="4px"
+                        size="small"
+                        children={formatFn(originalValue)}
+                      />
+                      <East sx={{ mx: 1 }} />
+
+                      <Box
+                        bgcolor="custom_success_alpha"
+                        color="custom_success"
+                        px="6px"
+                        pt="2px"
+                        borderRadius="4px"
+                        children={formatFn(newValue)}
+                      />
+                    </Stack>
+                  </Box>
+                );
+              };
+
+              tooltip = (
+                <>
+                  {createSection(
+                    "File size",
+                    beforeTransformInfo.fileSize,
+                    transformInfo.fileSize,
+                    formatSize
+                  )}
+
+                  {profileData?.capturePerformanceInsights &&
+                    createSection(
+                      performanceTitle,
+                      beforeTransformInfo.executionTime,
+                      transformInfo.executionTime,
+                      (ms) => formatTimeDuration(ms, true),
+                      true
+                    )}
+                </>
+              );
+            }
+          }
+
           if (keys.length) {
             tooltip = (
               <>
+                {tooltip ? tooltip : null}
                 {Object.keys(changeData).map((key) => {
                   var number = changeData[key];
                   var noun = camelCaseToTitleCase(key);
@@ -240,7 +361,10 @@ export default function EditorPanelDownload({ evaluateCode, editorComponent }) {
                 })}
               </>
             );
-          } else {
+          }
+
+          // No change data or insights available
+          if (!tooltip) {
             tooltip = <Typography>No change data available</Typography>;
           }
 

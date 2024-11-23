@@ -19,7 +19,7 @@ export const groups = {
       exampleCode: `
 // Strict mode JavaScript blocks eval() access to local variables
 var myVar = "Initial Value";
-eval(__JS_CONFUSER_VAR__(myVar) + ' = "Modified Value"');
+eval((/* @js-confuser-var */ "myVar") + ' = "Modified Value"');
 
 console.log(myVar); // "Modified Value"
       `,
@@ -124,14 +124,14 @@ test();`,
       docContent: `
       #### Access the renamed variable
 
-The function \`__JS_CONFUSER_VAR__\` provides a method to access variable mappings. This is especially useful for \`eval()\` scenarios where you want preserve the mapping.
+The comment syntax \`/* @js-confuser-var */ "varName"\` provides a method to access variable mappings. This is especially useful for \`eval()\` scenarios where you want preserve the mapping.
 
 ---js
 // Input
 var message = "Hello world!";
-eval(\`console.log(\${ __JS_CONFUSER_VAR__(message)  })\`);
+eval(\`console.log(\${ /* @js-confuser-var */ "message"  })\`);
 
-console.log("message was renamed to", __JS_CONFUSER_VAR__(message));
+console.log("message was renamed to", /* @js-confuser-var */ "message");
 
 // Output
 var nSgZyJf = "Hello world!";
@@ -139,7 +139,7 @@ eval(\`console.log(${"nSgZyJf"})\`) // "Hello world!"
 console["log"]("message was renamed to", "nSgZyJf") // message was renamed to nSgZyJf
 ---
 
-Even if \`Rename Variables\` is disabled, the function \`__JS_CONFUSER_VAR__\` will still be removed. (The original name will be returned as a string)
+Even if \`Rename Variables\` is disabled, the comment \`/* @js-confuser-var */\` will still be removed. (The original name will be returned as a string)
 
 #### Never rename a variable
 

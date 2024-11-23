@@ -39,9 +39,13 @@ export function camelCaseToTitleCase(str) {
     .trim(); // Trim any leading or trailing whitespace
 }
 
-export const formatTimeDuration = (ms) => {
+export const formatTimeDuration = (ms, allowMsPrecision = false) => {
   if (ms > 1000 * 60) {
     return Math.floor(ms / 1000 / 60).toLocaleString() + "m";
+  }
+
+  if (allowMsPrecision && ms < 100) {
+    return Math.floor(ms) + "ms";
   }
 
   return (Math.floor((ms / 1000) * 100) / 100).toLocaleString() + "s";
@@ -54,8 +58,16 @@ export const formatSize = (b) => {
   return Math.floor(b / 1000).toLocaleString() + "kb";
 };
 
-export const formatPercentage = (p) =>
-  Math.floor(p * 100).toLocaleString() + "%";
+export const formatPercentage = (p, addPlusSign = false) => {
+  const floored = Math.floor(p * 100);
+  let output = floored.toLocaleString() + "%";
+
+  if (addPlusSign && floored > 0) {
+    output = "+" + output;
+  }
+
+  return output;
+};
 
 export function formatNumberWithCommas(number) {
   return number.toLocaleString();

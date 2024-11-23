@@ -370,7 +370,10 @@ function createNodeCountsChart(profileData, theme) {
 
 function createPerformanceChart(profileData, theme) {
   // Extract data
-  const transformNames = ["Original", ...Object.keys(profileData.transforms)];
+  const transformNames = [
+    "Source Code",
+    ...Object.keys(profileData.transforms),
+  ];
   let executionTimes = [
     profileData.originalExecutionTime,
     ...Object.values(profileData.transforms).map((t) => t.executionTime),

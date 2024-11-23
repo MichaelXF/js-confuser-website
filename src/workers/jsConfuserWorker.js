@@ -134,15 +134,20 @@ export const obfuscateCode = (requestID, code, optionsJS, editorOptions) => {
     .then((resultObject) => {
       console.log("Successfully obfuscated code");
 
+      const insightFields = {};
+
       // Calculate the execution time (if enabled)
       if (captureInsights && capturePerformanceInsights) {
+        // Attach the original execution time
+        insightFields.originalExecutionTime = originalExecutionTime;
+
         const lastEntry = Object.values(resultObject.profileData.transforms).at(
           -1
         );
-        lastEntry.executionTime = getExecutionTime(
-          resultObject.code,
-          editorOptions
-        );
+
+        // Attach the new execution time (And on last transform entry, usually Pack)
+        insightFields.newExecutionTime = lastEntry.executionTime =
+          getExecutionTime(resultObject.code, editorOptions);
       }
 
       postMessage({
@@ -154,7 +159,7 @@ export const obfuscateCode = (requestID, code, optionsJS, editorOptions) => {
             ...resultObject.profileData,
             captureInsights,
             capturePerformanceInsights: capturePerformanceInsights,
-            originalExecutionTime,
+            ...insightFields,
             originalSize: getByteSize(code),
             newSize: getByteSize(resultObject.code),
           },

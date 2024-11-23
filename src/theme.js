@@ -49,6 +49,11 @@ export const theme = createTheme({
     },
     divider: "rgba(61, 71, 81, 0.3)",
     divider_opaque: "rgb(29 34 38)",
+
+    custom_error: "rgb(244, 67, 54)",
+    custom_error_alpha: "rgba(244, 67, 54, 0.1)",
+    custom_success: "rgb(61, 212, 74)",
+    custom_success_alpha: "rgba(61, 212, 74, 0.1)",
   },
 
   components: {

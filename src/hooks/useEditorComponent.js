@@ -43,14 +43,12 @@ export default function useEditorComponent({
    * Obfuscates the user's code
    */
   function obfuscateCode() {
-    const tabs = tabsRef.current;
+    let activeModel = getActiveModel();
 
-    if (tabs.length === 0) {
+    if (!activeModel) {
       alert("Please open a file to obfuscate");
       return;
     }
-
-    let activeModel = getActiveModel();
 
     let advancedOptions = editorOptionsRef.current;
 
@@ -118,7 +116,6 @@ export default function useEditorComponent({
 
     const { editor } = ref.current;
     editorSetModel(editor, tab);
-    setActiveTab(tab);
   }
 
   function editorSetModel(editor, model) {
@@ -126,6 +123,9 @@ export default function useEditorComponent({
     if (currentModel) {
       currentModel.viewState = editor.saveViewState();
     }
+
+    setActiveTab(model);
+    ref.current.activeTab = model;
     editor.setModel(model);
 
     if (model.viewState) {
@@ -335,7 +335,9 @@ export default function useEditorComponent({
       return tabsRef.current;
     },
     get activeTab() {
-      return ref.current?.editor.getModel();
+      // Don't use ref.current?.editor.getModel()
+      // As React state is more reliable to be up-to-date
+      return ref.current?.activeTab || activeTab;
     },
     get optionsJS() {
       return optionsJSRef.current;

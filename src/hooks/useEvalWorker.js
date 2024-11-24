@@ -70,12 +70,10 @@ export default function useWorkerEval(consoleRef) {
       }
 
       // Execute the code
-      myWorker.evaluateCodeSandbox(
-        requestID,
-        code,
+      myWorker.evaluateCodeSandbox(requestID, code, {
         strictMode,
-        allowNetworkRequests
-      );
+        allowNetworkRequests,
+      });
     }, 200);
   }
 

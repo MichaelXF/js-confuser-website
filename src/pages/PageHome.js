@@ -28,7 +28,7 @@ import websiteImage1 from "../static/websiteImage1.png";
 import websiteImage2 from "../static/websiteImage2.png";
 import websiteImage3 from "../static/websiteImage3.png";
 import websiteImage4 from "../static/websiteImage4.png";
-import websiteImageDocs from "../static/websiteImageDocs.png";
+// import websiteImageDocs from "../static/websiteImageDocs.png";
 
 const imageContainerProps = {
   boxShadow:

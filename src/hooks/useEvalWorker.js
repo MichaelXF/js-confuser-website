@@ -10,7 +10,7 @@ export default function useWorkerEval(consoleRef) {
   var runningRef = useRef();
   runningRef.current = running;
 
-  function evaluateCode(code, strictMode, allowNetworkRequests) {
+  function evaluateCode(code, evalOptions) {
     // If previous worker still exists, terminate it
 
     cancel();
@@ -70,10 +70,7 @@ export default function useWorkerEval(consoleRef) {
       }
 
       // Execute the code
-      myWorker.evaluateCodeSandbox(requestID, code, {
-        strictMode,
-        allowNetworkRequests,
-      });
+      myWorker.evaluateCodeSandbox(requestID, code, evalOptions);
     }, 200);
   }
 

@@ -27,12 +27,10 @@ console.log(myVar); // "Modified Value"
       #### Bypass Strict Mode
 
       The \`Pack\` option is designed to bypass strict mode constraints. This is achieved by wrapping the output code in a \`Function()\` call. This allows the code to be executed in a different context, where strict mode is not enforced.
-      
-      
-      Several features from the medium and high presets rely on non-strict mode execution. \`Pack\` is recommended to be used with these presets.
-      
-      ##### Features
+     
 
+      Several obfuscation techniques require non-strict mode JavaScript. These include:
+      
       - With Statement (Control Flow Flattening)
       - Eval scope access (Tamper Protection)
       `,
@@ -64,7 +62,7 @@ console.log(myVar); // "Modified Value"
       ##### Modes
 
       | Mode | Description | Example |
-      | \`"hexadecimal"\` | Random hex strings | \_0xa8db5 |
+      | \`"hexadecimal"\` | Random hex strings | _0xa8db5 |
       | \`"randomized"\` | Random characters | w$Tsu4G |
       | \`"zeroWidth"\` | Invisible characters | U+200D |
       | \`"mangled"\` | Alphabet sequence | a, b, c |
@@ -350,7 +348,7 @@ module.exports = {
 
       ---
 
-      The properties of the \`Custom String Encoding\` are:
+      The properties of the type \`Custom String Encoding\` are:
 
       | Property | Type | Description |
       | \`code\` | \`string\` | Template decoder code that must contain '{fnName}'. |
@@ -609,78 +607,29 @@ Control Flow Flattening requires non-strict mode to work. This is because the \`
 
 - It is recommended to enable the [Pack](./Pack) option when using Control Flow Flattening.
 
+#### Control Flow Flattening Process
 
----
-#### CFF Process
+Control Flow Flattening transforms the code into a large, convoluted switch statement. This switch statement is intended to replicate the functionality of the 'goto' statement seen in other languages.
 
-Your code will be wrapped in a large, complicated switch statement. This makes the behavior of your program very hard to understand and is resistent to deobfuscators. This comes with a large performance reduction.
+The switch statement is designed to be difficult to follow, making it harder for reverse engineers to understand the program's flow.
 
-#### Goto style of code
+- Control Flow Flattening introduces dead code:
 
-Control Flow Flattening converts your code into a 'goto style of code.' The following statements are converted into their equivalent 'goto style of code':
+- - Add fake chunks that are never reached
+- - Add fake jumps to really mess with deobfuscators ("irreducible control flow")
+- - Clone chunks but these chunks are never ran
 
-1. \`If Statement\`
-2. \`Function Declaration\`
+- Control Flow Flattening introduces opaque predicates:
 
----{header: "Goto style of Code"}
-// Input
-console.log("Start of code");
+- - Add fake conditions that are always true or false
 
-if(true){
-  console.log("This code runs");
-}
+- Control Flow Flattening mangles the scoped variables through the use of the \`with\` statement.
 
-console.log("End of code");
+- - This makes identifiers harder to track from static analysis tools.
 
-// Output
-chunk_0:
-console.log("Start of code");
-var TEST = true;
-if( TEST ) goto chunk_1;
-else goto chunk_2;
+- Control Flow Flattening obfuscates IF-statements into equivalent switch-case statements.
 
-chunk_1:
-console.log("This code runs");
-goto chunk_2;
-
-chunk_2:
-console.log("End of code");
----
-
-JavaScript does not support the \`goto\` keyword. This is where the while-loop and switch statement come in.
-
----{header: "While-Loop and Switch Statement"}
-var state = 0;
-while (state != 3) {
-  switch (state) {
-    case 0: // 'chunk_0'
-      console.log("Start of code");
-      var TEST = true;
-      if (TEST) {
-        state = 1; // 'goto chunk_1'
-        break;
-      }
-      state = 2; // 'goto chunk_2'
-      break;
-    case 1: // 'chunk_1'
-      console.log("This code runs");
-      state = 2; // 'goto chunk_2'
-      break;
-    case 2:
-      console.log("End of code");
-      state = 3; // 'end of program'
-      break;
-  }
-}
----
-
-This code replicates functionality of the \`goto\` statement in JavaScript by using a while-loop paired with a switch-statement.
-
-
-The 'state' variable determines which chunk will execute. Each chunk is placed as a Switch-case with a number assigned to it.
-
-
-This is just the simple version of things. JS-Confuser uses a variety of techniques to further obfuscate the switch statement:
+- Control Flow Flattening obfuscates certain eligible functions into equivalent switch-case statements.
       `,
 
       endDocContent: `
@@ -1029,7 +978,7 @@ Tamper Protection requires the script to run in non-strict mode. Detection of th
       Custom Locks allow you to define your own lock algorithm. These locks will be randomly sprinkled throughout the code. 
       
       
-      The properties of the \`Custom Lock\` are:
+      The properties of the type \`Custom Lock\` are:
 
       | Property | Type | Description |
       | \`code\` | \`string\` | Template lock code that must contain '{countermeasures}'. |

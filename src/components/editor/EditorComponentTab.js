@@ -5,7 +5,7 @@ import { useState } from "react";
 export default function EditorComponentTab({ isActive, tab, editorComponent }) {
   // State hook purely for triggering a re-render
   // tab.title is not reactive
-  var [state, setState] = useState({});
+  var [_state, setState] = useState({});
 
   return (
     <Button

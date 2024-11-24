@@ -1,12 +1,9 @@
 import {
-  ArrowDropDown,
-  Error,
   KeyboardArrowDown,
   KeyboardArrowUp,
   OpenInNew,
 } from "@mui/icons-material";
 import {
-  Alert,
   Box,
   Button,
   Dialog,

@@ -46,7 +46,7 @@ export default function DocSearchDialog({ open, onClose }) {
     }
   }, [!!open]);
 
-  var [searchQuery, setSearchQuery] = useState("");
+  var [_searchQuery, setSearchQuery] = useState("");
 
   const search = (query) => {
     query = query.trim();
@@ -163,7 +163,7 @@ export default function DocSearchDialog({ open, onClose }) {
             if (!activeEl) {
               setActiveEl(e.target.parentElement.nextSibling);
             } else {
-              var newEl = activeEl.nextSibling;
+              const newEl = activeEl.nextSibling;
               if (newEl) {
                 setActiveEl(newEl);
               }
@@ -174,7 +174,7 @@ export default function DocSearchDialog({ open, onClose }) {
             if (activeEl) {
               e.preventDefault();
 
-              var newEl = activeEl.previousSibling;
+              const newEl = activeEl.previousSibling;
               if (newEl) {
                 setActiveEl(newEl);
               }

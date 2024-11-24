@@ -481,9 +481,8 @@ ${custom.exampleConfig}
 
 ${item.description}
 
-
-Option name: \`"${optionName}"\`
-Option value${optionValues.includes("/") ? "s" : ""}: \`${optionValues}\`
+-> Option name: \`"${optionName}"\`
+-> Option value${optionValues.includes("/") ? "s" : ""}: \`${optionValues}\`
 ${docVariables.warnings}
 ---
 

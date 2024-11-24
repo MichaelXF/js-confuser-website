@@ -253,12 +253,6 @@ function createNodeCountsChart(profileData, theme) {
     title: {
       show: false,
     },
-    tooltip: {
-      trigger: "axis",
-      axisPointer: {
-        type: "shadow",
-      },
-    },
     legend: {
       textStyle: {
         color: theme.palette.text.primary,
@@ -275,6 +269,9 @@ function createNodeCountsChart(profileData, theme) {
       backgroundColor: theme.palette.background.paper,
       textStyle: {
         color: theme.palette.text.primary,
+      },
+      axisPointer: {
+        type: "shadow",
       },
     },
     xAxis: {

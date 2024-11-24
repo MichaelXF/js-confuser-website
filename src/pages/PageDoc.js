@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import Nav from "../components/Nav";
 import { useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import PageDocHome from "./PageDocHome";
 import PageDocGeneric from "./PageDocGeneric";
 import { getDocs } from "../utils/doc-utils";
@@ -18,7 +18,6 @@ import { useTheme } from "@emotion/react";
 import { Close, Menu } from "@mui/icons-material";
 
 export default function PageDoc() {
-  var { group } = useParams();
   var { pathname } = useLocation();
 
   if (pathname.endsWith("/")) {

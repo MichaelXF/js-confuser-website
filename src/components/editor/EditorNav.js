@@ -2,7 +2,6 @@ import {
   clearAllFiles,
   deleteFileFromIndexedDB,
   downloadJavaScriptFile,
-  getFileFromIndexedDB,
   listAllFiles,
   openJavaScriptFile,
 } from "../../utils/file-utils";

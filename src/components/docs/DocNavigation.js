@@ -1,10 +1,5 @@
 import { Box, Button, Collapse, Stack } from "@mui/material";
-import {
-  ChevronRight,
-  Home,
-  KeyboardArrowDown,
-  Search,
-} from "@mui/icons-material";
+import { ChevronRight, KeyboardArrowDown, Search } from "@mui/icons-material";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { DOC_PATH_SEPARATOR } from "../../utils/doc-utils";

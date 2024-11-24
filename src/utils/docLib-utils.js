@@ -37,7 +37,7 @@ export function getChangelog() {
   jsConfuserChangelogMD
     .replace("2.0.0-alpha.0", "2.0.0")
     .split(/(# `\d.\d.\d`\n)/)
-    .map((entry) => {
+    .forEach((entry) => {
       if (!entry) return;
       if (!versionNumber) {
         let split = entry.split("`");

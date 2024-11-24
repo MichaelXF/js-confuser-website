@@ -390,9 +390,9 @@ export default function Markdown({
       if (isValidBulletPoint(trimmed)) {
         const isUnordered = trimmed.startsWith("- ");
         const bulletLines = [];
-        var i = index;
-        var startLineIndex = index;
-        var endLineIndex = index;
+        let i = index;
+        let startLineIndex = index;
+        let endLineIndex = index;
         outer: do {
           bulletLines.push(trimmed);
           endLineIndex = i;
@@ -404,7 +404,7 @@ export default function Markdown({
           } while (typeof trimmed === "string" && !trimmed.trim());
         } while (isValidBulletPoint(trimmed));
 
-        for (var i = startLineIndex; i <= endLineIndex; i++) {
+        for (let i = startLineIndex; i <= endLineIndex; i++) {
           skipLines.add(i);
         }
 
@@ -445,6 +445,7 @@ export default function Markdown({
                     marginInlineStart,
                   }}
                   key={i}
+                  mb={1}
                 >
                   {parseLine(bulletPoint)}
                 </Typography>
@@ -601,9 +602,16 @@ export default function Markdown({
         return null;
       }
 
+      let includeMarginBottom = true;
+
+      if (trimmed.startsWith("-> ")) {
+        includeMarginBottom = false;
+        trimmed = trimmed.slice(3);
+      }
+
       // Default
       return (
-        <Typography key={index} sx={sx}>
+        <Typography key={index} sx={sx} mb={includeMarginBottom ? 2 : 0}>
           {parseLine(trimmed)}
         </Typography>
       );

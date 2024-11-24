@@ -64,7 +64,8 @@ export default function DocTableOfContents({ metadata }) {
       </Typography>
 
       {metadata?.headings?.map((heading) => {
-        var isNested = metadata.lowestHeadingLevel < heading.level;
+        // var isNested = metadata.lowestHeadingLevel < heading.level;
+
         return (
           <Button
             color="inherit"

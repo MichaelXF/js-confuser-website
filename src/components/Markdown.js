@@ -604,9 +604,15 @@ export default function Markdown({
 
       let includeMarginBottom = true;
 
+      // Special syntax to remove margin bottom
       if (trimmed.startsWith("-> ")) {
         includeMarginBottom = false;
         trimmed = trimmed.slice(3);
+      }
+
+      // If there is only one line, don't include margin bottom
+      if (lines.length === 1) {
+        includeMarginBottom = false;
       }
 
       // Default

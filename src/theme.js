@@ -54,6 +54,8 @@ export const theme = createTheme({
     custom_error_alpha: "rgba(244, 67, 54, 0.1)",
     custom_success: "rgb(61, 212, 74)",
     custom_success_alpha: "rgba(61, 212, 74, 0.1)",
+
+    code_viewer_background: "#0c0e12",
   },
 
   components: {

@@ -158,11 +158,7 @@ export default function Markdown({
       if (!trimmed) {
         if (allowActualBreak) {
           allowActualBreak = false;
-          return (
-            <React.Fragment key={index}>
-              <br />
-            </React.Fragment>
-          );
+          return null;
         } else if (allowBreak) {
           allowActualBreak = true;
           allowBreak = false;

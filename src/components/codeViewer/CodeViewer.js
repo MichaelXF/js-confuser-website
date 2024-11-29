@@ -31,6 +31,7 @@ export const CodeViewer = forwardRef(
       language = "javascript",
       onMount = () => {},
       backgroundColor,
+      themeBackgroundColor,
       heightLines,
       style = {},
     },
@@ -46,7 +47,9 @@ export const CodeViewer = forwardRef(
 
     // Access the body background color
     const bodyBackgroundColor =
-      backgroundColor || theme.palette.background.default;
+      backgroundColor ||
+      (themeBackgroundColor && theme.palette[themeBackgroundColor]) ||
+      theme.palette.background.default;
 
     const handleEditorDidMount = (editor, monaco) => {
       editorRef.current = editor;

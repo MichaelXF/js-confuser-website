@@ -12,7 +12,9 @@ import {
   Bolt,
   Check,
   Copyright,
+  Error,
   KeyboardArrowRight,
+  Lock,
   PriceCheck,
 } from "@mui/icons-material";
 import { Link } from "react-router-dom";
@@ -28,6 +30,7 @@ import websiteImage1 from "../static/websiteImage1.png";
 import websiteImage2 from "../static/websiteImage2.png";
 import websiteImage3 from "../static/websiteImage3.png";
 import websiteImage4 from "../static/websiteImage4.png";
+import TextBadge from "../components/TextBadge";
 // import websiteImageDocs from "../static/websiteImageDocs.png";
 
 const imageContainerProps = {
@@ -229,7 +232,7 @@ export default function PageHome() {
 
   var JSConfuser = useJSConfuser();
   var [loading, setLoading] = useState(false);
-  var [fileName, setFileName] = useState("App.js");
+  const [isObfuscated, setIsObfuscated] = useState(false);
   var [editor, setEditor] = useState();
   let [animation, setAnimation] = useState(true);
   let [showTryIOut, setShowTryIOut] = useState(false);
@@ -335,8 +338,7 @@ export default function PageHome() {
             setAnimation(false);
 
             editor.setValue(code);
-
-            setFileName("App.obfuscated.js");
+            setIsObfuscated(true);
 
             await timeout(2000);
 
@@ -427,8 +429,8 @@ export default function PageHome() {
             </Box>
 
             <Box
-              border="1px solid"
-              borderColor="divider"
+              border="2px solid"
+              borderColor="divider_opaque"
               height="100%"
               maxWidth="800px"
               maxHeight="calc(100vh - 56px)"
@@ -439,8 +441,10 @@ export default function PageHome() {
                 xs: "none", // Hide on extra-small screens (phones)
                 sm: "block", // Show on small screens and up
               }}
+              bgcolor="code_viewer_background"
+              boxShadow="0 25px 50px -12px rgb(0 0 0 / 0.25)"
             >
-              <Box
+              <Stack
                 height="32px"
                 p={1}
                 px={2}
@@ -449,9 +453,27 @@ export default function PageHome() {
                 display="flex"
                 justifyContent="center"
                 alignItems="center"
+                direction="row"
+                spacing={1}
               >
-                <Typography color="text.secondary">{fileName}</Typography>
-              </Box>
+                {isObfuscated ? (
+                  <>
+                    <Typography color="text.secondary">
+                      App.obfuscated.js{" "}
+                    </Typography>
+                    <TextBadge color="success" typography="caption" icon={Lock}>
+                      PROTECTED{" "}
+                    </TextBadge>
+                  </>
+                ) : (
+                  <>
+                    <Typography color="text.secondary">App.js</Typography>
+                    <TextBadge color="error" typography="caption" icon={Error}>
+                      UNPROTECTED{" "}
+                    </TextBadge>
+                  </>
+                )}
+              </Stack>
               <Box position="relative">
                 {loading && (
                   <Box
@@ -515,6 +537,7 @@ export default function PageHome() {
                   style={{
                     pointerEvents: animation ? "none" : "auto",
                   }}
+                  themeBackgroundColor={"code_viewer_background"}
                 />
               </Box>
             </Box>

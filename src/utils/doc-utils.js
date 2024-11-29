@@ -370,7 +370,7 @@ ${tagInfo.description}
 `);
         }
 
-        docVariables.warnings = "\n" + warnings.join("\n<br>");
+        docVariables.warnings = "<br>" + warnings.join("\n<br>");
       }
 
       const usageExampleCode = `import JSConfuser from "js-confuser";
@@ -532,9 +532,9 @@ ${item.exampleCode}
     var content = `
     ### ${toTitleCase(presetName)} Preset
 
-    Option name: \`"preset"\`
+    -> Option name: \`"preset"\`
 
-    Option value: \`"${presetName}"\`
+    -> Option value: \`"${presetName}"\`
 
     ---{ header: "Preset.json", language: "json" }
     ${JSON.stringify(presets[presetName], null, 2)}

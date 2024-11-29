@@ -373,7 +373,14 @@ export default function OptionComponent({
     return (
       <Box my={2}>
         <Stack direction="row" alignItems="center" spacing={1}>
-          <TextField label={titleCase} size="small" />
+          <TextField
+            label={titleCase}
+            size="small"
+            onBlur={(e) => {
+              setValueObject(e.target.value);
+            }}
+            defaultValue={valueObject || ""}
+          />
 
           {info}
         </Stack>

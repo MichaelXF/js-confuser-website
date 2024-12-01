@@ -370,7 +370,7 @@ ${tagInfo.description}
 `);
         }
 
-        docVariables.warnings = "<br>" + warnings.join("\n<br>");
+        docVariables.warnings = "<br>" + warnings.join("\n");
       }
 
       const usageExampleCode = `import JSConfuser from "js-confuser";

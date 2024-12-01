@@ -104,7 +104,7 @@ export const parseLine = (
 export default function Markdown({
   value,
   onMetadataUpdate = () => {},
-  sx = { color: "#d4d4d4", lineHeight: "32px" },
+  sx = { color: "#d4d4d4", lineHeight: "2rem" },
 }) {
   var optionsRef = useRef();
   var editorRef = useRef();
@@ -204,7 +204,11 @@ export default function Markdown({
             key={index}
             gutterBottom
             mt={isCode ? 4 : headings.length === 1 ? 2 : 6}
-            mb={headingLevel === 4 ? 2 : headingLevel === 5 ? 2 : undefined}
+            mb={
+              headingLevel === 3 || headingLevel === 4 || headingLevel === 5
+                ? 2
+                : undefined
+            }
             id={headingHash}
             className="HeadingScrollMargin"
           >
@@ -312,7 +316,7 @@ export default function Markdown({
           const showTryItButton = metadata.live || isOptionsFile;
 
           return (
-            <Box key={index} my={4}>
+            <Box key={index} mt={2} mb={4}>
               <CodeViewerTabbed
                 defaultValue={value}
                 header={metadata.header}
@@ -477,7 +481,11 @@ export default function Markdown({
         var title = blockQuoteLines.shift();
 
         return (
-          <Alert key={index} severity={type} sx={{ borderRadius: "4px" }}>
+          <Alert
+            key={index}
+            severity={type}
+            sx={{ borderRadius: "4px", mb: 4 }}
+          >
             <AlertTitle color="white">{parseLine(title)}</AlertTitle>
             {blockQuoteLines.map((line, i) => (
               <Typography key={i} sx={sx}>
@@ -546,7 +554,7 @@ export default function Markdown({
                 </TableHead>
                 <TableBody>
                   {rows.map((row, rowIndex) => {
-                    if (row[0].trim?.() === "---") return null;
+                    if (row[0]?.trim() === "---") return null;
 
                     return (
                       <TableRow key={rowIndex}>
@@ -620,9 +628,18 @@ export default function Markdown({
     });
   };
 
-  var strValue = "" + value;
+  const strValue = "" + value;
 
-  var component = parseMarkdown(strValue);
+  let component;
+  try {
+    component = parseMarkdown(strValue);
+  } catch (error) {
+    if (process.env.NODE_ENV === "development") {
+      component = <p>{error.toString()}</p>;
+    } else {
+      component = <p>There was an error parsing the markdown.</p>;
+    }
+  }
 
   useEffect(() => {
     onMetadataUpdate({

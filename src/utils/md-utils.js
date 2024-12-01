@@ -19,6 +19,10 @@ export function trimRemovePrefix(trimmed) {
     trimmed = trimmed.substring(1, trimmed.length - 1);
   }
 
+  if (trimmed.startsWith("-> ")) {
+    trimmed = trimmed.substring(3);
+  }
+
   return trimmed;
 }
 

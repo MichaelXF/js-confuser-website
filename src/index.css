@@ -12,7 +12,29 @@ a {
   text-decoration: none;
 }
 
-.LandingBackground {
+.LandingBackgroundLarge {
+  --grid-color: hsla(210, 100%, 45%, 0.175);
+
+  background: linear-gradient(
+      180deg,
+      hsla(210, 100%, 50%, 0.015),
+      rgb(15, 18, 20) 65%
+    ),
+    repeating-linear-gradient(
+      180deg,
+      transparent 0px,
+      transparent 39px,
+      var(--grid-color) 39px,
+      var(--grid-color) 40px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      var(--grid-color) 0,
+      var(--grid-color) 1px,
+      transparent 1px,
+      transparent 40px
+    );
+  background-blend-mode: darken;
 }
 
 .HeadingScrollMargin {

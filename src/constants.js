@@ -4,6 +4,7 @@ export const LocalStorageKeys = {
   JsConfuserOptionsJS: "JSConfuser_Options",
   JsConfuserEditorOptions: "JSConfuser_EditorOptions",
   JsConfuserASTCode: "JSConfuser_ASTCode",
+  JsConfuserMarkdownCode: "JSConfuser_MarkdownCode",
 };
 
 export const JsConfuserVersion =

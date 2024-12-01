@@ -126,7 +126,7 @@ export default function OptionComponent({
           value={option.description.split("\n")[0]}
           sx={{
             fontSize: "0.875rem",
-            lineHeight: "1.6",
+            lineHeight: "1.6rem",
           }}
         />
       }

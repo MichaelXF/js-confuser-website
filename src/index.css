@@ -59,6 +59,12 @@ a {
         var(--grid-color) calc(var(--grid-size) - 1px),
         var(--grid-color) var(--grid-size)
       );
+
+    background-position: center center;
+    background-size:
+      auto 100%,
+      var(--grid-size) var(--grid-size),
+      var(--grid-size) var(--grid-size);
   }
 }
 

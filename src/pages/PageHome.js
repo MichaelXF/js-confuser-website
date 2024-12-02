@@ -243,7 +243,7 @@ export default function PageHome() {
         justifyContent="center"
         minHeight="calc(100vh - 65px)"
         width="100%"
-        className={isMdOrLarger ? "LandingBackgroundLarge" : ""}
+        className={isMdOrLarger ? "LandingBackground" : ""}
         position="relative"
       >
         <Container maxWidth="lg">
@@ -307,6 +307,7 @@ export default function PageHome() {
         display="flex"
         alignItems="center"
         justifyContent="center"
+        className={isMdOrLarger ? "LandingGradientBottom" : ""}
       >
         <Container maxWidth="lg" sx={{ py: 10 }}>
           <Typography variant="h3" className="GradientText" fontWeight="bold">
@@ -370,6 +371,7 @@ export default function PageHome() {
         display="flex"
         alignItems="center"
         justifyContent="center"
+        className={isMdOrLarger ? "LandingGradient" : ""}
       >
         <Container maxWidth="lg" sx={{ py: 10 }}>
           <Typography
@@ -432,6 +434,9 @@ export default function PageHome() {
         display="flex"
         alignItems="center"
         justifyContent="center"
+        className={
+          isMdOrLarger ? "LandingBackground LandingBackgroundCenter" : ""
+        }
       >
         <Container maxWidth="lg" sx={{ py: 10, textAlign: "center" }}>
           <Typography

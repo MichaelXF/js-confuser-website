@@ -70,11 +70,13 @@ export default function PageDoc() {
     />
   );
 
+  const mainContentHeight = "calc(100vh - 65px)";
+
   return (
     <Box>
       <Nav />
 
-      <Box display="flex" height="calc(100vh - 65px)">
+      <Box display="flex" height={mainContentHeight}>
         {isPhone ? (
           <>
             <IconButton
@@ -124,7 +126,7 @@ export default function PageDoc() {
             borderColor="divider"
             maxWidth="300px"
             width="100%"
-            maxHeight="calc(100vh - 65px)"
+            maxHeight={mainContentHeight}
             height="100%"
             overflow="auto"
             flexShrink={0}
@@ -146,7 +148,7 @@ export default function PageDoc() {
           <Box
             display="flex"
             overflow="auto"
-            maxHeight="calc(100vh - 65px)"
+            maxHeight={mainContentHeight}
             height="100%"
             width="100%"
           >
@@ -166,7 +168,12 @@ export default function PageDoc() {
               {DocPage}
             </Box>
             {!isPhone
-              ? !isHomePage && <DocTableOfContents metadata={metadata} />
+              ? !isHomePage && (
+                  <DocTableOfContents
+                    metadata={metadata}
+                    maxHeight={mainContentHeight}
+                  />
+                )
               : null}
           </Box>
         </Box>

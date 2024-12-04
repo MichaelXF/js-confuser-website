@@ -252,17 +252,17 @@ function createAllOptionsDocPage(addDoc) {
   ${Object.keys(groups)
     .map((groupName) => {
       return `
-      ---
+---
 
-    #### ${toTitleCase(groupName)}
-    
-    | Option | Description |
-    ${groups[groupName]
-      .map((item) => {
-        return `| [${camelCaseToTitleCase(item.name)}](/docs/options/${item.name}) | ${item.description.split("\n")[0]} `;
-      })
-      .join("\n")}
-    `;
+#### ${toTitleCase(groupName)}
+
+| Option | Description |
+${groups[groupName]
+  .map((item) => {
+    return `| [${camelCaseToTitleCase(item.name)}](/docs/options/${item.name}) | ${item.description.split("\n")[0]} `;
+  })
+  .join("\n")}
+`;
     })
     .join("\n")}
   `;

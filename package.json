@@ -24,7 +24,7 @@
     "buffer": "^6.0.3",
     "echarts": "^5.5.1",
     "echarts-for-react": "^3.0.2",
-    "js-confuser": "^2.0.0-alpha.5",
+    "js-confuser": "^2.0.0",
     "json5": "^2.2.3",
     "monaco-editor": "^0.50.0",
     "prettier": "^3.3.3",

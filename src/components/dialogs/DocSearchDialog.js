@@ -85,8 +85,9 @@ export default function DocSearchDialog({ open, onClose }) {
             }
 
             if (
-              headingLowerCase.includes(queryLowerCase) ||
-              similarity(headingLowerCase, queryLowerCase) > 0.5
+              (headingLowerCase.includes(queryLowerCase) ||
+                similarity(headingLowerCase, queryLowerCase) > 0.5) &&
+              !section.lines[0]?.trim()?.startsWith("| ")
             ) {
               const previewText = section.lines[0];
               hit(previewText);
@@ -231,7 +232,7 @@ export default function DocSearchDialog({ open, onClose }) {
                   {result.title}
                 </Typography>
                 <Typography color="text.secondary" lineHeight="30px">
-                  {parseLine(result.description, false, 100)}
+                  {parseLine(result.description, false, 110)}
                 </Typography>
                 <Typography color="text.secondary" fontSize="0.8rem" mt={2}>
                   {result.subtitle}

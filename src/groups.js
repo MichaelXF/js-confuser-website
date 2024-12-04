@@ -141,7 +141,7 @@ Even if \`Rename Variables\` is disabled, the comment \`/* @js-confuser-var */\`
 
 #### Never rename a variable
 
-The \`__NO_JS_CONFUSER_RENAME__\` prefix disables renaming a certain variable. This can be useful for debugging the obfuscator.
+The prefix \`__NO_JS_CONFUSER_RENAME__\` disables renaming a certain variable. This can be useful for debugging the obfuscator.
 
 ---js
 // Input
@@ -666,7 +666,8 @@ print("Hello World"); // "Hello World"`,
             description: "The function name proposed to be changed.",
           },
         ],
-        description: "Control which function are changed. Returns a `boolean`.",
+        description:
+          "Control which functions are changed. Returns a `boolean`.",
       },
     },
     {
@@ -725,7 +726,8 @@ print("Hello World"); // "Hello World"`,
             description: "The function name proposed to be changed.",
           },
         ],
-        description: "Control which function are changed. Returns a `boolean`.",
+        description:
+          "Control which functions are changed. Returns a `boolean`.",
       },
     },
     {
@@ -753,7 +755,8 @@ print("Hello World"); // "Hello World"`,
             description: "The function name proposed to be changed.",
           },
         ],
-        description: "Control which function are changed. Returns a `boolean`.",
+        description:
+          "Control which functions are changed. Returns a `boolean`.",
       },
     },
     {
@@ -777,7 +780,8 @@ printToConsole("Hello World"); // "Hello World"`,
             description: "The function name proposed to be changed.",
           },
         ],
-        description: "Control which function are changed. Returns a `boolean`.",
+        description:
+          "Control which functions are changed. Returns a `boolean`.",
       },
       docContent: `
       #### Independent Functions
@@ -878,7 +882,8 @@ printToConsole("Hello World"); // "Hello World"`,
               "The function name proposed receive native check protection.",
           },
         ],
-        description: "Control which function are changed. Returns a `boolean`.",
+        description:
+          "Control which functions are changed. Returns a `boolean`.",
       },
       exampleConfig: {
         globalConcealing: true,
@@ -966,7 +971,7 @@ Tamper Protection requires the script to run in non-strict mode. Detection of th
               }
               `,
               percentagePerBlock: 0.5,
-              maxCount: 100,
+              maxCount: 25,
               minCount: 1,
             },
           ],
@@ -983,7 +988,7 @@ Tamper Protection requires the script to run in non-strict mode. Detection of th
       | Property | Type | Description |
       | \`code\` | \`string\` | Template lock code that must contain '{countermeasures}'. |
       | \`percentagePerBlock\` | \`number\` | The percentage of blocks that will contain the lock. |
-      | \`maxCount\` | \`number\` | The maximum number of times the lock can be used. (Default = 100) |
+      | \`maxCount\` | \`number\` | The maximum number of times the lock can be used. (Default = 25) |
       | \`minCount\` | \`number\` | The minimum number of times the lock can be used. (Default = 1) |
       `,
     },
@@ -1007,7 +1012,8 @@ Tamper Protection requires the script to run in non-strict mode. Detection of th
             description: "The function name proposed to be changed.",
           },
         ],
-        description: "Control which function are changed. Returns a `boolean`.",
+        description:
+          "Control which functions are changed. Returns a `boolean`.",
       },
       docContent: `
       #### How is this possible?

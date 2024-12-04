@@ -12,29 +12,76 @@ a {
   text-decoration: none;
 }
 
-.LandingBackgroundLarge {
+.LandingBackground {
   --grid-color: hsla(210, 100%, 45%, 0.175);
+  --grid-size: 39px;
 
-  background: linear-gradient(
-      180deg,
-      hsla(210, 100%, 50%, 0.015),
-      rgb(15, 18, 20) 65%
-    ),
+  background: linear-gradient(180deg, hsla(210, 100%, 50%, 0.0175), #0f1214 65%),
     repeating-linear-gradient(
       180deg,
       transparent 0px,
-      transparent 39px,
-      var(--grid-color) 39px,
-      var(--grid-color) 40px
+      transparent calc(var(--grid-size) - 1px),
+      var(--grid-color) calc(var(--grid-size) - 1px),
+      var(--grid-color) var(--grid-size)
     ),
     repeating-linear-gradient(
       90deg,
-      var(--grid-color) 0,
-      var(--grid-color) 1px,
-      transparent 1px,
-      transparent 40px
+      transparent 0px,
+      transparent calc(var(--grid-size) - 1px),
+      var(--grid-color) calc(var(--grid-size) - 1px),
+      var(--grid-color) var(--grid-size)
     );
+  background-position: center top;
   background-blend-mode: darken;
+
+  background-size:
+    auto 100%,
+    var(--grid-size) var(--grid-size),
+    var(--grid-size) var(--grid-size);
+
+  &.LandingBackgroundCenter {
+    background: radial-gradient(
+        circle,
+        hsla(210, 100%, 50%, 0.015),
+        rgb(15, 18, 20) 65%
+      ),
+      repeating-linear-gradient(
+        0deg,
+        transparent 0px,
+        transparent calc(var(--grid-size) - 1px),
+        var(--grid-color) calc(var(--grid-size) - 1px),
+        var(--grid-color) var(--grid-size)
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent 0px,
+        transparent calc(var(--grid-size) - 1px),
+        var(--grid-color) calc(var(--grid-size) - 1px),
+        var(--grid-color) var(--grid-size)
+      );
+
+    background-position: center center;
+    background-size:
+      auto 100%,
+      var(--grid-size) var(--grid-size),
+      var(--grid-size) var(--grid-size);
+  }
+}
+
+.LandingGradient {
+  background: linear-gradient(
+    45deg,
+    hsla(210, 100%, 20%, 0.05),
+    rgba(15, 18, 20, 0.5) 65%
+  );
+}
+
+.LandingGradientBottom {
+  background: linear-gradient(
+    45deg,
+    hsla(210, 100%, 40%, 0.05),
+    rgba(15, 18, 20, 0.5) 65%
+  );
 }
 
 .HeadingScrollMargin {

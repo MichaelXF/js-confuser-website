@@ -325,9 +325,9 @@ export default function EditorPanelDownload({ evaluateCode, editorComponent }) {
               <>
                 {tooltip ? tooltip : null}
                 {Object.keys(changeData).map((key) => {
-                  var number = changeData[key];
-                  var noun = camelCaseToTitleCase(key);
-                  var prefix = `obfuscated`;
+                  const number = changeData[key];
+                  let noun = camelCaseToTitleCase(key);
+                  let prefix = `obfuscated`;
                   if (key === "deadCode") {
                     noun = "Dead Code Blocks";
                     prefix = "inserted";
@@ -347,6 +347,10 @@ export default function EditorPanelDownload({ evaluateCode, editorComponent }) {
                   }
                   if (key === "decryptionFunctions") {
                     prefix = "created";
+                  }
+                  if (key === "locksInserted") {
+                    noun = "Locks";
+                    prefix = "inserted";
                   }
 
                   if (number === 1 && noun.endsWith("s")) {

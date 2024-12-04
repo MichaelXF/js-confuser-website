@@ -2,7 +2,7 @@ import { OpenInNew } from "@mui/icons-material";
 import { Box, Button, Link, Typography } from "@mui/material";
 import { openNewTabWithText } from "../../utils/file-utils";
 
-export default function DocTableOfContents({ metadata }) {
+export default function DocTableOfContents({ metadata, ...props }) {
   return (
     <Box
       flexShrink={0}
@@ -13,6 +13,12 @@ export default function DocTableOfContents({ metadata }) {
       position="sticky"
       top="0px"
       pt={4}
+      pb={10}
+      sx={{
+        overflowY: "auto",
+        scrollbarWidth: "thin",
+      }}
+      {...props}
     >
       <Box pb={4} px={1}>
         <Typography

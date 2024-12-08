@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Box } from "@mui/material";
 import { defaultCode, defaultOptionsJS, LocalStorageKeys } from "../constants";
 
@@ -19,9 +19,11 @@ import ConsoleDialog from "../components/dialogs/ConsoleDialog";
 import ErrorDialog from "../components/dialogs/ErrorDialog";
 
 // Obfuscator Options
-import { convertOptionsToJS, evaluateOptionsOrJS } from "../utils/option-utils";
+import { convertOptionsToJS } from "../utils/option-utils";
 import presets from "js-confuser/dist/presets";
 import useEditorComponent from "../hooks/useEditorComponent";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import useEvalWorker from "../hooks/useEvalWorker";
 
 export default function PageEditor() {
   useSEO(
@@ -49,32 +51,96 @@ export default function PageEditor() {
       captureInsights: false,
       capturePerformanceInsights: false,
       performanceIterations: 10,
+      liveObfuscation: false,
+      showSideEditor: false,
     }
   );
   const editorOptionsRef = useRef();
   editorOptionsRef.current = editorOptions;
   const getEditorOptions = () => editorOptionsRef.current;
 
-  const setOptionsJS = (value) => {
+  const setOptionsJSCode = (value) => {
     optionsJSRef.current = value;
     setOptionsLocalStorageJS(value);
 
-    var found = editorComponent.tabs.find(
+    const foundTab = editorComponent.tabs.find(
       (t) => t.identity === "internal_options"
     );
-    if (found) {
-      found.setNonDirtyValue(value);
+    if (foundTab) {
+      foundTab.setNonDirtyValue(value);
     }
   };
 
+  const [options, setOptionsJSObject] = useState({});
+  const optionsRef = useRef();
+  optionsRef.current = options;
+  const evalWorker = useEvalWorker();
+
+  const setOptions = useCallback((optionsOrFn) => {
+    const optionsValue =
+      typeof optionsOrFn === "function"
+        ? optionsOrFn(optionsRef.current)
+        : optionsOrFn;
+
+    // Options is already a JS object
+    // Simply store it in local storage and convert to replicate as a module.exports = {...}
+    if (typeof optionsValue === "object" && optionsValue !== null) {
+      setOptionsJSObject(optionsValue);
+      setOptionsJSCode(convertOptionsToJS(optionsValue));
+      return;
+    }
+
+    // Options is user JavaScript code
+    setOptionsJSCode(optionsValue);
+
+    evalWorker
+      .evaluateOptions(optionsValue, editorOptionsRef.current)
+      .then((optionsObject) => {
+        setOptionsJSObject(optionsObject);
+      })
+      .catch((error) => {
+        console.error(error);
+
+        setOptionsJSObject({
+          target: null,
+          error: error,
+        });
+      });
+  }, []);
+
+  // On mount, load options for first time
+  const initRef = useRef(false);
+  useEffect(() => {
+    if (!initRef.current) {
+      initRef.current = true;
+      setOptions(optionsJS);
+    }
+  }, []);
+
+  function onEditorError(error) {
+    setError(error);
+    setShowError(true);
+  }
+
+  // Side editor for live obfuscation
+  // Maybe more stuff in the future
+  const editorComponentSecondary = useEditorComponent({
+    optionsJSRef,
+    setOptions,
+    editorOptionsRef,
+    onError: onEditorError,
+    onMount() {},
+  });
+
   const editorComponent = useEditorComponent({
     optionsJSRef,
-    setOptionsJS,
+    setOptions,
     editorOptionsRef,
-    onError: (error) => {
-      setError(error);
-      setShowError(true);
+    onError: onEditorError,
+    onMount() {
+      editorComponent.newTabFromFile("Untitled.js", defaultCode, true);
     },
+    sideEditorComponent: editorComponentSecondary,
   });
 
   useEffect(() => {
@@ -89,7 +155,7 @@ export default function PageEditor() {
         model.setNonDirtyValue(code);
       }
       if (config) {
-        setOptionsJS(config);
+        setOptions(config);
         editorComponent.openOptionsFile();
       }
       // Preset in URL - Update options (Preserve target field)
@@ -108,33 +174,14 @@ export default function PageEditor() {
     }
   }, [editorComponent.ref.current]);
 
-  const options = useMemo(() => {
-    return evaluateOptionsOrJS(optionsJS);
-  }, [optionsJS]);
-
-  const setOptions = (optionsOrFn) => {
-    var optionsValue =
-      typeof optionsOrFn === "function" ? optionsOrFn(options) : optionsOrFn;
-    var newOptionsJS = convertOptionsToJS(optionsValue);
-
-    setOptionsJS(newOptionsJS);
-  };
-
-  var [error, setError] = useState();
-
-  if (options.error) {
-    error = {
-      errorString: "Invalid JSConfuser Options",
-      errorStack: options.error,
-    };
-  }
-
-  var [showError, setShowError] = useState(false);
-  var [showOptionsDialog, setShowOptionsDialog] = useState(false);
-  var [showConsoleDialog, setShowConsoleDialog] = useState(false);
+  const [error, setError] = useState();
+  const [showError, setShowError] = useState(false);
+  const [showOptionsDialog, setShowOptionsDialog] = useState(false);
+  const [showConsoleDialog, setShowConsoleDialog] = useState(false);
 
   const evaluateCode = () => {
-    const { editor } = editorComponent;
+    let { editor } = editorComponent;
+
     var model = editor?.getModel();
     if (model.title === "JSConfuser.ts") {
       model.saveContent();
@@ -187,6 +234,8 @@ export default function PageEditor() {
     setShowConsoleDialog(false);
   };
 
+  const showSideEditor = editorOptions.showSideEditor;
+
   return (
     <div style={{ height: "100vh", width: "100%" }}>
       <OptionsDialog
@@ -229,9 +278,9 @@ export default function PageEditor() {
         evaluateCode={evaluateCode}
         resetEditor={() => {
           editorComponent.setTabs([]);
-          editorComponent.newTab(defaultCode, "Untitled.js");
+          editorComponent.onMount();
         }}
-        setOptionsJS={setOptionsJS}
+        setOptions={setOptions}
         codeWorker={codeWorker}
         convertCode={convertCode}
         closeModals={closeModals}
@@ -245,11 +294,11 @@ export default function PageEditor() {
           });
         }}
         shareURL={() => {
-          var searchParams = new URLSearchParams();
+          const searchParams = new URLSearchParams();
           searchParams.set("code", editorComponent.getActiveModel().getValue());
           searchParams.set("config", optionsJS);
 
-          var url =
+          const url =
             window.location.origin +
             window.location.pathname +
             "?" +
@@ -274,7 +323,34 @@ export default function PageEditor() {
           convertCode={convertCode}
           editorComponent={editorComponent}
         />
-        {editorComponent.element}
+
+        <PanelGroup direction="horizontal">
+          <Panel minSize={30} id="mainEditor" order={1}>
+            {editorComponent.element}
+          </Panel>
+          {showSideEditor && (
+            <>
+              <PanelResizeHandle />
+              <Panel
+                collapsible={true}
+                minSize={30}
+                id="sideEditor"
+                order={2}
+                onCollapse={() => {
+                  setEditorOptions((options) => {
+                    return {
+                      ...options,
+                      showSideEditor: false,
+                      liveObfuscation: false,
+                    };
+                  });
+                }}
+              >
+                {editorComponentSecondary.element}
+              </Panel>
+            </>
+          )}
+        </PanelGroup>
       </Box>
     </div>
   );

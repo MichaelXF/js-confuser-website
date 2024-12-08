@@ -107,10 +107,18 @@ function EditorNavItem({
 
           if (subItem.type === "checkbox") {
             setEditorOptions((editorOptions) => {
-              return {
+              const newOptions = {
                 ...editorOptions,
                 [subItem.key]: !editorOptions[subItem.key],
               };
+              if (
+                subItem.key === "liveObfuscation" &&
+                newOptions.liveObfuscation
+              ) {
+                newOptions.showSideEditor = true;
+              }
+
+              return newOptions;
             });
             return;
           }
@@ -206,7 +214,7 @@ export default function EditorNav({
   setEditorOptions,
   resetEditor,
   evaluateCode,
-  setOptionsJS,
+  setOptions,
   codeWorker,
   convertCode,
   focusEditor,
@@ -473,6 +481,11 @@ export default function EditorNav({
               type: "input",
               key: "performanceIterations",
             },
+            {
+              label: "Live Obfuscation",
+              key: "liveObfuscation",
+              type: "checkbox",
+            },
           ],
         },
       ],
@@ -487,7 +500,7 @@ export default function EditorNav({
         {
           label: "Reset Options",
           onClick: () => {
-            setOptionsJS(defaultOptionsJS);
+            setOptions(defaultOptionsJS);
           },
         },
       ],

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { EditorComponent } from "../components/editor/EditorComponent";
 
 // File Storage And Settings
@@ -7,6 +7,7 @@ import {
   getFileFromIndexedDB,
   getLanguageFromFileExtension,
   getObfuscatedFileName,
+  incrementFileName,
   saveFileToIndexedDB,
 } from "../utils/file-utils";
 import useJSConfuser from "./useJSConfuser";
@@ -14,9 +15,11 @@ import LoadingBackdrop from "../components/dialogs/LoadingBackdrop";
 
 export default function useEditorComponent({
   optionsJSRef,
-  setOptionsJS,
+  setOptions,
   editorOptionsRef,
   onError,
+  onMount,
+  sideEditorComponent,
 }) {
   const JSConfuser = useJSConfuser({
     onError: onError,
@@ -42,7 +45,7 @@ export default function useEditorComponent({
   /**
    * Obfuscates the user's code
    */
-  function obfuscateCode() {
+  function obfuscateCode(showOverlay = true) {
     let activeModel = getActiveModel();
 
     if (!activeModel) {
@@ -67,6 +70,11 @@ export default function useEditorComponent({
 
               var { code, profileData } = data;
 
+              if (!showOverlay) {
+                resolve(code);
+                return;
+              }
+
               var outputFileName = getObfuscatedFileName(activeModel.title);
 
               newTabFromFile(outputFileName, code, true).then((model) => {
@@ -79,8 +87,15 @@ export default function useEditorComponent({
             onError: (data) => {
               setShowLoadingOverlay(false);
 
-              onError(data);
-              resolve(false);
+              if (!showOverlay) {
+                // Live Obfuscation: Reject with the error
+                reject(data.errorString);
+              } else {
+                // Show error dialog
+                onError(data);
+
+                resolve(false);
+              }
             },
             onProgress: (data) => {
               setLoadingInfo({
@@ -98,7 +113,9 @@ export default function useEditorComponent({
           advancedOptions
         );
         setLoadingInfo({ progress: "Starting...", percent: 0 });
-        setShowLoadingOverlay(true);
+        if (showOverlay) {
+          setShowLoadingOverlay(true);
+        }
       } catch (error) {
         resolve(false);
         console.error("Obfuscation failed:", error);
@@ -159,7 +176,13 @@ export default function useEditorComponent({
     return newTab(value, fileName, undefined, identity);
   }
 
-  function newTab(value = "", fileName = "Untitled.js", onSave, identity) {
+  function newTab(
+    value = "",
+    fileName = "Untitled.js",
+    onSave,
+    identity,
+    autoFocus = true
+  ) {
     const { monaco, editor } = ref.current;
 
     if (!onSave) {
@@ -191,6 +214,19 @@ export default function useEditorComponent({
 
         return alreadyOpen;
       }
+    }
+
+    if (fileName) {
+      do {
+        const alreadyFound = tabsRef.current.find(
+          (t) => t.title === fileName && t.identity !== identity
+        );
+        if (alreadyFound) {
+          fileName = incrementFileName(fileName);
+        } else {
+          break;
+        }
+      } while (true);
     }
 
     const fileExtension = getFileExtension(fileName);
@@ -226,9 +262,43 @@ export default function useEditorComponent({
       const isModified = currentContent !== lastSavedContent;
 
       newModel.setIsDirty(isModified);
+
+      if (sideEditorComponent && editorOptionsRef.current.liveObfuscation) {
+        if (!sideEditorComponent.ref.current) {
+          return;
+        }
+        function setTabCode(code) {
+          var tab = sideEditorComponent.tabs.find(
+            (t) => t.identity === "internal_live_obfuscation"
+          );
+          if (tab) {
+            tab.setNonDirtyValue(code);
+          } else {
+            sideEditorComponent.newTab(
+              code,
+              "Live.js",
+              () => {},
+              "internal_live_obfuscation",
+              false // Do not autofocus
+            );
+          }
+        }
+
+        obfuscateCode(false)
+          .then((code) => {
+            if (typeof code === "string") {
+              setTabCode(code);
+            }
+          })
+          .catch((err) => {
+            setTabCode("// " + err.toString());
+          });
+      }
     });
 
     newModel.setNonDirtyValue = (value) => {
+      if (newModel._isDisposed) return;
+
       lastSavedContent = value;
 
       // Prevent moving the cursor
@@ -257,9 +327,11 @@ export default function useEditorComponent({
 
     setTabs((tabs) => [...tabs, newModel]);
 
-    setTimeout(() => {
-      editor.focus();
-    }, 16);
+    if (autoFocus) {
+      setTimeout(() => {
+        editor.focus();
+      }, 16);
+    }
 
     return newModel;
   }
@@ -276,7 +348,7 @@ export default function useEditorComponent({
         changeTab(newTabs[Math.max(0, newTabs.length - 1)]);
       }
       if (newTabs.length === 0) {
-        editor.setValue("// Open a new file to start");
+        activeTab.setValue("// Open a new file to start");
       }
     }
   }
@@ -299,7 +371,7 @@ export default function useEditorComponent({
       optionsJSRef.current,
       "JSConfuser.ts",
       (value) => {
-        setOptionsJS(value);
+        setOptions(value);
       },
       "internal_options"
     );
@@ -369,6 +441,8 @@ export default function useEditorComponent({
      * @type {React.ReactElement}
      */
     element: null,
+
+    onMount: onMount,
   };
 
   editorComponent.element = (

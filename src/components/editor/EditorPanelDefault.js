@@ -1,5 +1,5 @@
 import { Button, Checkbox, Stack, Tooltip, Typography } from "@mui/material";
-import { Info, KeyboardArrowRight, Lock } from "@mui/icons-material";
+import { Error, Info, KeyboardArrowRight, Lock } from "@mui/icons-material";
 import { ConfirmDialog } from "../dialogs/ConfirmDialog";
 import { useRef, useState } from "react";
 import { presetInfo } from "../../constants";
@@ -20,6 +20,8 @@ export default function EditorPanelDefault({
   var isOptionsFile = activeTab?.identity === "internal_options";
   var isTypeScript = activeTab?.getLanguageId?.() === "typescript";
 
+  const isOptionsError = !!options?.error;
+
   return (
     <>
       <ConfirmDialog
@@ -39,6 +41,7 @@ export default function EditorPanelDefault({
           startIcon={<Lock sx={{ transform: "scale(0.9)" }} />}
           variant="contained"
           onClick={obfuscateCode}
+          disabled={isOptionsError}
         >
           Obfuscate
         </Button>
@@ -59,6 +62,14 @@ export default function EditorPanelDefault({
         >
           Convert to JS
         </Button>
+      )}
+
+      {isOptionsError && (
+        <Typography color="error" mt={2}>
+          <Error sx={{ mb: "-2px", mr: "5px" }} />
+          The configuration file contains errors. Please fix them before
+          obfuscating.
+        </Typography>
       )}
 
       <Typography variant="h6" fontWeight="bold" mb={2} mt={4}>

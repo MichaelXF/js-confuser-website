@@ -215,10 +215,25 @@ export async function deleteFileFromIndexedDB(fileName) {
   }
 }
 
-// Example usage
-// deleteFileFromIndexedDB('example.txt')
-//   .then(() => console.log('File deleted'))
-//   .catch((error) => console.error('Failed to delete file:', error));
+export function incrementFileName(fileName) {
+  if (typeof fileName !== "string") return "Untitled.js";
+
+  const outputFileName = fileName;
+
+  // file.js -> file.2.js
+  // file.2.js -> file.3.js
+  if (outputFileName.endsWith(".js")) {
+    var num = parseInt(outputFileName.split(".")[1]) + 1;
+    if (Number.isNaN(num) || num < 1) {
+      num = 2;
+    }
+
+    return outputFileName.split(".")[0] + "." + num + ".js";
+  }
+
+  // No file extension -> file.2.js
+  return outputFileName + ".2.js";
+}
 
 export function getObfuscatedFileName(originalFileName) {
   if (typeof originalFileName !== "string") return "Obfuscated.js";

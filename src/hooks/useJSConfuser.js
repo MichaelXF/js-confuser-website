@@ -72,7 +72,13 @@ export default function useJSConfuser({ onError } = {}) {
     advancedOptions = {}
   ) {
     var requestID = getRandomString(10);
-    var worker = workerRef.current || (workerRef.current = Worker());
+    var worker = workerRef.current;
+
+    // Cancel pending obfuscation, create new worker
+    if (!worker || isObfuscatingRef.current) {
+      cancel();
+      worker = workerRef.current = Worker();
+    }
 
     var callback = (message) => {
       const { event, data } = message.data;

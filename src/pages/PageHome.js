@@ -220,7 +220,7 @@ function FeatureRows({ items }) {
 export default function PageHome() {
   useSEO(
     "JS-Confuser",
-    "This tool transforms your original JavaScript source code into a new representation that's harder to understand, copy, re-use and modify without authorization."
+    "JS-Confuser is a powerful JavaScript obfuscation tool that makes your programs impossible to understand, copy, re-use or modify without authorization."
   );
 
   const isMdOrLarger = useMediaQuery((theme) => theme.breakpoints.up("md"));

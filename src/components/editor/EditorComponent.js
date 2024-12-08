@@ -3,7 +3,6 @@ import { Box, CircularProgress, IconButton, useTheme } from "@mui/material";
 import { rgbToHex } from "../../utils/color-utils";
 import { Add } from "@mui/icons-material";
 import { forwardRef } from "react";
-import { defaultCode } from "../../constants";
 import EditorComponentTab from "./EditorComponentTab";
 import { EDITOR_PANEL_WIDTH } from "./EditorPanel";
 import { getJSConfuserTypes } from "../../utils/docLib-utils";
@@ -56,9 +55,7 @@ export const EditorComponent = forwardRef(({ editorComponent }, ref) => {
       minimap: { enabled: false },
     });
 
-    var initialTabCode = defaultCode;
-
-    editorComponent.newTabFromFile("Untitled.js", initialTabCode, true);
+    editorComponent.onMount();
     // editorComponent.newTab(
     //   <EditorWelcome />,
     //   "Changelog.md",
@@ -71,7 +68,7 @@ export const EditorComponent = forwardRef(({ editorComponent }, ref) => {
   const customElement = editorComponent.activeTab?.customElement;
 
   return (
-    <Box height="calc(100vh - 40px)" width="100%">
+    <Box height="100%" width="100%">
       <Box
         sx={{
           height: "30px",
@@ -132,7 +129,7 @@ export const EditorComponent = forwardRef(({ editorComponent }, ref) => {
       ) : null}
 
       <Editor
-        height={`calc(100vh - ${editorTopMargin}px)`}
+        height={`100%`}
         defaultLanguage="typescript"
         defaultValue=""
         theme="myCustomTheme"

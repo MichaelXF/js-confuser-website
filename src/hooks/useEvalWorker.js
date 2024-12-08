@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import worker from "workerize-loader?inline!../workers/evalWorker"; // eslint-disable-line import/no-webpack-loader-syntax
 import { getRandomString } from "../utils/random-utils";
 
-export default function useWorkerEval(consoleRef) {
+export default function useEvalWorker(consoleRef) {
   var [running, setRunning] = useState();
   var workerRef = useRef();
 
@@ -21,7 +21,7 @@ export default function useWorkerEval(consoleRef) {
 
     setRunning(true);
 
-    var requestID = getRandomString(10);
+    const requestID = getRandomString(10);
 
     // Warn the user if they're on target='node' but they're running this in a browser
     // if (options && options.target !== "browser") {
@@ -32,12 +32,12 @@ export default function useWorkerEval(consoleRef) {
     // }
 
     // Create a new worker
-    var myWorker = worker();
+    const myWorker = worker();
     workerRef.current = myWorker;
 
     // Receive console messages through this event handler
-    var cb = (message) => {
-      var { event, data } = message.data;
+    const cb = (message) => {
+      const { event, data } = message.data;
       if (data?.requestID !== requestID) return;
 
       if (event === "clear") {
@@ -74,6 +74,36 @@ export default function useWorkerEval(consoleRef) {
     }, 200);
   }
 
+  function evaluateOptions(code, evalOptions) {
+    return new Promise((resolve, reject) => {
+      // Create a new worker
+      const myWorker = worker();
+
+      const requestID = getRandomString(10);
+
+      // Receive console messages through this event handler
+      const cb = (message) => {
+        const { event, data } = message.data;
+        if (data?.requestID !== requestID) return;
+
+        if (event === "error") {
+          dispose();
+          reject(data.error);
+        } else if (event === "success") {
+          dispose();
+          resolve(data.options);
+        }
+      };
+      myWorker.addEventListener("message", cb);
+
+      function dispose() {
+        myWorker.removeEventListener("message", cb);
+      }
+
+      myWorker.evaluateOptions(requestID, code, evalOptions);
+    });
+  }
+
   function cancel() {
     if (workerRef.current) {
       workerRef.current.terminate();
@@ -90,6 +120,7 @@ export default function useWorkerEval(consoleRef) {
 
   return {
     evaluateCode,
+    evaluateOptions,
     cancel,
     running,
   };

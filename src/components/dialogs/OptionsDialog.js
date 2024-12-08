@@ -16,16 +16,17 @@ import presets from "js-confuser/dist/presets";
 import { getOptionSchemasWithDefaultValues } from "../../utils/option-utils";
 
 export default function OptionsDialog({ open, onClose, options, setOptions }) {
-  var [proposedOptions, setProposedOptions] = useState();
+  var [proposedOptions, setProposedOptions] = useState(null);
 
   // Avoid using useEffect() to avoid delayed state rendering
   // First render would have stale data, initializing OptionComponents to behave incorrectly
-  var openRef = useRef(false);
+  const openRef = useRef(false);
 
-  if ((open && !openRef.current) || !proposedOptions) {
-    openRef.current = true;
+  // I tried everything to avoid this, but it seems like the only way
+  if (open && !openRef.current) {
     let value = { ...options };
-    if (value.preset) {
+    if (typeof value.preset === "string") {
+      // Merge preset options
       value = { ...presets[value.preset], ...value };
     }
 
@@ -38,27 +39,30 @@ export default function OptionsDialog({ open, onClose, options, setOptions }) {
     }
 
     proposedOptions = value;
+    openRef.current = value;
+
     setProposedOptions(value);
   } else if (!open) {
     openRef.current = false;
   }
 
+  // In development, React rerenders twice
+  // This is a workaround to ensure the correct state is set
+  if (open && proposedOptions === null) {
+    proposedOptions = openRef.current;
+  }
+
   const saveChanges = () => {
     var value = { ...proposedOptions };
-    delete value.preset;
+    delete value.preset; // This is now a 'custom' preset
+    delete value.error; // Delete any error messages
     setOptions(value);
     setProposedOptions(null);
     onClose();
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="md"
-      fullWidth
-      keepMounted={false}
-    >
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle sx={{ fontWeight: "bold" }}>Options</DialogTitle>
 
       <DialogContent>
@@ -76,11 +80,11 @@ export default function OptionsDialog({ open, onClose, options, setOptions }) {
 
               <Stack spacing={0}>
                 {group.map((option, index) => {
-                  var value = proposedOptions?.[option.name];
+                  let opts = proposedOptions;
+                  let value = opts?.[option.name];
 
                   if (option.parentField) {
-                    value =
-                      proposedOptions?.[option.parentField]?.[option.name];
+                    value = opts?.[option.parentField]?.[option.name];
                   }
 
                   var setValue = (newValue) => {
@@ -124,8 +128,8 @@ export default function OptionsDialog({ open, onClose, options, setOptions }) {
                     <Box key={index}>
                       <OptionComponent
                         option={option}
-                        value={value}
-                        setValue={setValue}
+                        valueObject={value}
+                        setValueObject={setValue}
                       />
                     </Box>
                   );

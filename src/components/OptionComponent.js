@@ -65,8 +65,8 @@ const iconButtonSx = {
 
 export default function OptionComponent({
   option,
-  value: valueObject,
-  setValue: setValueObject,
+  valueObject,
+  setValueObject,
 }) {
   let titleCase = camelCaseToTitleCase(option.name);
 

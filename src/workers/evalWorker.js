@@ -94,3 +94,47 @@ export const evaluateCodeSandbox = function (
     },
   });
 };
+
+export const evaluateOptions = function (
+  requestID,
+  code,
+  { strictModeEval, allowNetworkRequests }
+) {
+  // Must be on same line due to new Function("return ")
+  const prepareModule = `(function (module, exports, require) {
+  ${code}
+  })
+  `;
+
+  const exports = {};
+  const module = { exports: exports };
+  // Mock require function
+  const require = () => ({});
+
+  try {
+    if (strictModeEval) {
+      eval(prepareModule)(module, exports, require);
+    } else {
+      new Function("return " + prepareModule)()(module, exports, require);
+    }
+  } catch (err) {
+    console.error(err);
+    postMessage({
+      event: "error",
+      data: {
+        requestID,
+        error: err.toString(),
+        errorStack: err.stack,
+      },
+    });
+    return;
+  }
+
+  postMessage({
+    event: "success",
+    data: {
+      requestID,
+      options: module.exports,
+    },
+  });
+};

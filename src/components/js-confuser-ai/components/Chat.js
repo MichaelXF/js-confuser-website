@@ -96,15 +96,17 @@ export default function Chat({ maxHeight = "100vh", immediateMessage }) {
   const containerRef = useRef();
   const flexRef = useRef();
 
-  function scrollToBottom() {
-    const container = containerRef.current;
+  function scrollToBottom(forceScroll = false) {
+    const flex = flexRef.current;
+    if (!flex) return;
     const isAtBottom =
-      container.scrollHeight - container.scrollTop === container.clientHeight;
+      forceScroll ||
+      flex.scrollHeight - flex.clientHeight <= flex.scrollTop + 5;
 
     // Scroll to bottom if the user was already at the bottom
     if (isAtBottom) {
       setTimeout(() => {
-        container.scrollTop = container.scrollHeight;
+        flex.scrollTop = flex.scrollHeight;
       }, 16);
     }
   }
@@ -210,11 +212,20 @@ export default function Chat({ maxHeight = "100vh", immediateMessage }) {
 
     if (!element) return;
 
+    // One time force scroll
+    let didForceScroll = false;
+
     const cb = () => {
       const clientHeight = element.clientHeight;
       const elementHeight = element.scrollHeight;
 
+      console.log(clientHeight, elementHeight);
+
       if (elementHeight > clientHeight) {
+        if (!didForceScroll) {
+          scrollToBottom(true);
+          didForceScroll = true;
+        }
         setJustifyContent("flex-start");
       } else {
         setJustifyContent("center");
@@ -224,11 +235,20 @@ export default function Chat({ maxHeight = "100vh", immediateMessage }) {
 
     observer.observe(element);
 
+    const mutationObserver = new MutationObserver(cb);
+
+    mutationObserver.observe(element, {
+      childList: true,
+      subtree: true,
+    });
+
     cb();
 
     // Cleanup observer on unmount
     return () => {
       observer.disconnect();
+
+      mutationObserver.disconnect();
     };
   }, []);
 
@@ -261,6 +281,7 @@ export default function Chat({ maxHeight = "100vh", immediateMessage }) {
               flexGrow={1}
               spacing={0}
               justifyContent={justifyContent}
+              overflow={justifyContent === "center" ? "hidden" : "auto"}
               minHeight="100%"
               ref={flexRef}
             >

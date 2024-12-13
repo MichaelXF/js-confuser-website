@@ -40,7 +40,6 @@ export const parseLine = (
       elements.push(middleText);
     }
 
-    console.log(match);
     if (!match[1]) match[1] = match[0];
 
     if (match[1].startsWith("**")) {

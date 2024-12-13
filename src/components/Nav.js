@@ -9,8 +9,13 @@ import {
 } from "@mui/material";
 import { KeyboardArrowRight } from "@mui/icons-material";
 import { Link as ReactLink } from "react-router-dom";
+import { RiSparkling2Fill, RiSparkling2Line } from "react-icons/ri";
+import { useContext } from "react";
+import { AIContext } from "../App";
 
 export default function Nav() {
+  const aiValue = useContext(AIContext);
+
   return (
     <AppBar
       position="static"
@@ -68,6 +73,16 @@ export default function Nav() {
             <ReactLink to="/docs">
               <Button variant="text">Docs</Button>
             </ReactLink>
+
+            <Button
+              variant="text"
+              startIcon={<RiSparkling2Line />}
+              onClick={() => {
+                aiValue.setAI(true);
+              }}
+            >
+              JS-Confuser AI
+            </Button>
           </Box>
         </Stack>
       </Toolbar>

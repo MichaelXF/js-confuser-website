@@ -11,11 +11,12 @@ import {
   Bolt,
   Check,
   Copyright,
+  KeyboardArrowDown,
   KeyboardArrowRight,
   PriceCheck,
 } from "@mui/icons-material";
 import { Link } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import Nav from "../components/Nav";
 import QuickActions from "../components/QuickActions";
 import useSEO from "../hooks/useSEO";
@@ -25,6 +26,8 @@ import websiteImage3 from "../static/websiteImage3.png";
 import websiteImage4 from "../static/websiteImage4.png";
 // import websiteImageDocs from "../static/websiteImageDocs.png";
 import HomeAnimation from "../components/HomeAnimation";
+import { RiSparkling2Line } from "react-icons/ri";
+import { AIContext } from "../App";
 
 const imageContainerProps = {
   boxShadow:
@@ -233,6 +236,8 @@ export default function PageHome() {
     </Link>
   );
 
+  const aiValue = useContext(AIContext);
+
   return (
     <Box>
       <Nav />
@@ -246,7 +251,7 @@ export default function PageHome() {
         className={isMdOrLarger ? "LandingBackground" : ""}
         position="relative"
       >
-        <Container maxWidth="lg">
+        <Container maxWidth="lg" sx={{ py: isMdOrLarger ? 10 : 0 }}>
           <Stack direction="row" spacing={10} alignItems="center" width="100%">
             <Box textAlign="left" flex="1 1 42%" pt={6}>
               <Typography
@@ -297,6 +302,67 @@ export default function PageHome() {
 
             {isMdOrLarger ? <HomeAnimation /> : null}
           </Stack>
+        </Container>
+
+        <Box
+          textAlign="center"
+          fontSize="1.75rem"
+          position="absolute"
+          bottom="16px"
+          left="50%"
+          sx={{
+            transform: "translate(-50%, 0)",
+          }}
+        >
+          <KeyboardArrowDown />
+        </Box>
+      </Box>
+
+      <Box
+        borderTop="1px solid"
+        borderColor="divider"
+        minHeight="300px"
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        position="relative"
+        overflow="hidden"
+        bgcolor="rgba(29,34,38,0.1)"
+        textAlign="center"
+      >
+        <Container maxWidth="lg">
+          <Typography variant="h3" fontWeight="bold" color="white">
+            Powered by{" "}
+            <Typography
+              className="GradientText"
+              variant="inherit"
+              component="span"
+            >
+              Artificial Intelligence
+            </Typography>
+          </Typography>
+
+          <Typography
+            variant="h6"
+            color="text.secondary"
+            fontWeight="normal"
+            mt={1}
+            mb={4}
+          >
+            JS-Confuser AI is a powerful AI chat assistant to answer complex
+            questions about JS-Confuser.
+          </Typography>
+
+          <Button
+            variant="contained"
+            size="large"
+            startIcon={<RiSparkling2Line />}
+            onClick={() => {
+              aiValue.setAI(true);
+            }}
+          >
+            Try JS-Confuser AI
+          </Button>
         </Container>
       </Box>
 

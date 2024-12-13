@@ -5,7 +5,7 @@ import {
   listAllFiles,
   openJavaScriptFile,
 } from "../../utils/file-utils";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   AppBar,
   Box,
@@ -28,6 +28,8 @@ import { defaultOptionsJS } from "../../constants";
 import useSnackbar from "../../hooks/useSnackbar";
 import { EDITOR_PANEL_WIDTH } from "./EditorPanel";
 import { textEllipsis } from "../../utils/format-utils";
+import { RiSparkling2Line } from "react-icons/ri";
+import { AIContext } from "../../App";
 
 function EditorNavItem({
   subItem,
@@ -253,6 +255,8 @@ export default function EditorNav({
 
     load();
   }, []);
+
+  const aiValue = useContext(AIContext);
 
   const NavItems = [
     {
@@ -518,6 +522,13 @@ export default function EditorNav({
       label: "Docs",
       to: "/docs/",
     },
+    {
+      icon: RiSparkling2Line,
+      label: "JS-Confuser AI",
+      onClick: () => {
+        aiValue.setAI(true);
+      },
+    },
   ];
 
   // Prevent the default browser behavior for Ctrl + N
@@ -651,8 +662,15 @@ export default function EditorNav({
                     mr: item.mr,
                   }}
                   color="inherit"
+                  startIcon={item.icon ? <item.icon /> : null}
                   endIcon={item.items ? <ArrowDropDown /> : null}
                   onClick={(event) => {
+                    if (item.onClick) {
+                      item.onClick();
+
+                      event.preventDefault();
+                      return;
+                    }
                     handleClick(event, item.label);
                   }}
                   component={item.to && Link}

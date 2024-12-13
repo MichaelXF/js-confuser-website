@@ -33,7 +33,7 @@ export function ensureAllDocsLoaded(onLoadingStart) {
   }
 
   if (promises.length) {
-    onLoadingStart();
+    onLoadingStart?.();
   }
 
   return Promise.allSettled(promises);
@@ -547,3 +547,22 @@ ${item.exampleCode}
     });
   });
 }
+
+// Exports all the docs for an AI knowledge base
+window.exportDocs = async function () {
+  await ensureAllDocsLoaded();
+
+  var { docsByPath } = getDocs();
+  var docs = Object.values(docsByPath);
+  var exportDocs = docs.map((doc) => {
+    return {
+      title: doc.title,
+      content: doc.content,
+      metadata: {
+        url: "https://js-confuser.com/docs/" + doc.urlPath,
+        group: doc.group,
+      },
+    };
+  });
+  return exportDocs;
+};

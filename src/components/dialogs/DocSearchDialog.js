@@ -4,12 +4,13 @@ import {
   Button,
   Dialog,
   Fade,
+  InputAdornment,
   InputBase,
   LinearProgress,
   Typography,
 } from "@mui/material";
 import { ensureAllDocsLoaded, getDocs } from "../../utils/doc-utils";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { similarity } from "../../utils/string-utils";
 import { Link } from "react-router-dom";
 import { getRandomString } from "../../utils/random-utils";
@@ -20,6 +21,8 @@ import {
   splitMarkdownIntoHeadingSections,
   trimRemovePrefix,
 } from "../../utils/md-utils";
+import { RiSparkling2Line } from "react-icons/ri";
+import { AIContext } from "../../App";
 
 export default function DocSearchDialog({ open, onClose }) {
   var [results, setResults] = useState([]);
@@ -110,9 +113,28 @@ export default function DocSearchDialog({ open, onClose }) {
       results.length = 5;
     }
 
+    if (
+      typeof query === "string" &&
+      query &&
+      (query.length > 5 || results.length === 0)
+    ) {
+      results.push({
+        key: "ai",
+        type: "ai",
+        query: query.trim(),
+      });
+    }
+
     setResults(results);
     setActiveEl(null);
   };
+
+  const aiValue = useContext(AIContext);
+
+  function searchJSConfuserAI(value) {
+    aiValue.setAI(value);
+    onClose();
+  }
 
   return (
     <Dialog
@@ -191,59 +213,101 @@ export default function DocSearchDialog({ open, onClose }) {
         onInput={(e) => {
           search(e.target.value);
         }}
-        startAdornment={<Search sx={{ mr: 2 }} />}
+        startAdornment={
+          <InputAdornment
+            position="start"
+            sx={{ mr: 2, color: "primary.main" }}
+          >
+            <Search />
+          </InputAdornment>
+        }
       />
 
       {results && results.length
-        ? results.map((result, index) => (
-            <Button
-              sx={{
-                textTransform: "none",
-                justifyContent: "flex-start",
-                p: 2,
-                textAlign: "left",
-                bgcolor:
-                  activeEl?.id === result.key.toString()
-                    ? "primary.alpha"
-                    : "transparent",
-
-                "&:hover": {
+        ? results.map((result, index) => {
+            return (
+              <Button
+                sx={{
+                  textTransform: "none",
+                  justifyContent: "flex-start",
+                  p: 2,
+                  textAlign: "left",
                   bgcolor:
-                    activeEl && activeEl.id !== result.key.toString()
-                      ? "transparent"
-                      : "primary.alpha",
-                },
-              }}
-              component={Link}
-              to={result.to}
-              onClick={() => {
-                onClose();
-              }}
-              id={result.key}
-              onMouseEnter={(e) => {
-                setActiveEl(e.currentTarget);
-              }}
-              onMouseOver={(e) => {
-                setActiveEl(e.currentTarget);
-              }}
-            >
-              <Box mr="auto" pr={1}>
-                <Typography fontWeight="bold" fontSize="1.125rem">
-                  {result.title}
-                </Typography>
-                <Typography color="text.secondary" lineHeight="30px">
-                  {parseLine(result.description, false, 110)}
-                </Typography>
-                <Typography color="text.secondary" fontSize="0.8rem" mt={2}>
-                  {result.subtitle}
-                </Typography>
-              </Box>
+                    activeEl?.id === result.key.toString()
+                      ? "primary.alpha"
+                      : "transparent",
 
-              <Box pr={1}>
-                <KeyboardArrowRight sx={{ fontSize: "1.25rem" }} />
-              </Box>
-            </Button>
-          ))
+                  "&:hover": {
+                    bgcolor:
+                      activeEl && activeEl.id !== result.key.toString()
+                        ? "transparent"
+                        : "primary.alpha",
+                  },
+                }}
+                component={Link}
+                to={result.to}
+                onClick={() => {
+                  if (result.type === "ai") {
+                    searchJSConfuserAI(result.query);
+                  }
+                  onClose();
+                }}
+                id={result.key}
+                key={result.key}
+                onMouseEnter={(e) => {
+                  setActiveEl(e.currentTarget);
+                }}
+                onMouseOver={(e) => {
+                  setActiveEl(e.currentTarget);
+                }}
+              >
+                {result.type === "ai" ? (
+                  <Box color="primary.main" fontSize="1.25rem" mr={2}>
+                    <RiSparkling2Line />
+                  </Box>
+                ) : null}
+                <Box mr="auto" pr={1}>
+                  {result.type === "ai" ? (
+                    <>
+                      <Typography fontSize="1.125rem" color="white">
+                        Can you tell me about{" "}
+                        <Typography
+                          fontWeight="bold"
+                          typography="inherit"
+                          component="span"
+                          color="primary.main"
+                        >
+                          {result.query}
+                        </Typography>
+                      </Typography>
+                      <Typography color="text.secondary" lineHeight="30px">
+                        Use AI to answer your question
+                      </Typography>
+                    </>
+                  ) : (
+                    <>
+                      <Typography fontWeight="bold" fontSize="1.125rem">
+                        {result.title}
+                      </Typography>
+                      <Typography color="text.secondary" lineHeight="30px">
+                        {parseLine(result.description, false, 110)}
+                      </Typography>
+                      <Typography
+                        color="text.secondary"
+                        fontSize="0.8rem"
+                        mt={2}
+                      >
+                        {result.subtitle}
+                      </Typography>
+                    </>
+                  )}
+                </Box>
+                <Box pr={1}>
+                  <KeyboardArrowRight sx={{ fontSize: "1.25rem" }} />
+                </Box>
+              </Button>
+            );
+          })
         : null}
     </Dialog>
   );

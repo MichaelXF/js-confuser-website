@@ -270,7 +270,7 @@ export default function Markdown({
         for (var i = index + 1; i < lines.length; i++) {
           let currentLine = lines[i];
 
-          if (currentLine.startsWith(endToken)) {
+          if (currentLine.trimStart().startsWith(endToken)) {
             endLineIndex = i;
             break;
           } else {

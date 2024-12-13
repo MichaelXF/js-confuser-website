@@ -227,6 +227,8 @@ export default function Chat({ maxHeight = "100vh", immediateMessage }) {
           didForceScroll = true;
         }
         setJustifyContent("flex-start");
+
+        cleanup();
       } else {
         setJustifyContent("center");
       }
@@ -244,11 +246,19 @@ export default function Chat({ maxHeight = "100vh", immediateMessage }) {
 
     cb();
 
+    var disposed = false;
+
+    function cleanup() {
+      if (disposed) return;
+      disposed = true;
+
+      observer.disconnect();
+      mutationObserver.disconnect();
+    }
+
     // Cleanup observer on unmount
     return () => {
-      observer.disconnect();
-
-      mutationObserver.disconnect();
+      cleanup();
     };
   }, []);
 

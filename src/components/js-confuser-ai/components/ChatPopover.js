@@ -1,4 +1,4 @@
-import { Box, IconButton, Stack } from "@mui/material";
+import { Box, IconButton, Stack, useMediaQuery } from "@mui/material";
 import Chat from "./Chat";
 import {
   BrandingWatermarkOutlined,
@@ -8,6 +8,8 @@ import {
 import { useEffect, useState } from "react";
 
 export default function ChatPopover({ immediateMessage, onClose }) {
+  const isMdOrLarger = useMediaQuery((theme) => theme.breakpoints.up("md"));
+
   const [fullScreen, setFullScreen] = useState(true);
 
   const fullScreenStyles = fullScreen
@@ -35,7 +37,7 @@ export default function ChatPopover({ immediateMessage, onClose }) {
     ? {
         maxWidth: "1000px",
         mx: "auto",
-        px: 10,
+        px: isMdOrLarger ? 10 : 0,
       }
     : {
         pt: "42px",
@@ -83,7 +85,7 @@ export default function ChatPopover({ immediateMessage, onClose }) {
       p={2}
       height="542px"
       zIndex="999"
-      px={4}
+      px={isMdOrLarger ? 4 : 2}
       bgcolor={"rgba(15, 18, 20, 0.95)"}
       sx={{
         backdropFilter: "blur(8px)",
@@ -93,20 +95,22 @@ export default function ChatPopover({ immediateMessage, onClose }) {
       <Box {...fullScreenContainerStyles}>
         <Box position="absolute" top="16px" right="16px">
           <Stack direction="row" spacing={1}>
-            <IconButton
-              onClick={() => {
-                setFullScreen(!fullScreen);
-              }}
-              {...iconButtonProps}
-            >
-              {fullScreen ? (
-                <BrandingWatermarkOutlined
-                  sx={{ transform: "scaleX(0.9) scale(0.94)" }}
-                />
-              ) : (
-                <OpenInNew />
-              )}
-            </IconButton>
+            {isMdOrLarger ? (
+              <IconButton
+                onClick={() => {
+                  setFullScreen(!fullScreen);
+                }}
+                {...iconButtonProps}
+              >
+                {fullScreen ? (
+                  <BrandingWatermarkOutlined
+                    sx={{ transform: "scaleX(0.9) scale(0.94)" }}
+                  />
+                ) : (
+                  <OpenInNew />
+                )}
+              </IconButton>
+            ) : null}
             <IconButton onClick={onClose} {...iconButtonProps}>
               <CloseOutlined />
             </IconButton>

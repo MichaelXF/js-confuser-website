@@ -5,6 +5,7 @@ import PageDoc from "./pages/PageDoc";
 import ScrollToTop from "./components/ScrollToTop";
 import PageAST from "./pages/PageAST";
 import PageMarkdown from "./pages/PageMarkdown";
+import PageNotFound from "./pages/PageNotFound";
 
 export default function AppRouter() {
   return (
@@ -19,6 +20,8 @@ export default function AppRouter() {
         <Route path="/docs/" element={<PageDoc />} />
         <Route path="/docs/:group/:subpath" element={<PageDoc />} />
         <Route path="/docs/:group/" element={<PageDoc />} />
+
+        <Route path="*" element={<PageNotFound />} />
       </Routes>
     </BrowserRouter>
   );

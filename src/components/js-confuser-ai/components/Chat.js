@@ -27,24 +27,42 @@ export default function Chat({ maxHeight = "100vh", immediateMessage }) {
 
   const hasSentImmediateMessage = useRef(false); // Send the immediate message only once
 
-  const [cfAuth, setCfAuth] = useState(false);
+  const [cfAuth, setCfAuth] = useState(false); // Does this user have Cloudflare authentication?
 
   useEffect(() => {
     if (!cfAuth) {
+      // Dispose the CF script - Allows new session to re-auth
+      function disposeScript() {
+        if (!script) return;
+
+        setTimeout(() => {
+          script.remove();
+        }, 1000);
+      }
+
+      // Turnstile callback
       window.onloadTurnstileCallback = function () {
         window.turnstile.render("#turnstile-container", {
           sitekey: "0x4AAAAAAA2IS1nneh9eH4R1",
           callback: function (token) {
+            // Authentication is successful, user may now use WebSocket
             setCfAuth(true);
-            console.log(`Challenge Success ${token}`);
+            // console.log(`Challenge Success ${token}`);
+
+            console.log("Challenge Success");
+            disposeScript();
           },
           errorCallback: function (error) {
+            // Authentication failed, handle error
             console.error("Challenge Error:", error);
             setError(error);
+
+            disposeScript();
           },
         });
       };
 
+      // Check if the script already exists - For development
       const exists = document.getElementById("cf-auth-script");
       if (exists) return;
 

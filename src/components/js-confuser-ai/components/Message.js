@@ -30,6 +30,8 @@ export default function Message({
   const [replay, setReplay] = useState(false);
   const snackbar = useSnackbar();
 
+  // TYPING ANIMATION
+  // Make it seem like the AI is typing, when in reality it's streaming chunks of the response
   useEffect(() => {
     if (!assistantMessage.content) return;
 
@@ -55,7 +57,14 @@ export default function Message({
         .split("\n")
         .at(-1);
 
-      if (currentLine.trimLeft().startsWith("- ")) {
+      // For tools, we need to show the full line immediately
+      // TODO: Find better way to detect tools
+      if (
+        currentLine
+          .trimLeft()
+          .startsWith("- Running: search_knowledge_base(query=") ||
+        currentLine.trimLeft().startsWith("- search_knowledge_base(query=")
+      ) {
         const nextLine = assistantMessage.content.indexOf("\n", charsToShow);
         const newCharsToShow = Math.max(
           charsToShow,
@@ -68,6 +77,7 @@ export default function Message({
         }
       }
 
+      // Jump sequences for URLs as it can cause rapid layout shifts
       let sliced = assistantMessage.content.slice(0, charsToShow);
 
       const jumpSequences = {
@@ -137,7 +147,7 @@ export default function Message({
         </Box>
 
         <Box mt={2}>
-          {!displayMessage ? (
+          {!displayMessage && showIncompleteTools ? (
             <AITool />
           ) : (
             <Markdown

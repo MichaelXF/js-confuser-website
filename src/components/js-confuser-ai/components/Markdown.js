@@ -27,7 +27,7 @@ export const parseLine = (
 ) => {
   const elements = [];
   const regex =
-    /(\*\*(.*?)\*\*|\*(.*?)\*|`(.*?)`|\[(.+)\]\(((https?:\/\/)?[^\s]+)\))|(((https?:\/\/)|(www\.))[A-z-.\/]+\.[A-z-.\/]+)/g;
+    /(\*\*(.*?)\*\*|\*(.*?)\*|`(.*?)`|\[([^)]+)\]\(((https?:\/\/)?[^\s]+)\))|(((https?:\/\/)|(www\.))[A-z-.\/]+\.[A-z-.\/]+)/g;
   let match;
   let lastIndex = 0;
 
@@ -90,7 +90,7 @@ export const parseLine = (
           key={"link_" + match.index}
           sx={{
             wordBreak: "break-word",
-            display: "inline-block",
+            display: "inline",
           }}
         >
           {textDisplay}
@@ -457,6 +457,7 @@ export default function Markdown({
               sx={{
                 border: "1px solid",
                 borderColor: "divider_opaque",
+                wordBreak: "normal",
               }}
             >
               <Table sx={{ minWidth: 650 }} aria-label="simple table">

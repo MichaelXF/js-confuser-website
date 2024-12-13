@@ -27,7 +27,47 @@ export default function Chat({ maxHeight = "100vh", immediateMessage }) {
 
   const hasSentImmediateMessage = useRef(false); // Send the immediate message only once
 
+  const [cfAuth, setCfAuth] = useState(false);
+
   useEffect(() => {
+    if (!cfAuth) {
+      window.onloadTurnstileCallback = function () {
+        window.turnstile.render("#turnstile-container", {
+          sitekey: "0x4AAAAAAA2IS1nneh9eH4R1",
+          callback: function (token) {
+            setCfAuth(true);
+            console.log(`Challenge Success ${token}`);
+          },
+          errorCallback: function (error) {
+            console.error("Challenge Error:", error);
+            setError(error);
+          },
+        });
+      };
+
+      const exists = document.getElementById("cf-auth-script");
+      if (exists) return;
+
+      // Create a new script element
+      const script = document.createElement("script");
+
+      // Set the src attribute to the desired URL
+      script.src =
+        "https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback";
+
+      // Set the defer attribute (optional, based on your needs)
+      script.defer = true;
+
+      script.id = "cf-auth-script";
+
+      // Append the script to the document head
+      document.head.appendChild(script);
+    }
+  }, [cfAuth]);
+
+  useEffect(() => {
+    if (!cfAuth) return;
+
     const webSocketURL = process.env.REACT_APP_WS_HOST + "v1/chat/ws";
     let websocket;
 
@@ -89,7 +129,7 @@ export default function Chat({ maxHeight = "100vh", immediateMessage }) {
         websocket.close();
       }
     };
-  }, []);
+  }, [cfAuth]);
 
   const [messages, setMessages] = useState([]);
 
@@ -260,7 +300,7 @@ export default function Chat({ maxHeight = "100vh", immediateMessage }) {
     return () => {
       cleanup();
     };
-  }, []);
+  }, [maxHeight]);
 
   return (
     <Box>
@@ -292,10 +332,19 @@ export default function Chat({ maxHeight = "100vh", immediateMessage }) {
               spacing={0}
               justifyContent={justifyContent}
               overflow={justifyContent === "center" ? "hidden" : "auto"}
+              display={justifyContent === "center" ? "flex" : "block"}
               minHeight="100%"
               ref={flexRef}
             >
-              {loading && !error ? (
+              {!cfAuth ? (
+                <Box width="100%" textAlign="center">
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: `<div id="turnstile-container"></div>`,
+                    }}
+                  ></div>
+                </Box>
+              ) : loading && !error ? (
                 <Box
                   display="flex"
                   height="100%"

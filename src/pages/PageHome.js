@@ -11,6 +11,8 @@ import {
   Bolt,
   Check,
   Copyright,
+  Info,
+  InfoOutlined,
   KeyboardArrowDown,
   KeyboardArrowRight,
   PriceCheck,
@@ -270,8 +272,8 @@ export default function PageHome() {
 
               <Typography
                 fontSize="1.125rem"
-                mt={4}
-                mb={4}
+                mt={2}
+                mb={8}
                 color="text.secondary"
               >
                 JS-Confuser is a powerful JavaScript obfuscation tool that makes
@@ -279,9 +281,24 @@ export default function PageHome() {
                 without authorization.
               </Typography>
 
-              {ctaButton}
+              <Stack direction="row" spacing={2}>
+                {ctaButton}
 
-              <Box mt={6}>
+                <Link to="/docs">
+                  <Button
+                    size="large"
+                    color="inherit"
+                    sx={{
+                      color: "text.secondary_darker",
+                    }}
+                    endIcon={<KeyboardArrowRight />}
+                  >
+                    Read the docs
+                  </Button>
+                </Link>
+              </Stack>
+
+              <Box mt={4}>
                 {["Free", "Open Source"].map((item, i) => {
                   return (
                     <Stack direction="row" alignItems="center" key={i}>
@@ -293,7 +310,7 @@ export default function PageHome() {
                           color: "primary.main",
                         }}
                       />
-                      <Typography>{item}</Typography>
+                      <Typography color="text.secondary">{item}</Typography>
                     </Stack>
                   );
                 })}
@@ -329,6 +346,7 @@ export default function PageHome() {
         overflow="hidden"
         bgcolor="rgba(29,34,38,0.1)"
         textAlign="center"
+        py={8}
       >
         <Container maxWidth="lg">
           <Typography variant="h3" fontWeight="bold" color="white">
@@ -343,26 +361,36 @@ export default function PageHome() {
           </Typography>
 
           <Typography
-            variant="h6"
+            fontSize="1.125rem"
             color="text.secondary"
             fontWeight="normal"
             mt={1}
-            mb={4}
+            mb={6}
           >
             JS-Confuser AI is a powerful AI chat assistant to answer complex
             questions about JS-Confuser.
           </Typography>
 
-          <Button
-            variant="contained"
-            size="large"
-            startIcon={<RiSparkling2Line />}
-            onClick={() => {
-              aiValue.setAI(true);
-            }}
-          >
-            Try JS-Confuser AI
-          </Button>
+          <Box mb={2}>
+            <Button
+              variant="contained"
+              size="large"
+              startIcon={<RiSparkling2Line />}
+              onClick={() => {
+                aiValue.setAI(true);
+              }}
+            >
+              Try JS-Confuser AI
+            </Button>
+          </Box>
+
+          <Typography variant="caption" color="text.secondary">
+            <InfoOutlined
+              sx={{ fontSize: "0.9rem", mb: "-2.75px", mr: "2.5px" }}
+            />
+            This feature is currently experimental and may not be function as
+            expected.
+          </Typography>
         </Container>
       </Box>
 

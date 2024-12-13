@@ -3,6 +3,7 @@ import {
   Box,
   Button,
   Divider,
+  Icon,
   Stack,
   Toolbar,
   Typography,
@@ -80,7 +81,7 @@ export default function Nav() {
             {isMdOrLarger ? (
               <Button
                 variant="text"
-                startIcon={<RiSparkling2Line />}
+                startIcon={<Icon component={RiSparkling2Line} />}
                 onClick={() => {
                   aiValue.setAI(true);
                 }}

@@ -29,7 +29,16 @@ export default function Chat({ maxHeight = "100vh", immediateMessage }) {
 
   useEffect(() => {
     const webSocketURL = process.env.REACT_APP_WS_HOST + "v1/chat/ws";
-    const websocket = new WebSocket(webSocketURL);
+    let websocket;
+
+    try {
+      websocket = new WebSocket(webSocketURL);
+    } catch (err) {
+      console.error("WebSocket connection failed:", err);
+      setError("" + err);
+
+      return;
+    }
     let didConnect = false;
     // Handle WebSocket connection open
     websocket.onopen = () => {

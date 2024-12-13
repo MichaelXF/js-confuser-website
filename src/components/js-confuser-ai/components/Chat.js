@@ -16,6 +16,8 @@ import Message from "./Message";
 import { RiSparklingLine } from "react-icons/ri";
 import ChatLanding from "./ChatLanding";
 
+let globalCfAuthState = false;
+
 export default function Chat({ maxHeight = "100vh", immediateMessage }) {
   const webSocketRef = useRef();
   const incomingMessageCallbackRef = useRef();
@@ -27,7 +29,7 @@ export default function Chat({ maxHeight = "100vh", immediateMessage }) {
 
   const hasSentImmediateMessage = useRef(false); // Send the immediate message only once
 
-  const [cfAuth, setCfAuth] = useState(false); // Does this user have Cloudflare authentication?
+  const [cfAuth, setCfAuth] = useState(globalCfAuthState); // Does this user have Cloudflare authentication?
 
   useEffect(() => {
     if (!cfAuth) {
@@ -46,8 +48,9 @@ export default function Chat({ maxHeight = "100vh", immediateMessage }) {
           sitekey: "0x4AAAAAAA2IS1nneh9eH4R1",
           callback: function (token) {
             // Authentication is successful, user may now use WebSocket
+            // token is not required for validation - CF cookie permits WebSocket passage
             setCfAuth(true);
-            // console.log(`Challenge Success ${token}`);
+            globalCfAuthState = true; // Save the state globally
 
             console.log("Challenge Success");
             disposeScript();

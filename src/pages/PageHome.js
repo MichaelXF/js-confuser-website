@@ -261,7 +261,7 @@ export default function PageHome() {
   const aiValue = useContext(AIContext);
 
   return (
-    <Box>
+    <Box sx={isMdOrLarger ? {} : { wordBreak: "break-word" }}>
       <Nav />
 
       <Box
@@ -301,7 +301,7 @@ export default function PageHome() {
                 without authorization.
               </Typography>
 
-              <Stack direction="row" spacing={2}>
+              <Stack direction={isMdOrLarger ? "row" : "column"} spacing={2}>
                 {ctaButton}
 
                 <Link to="/docs">
@@ -343,18 +343,20 @@ export default function PageHome() {
           </Stack>
         </Container>
 
-        <Box
-          textAlign="center"
-          fontSize="1.75rem"
-          position="absolute"
-          bottom="16px"
-          left="50%"
-          sx={{
-            transform: "translate(-50%, 0)",
-          }}
-        >
-          <KeyboardArrowDown />
-        </Box>
+        {isMdOrLarger ? (
+          <Box
+            textAlign="center"
+            fontSize="1.75rem"
+            position="absolute"
+            bottom="16px"
+            left="50%"
+            sx={{
+              transform: "translate(-50%, 0)",
+            }}
+          >
+            <KeyboardArrowDown />
+          </Box>
+        ) : null}
       </Box>
 
       <Box
@@ -376,7 +378,7 @@ export default function PageHome() {
             <Typography
               className="GradientText"
               variant="inherit"
-              component="span"
+              component={isMdOrLarger ? "span" : "h3"}
             >
               Artificial Intelligence
             </Typography>
@@ -504,7 +506,11 @@ export default function PageHome() {
               <WebsiteAnimation />
             </Box>
 
-            <Stack spacing={4} direction="row" width="100%">
+            <Stack
+              spacing={4}
+              direction={isMdOrLarger ? "row" : "column"}
+              width="100%"
+            >
               {[
                 {
                   header: "Highly Configurable",

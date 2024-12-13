@@ -1,6 +1,7 @@
 import { KeyboardArrowRight } from "@mui/icons-material";
 import { Box, Button, Stack, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
+import { animateIconSx } from "../pages/PageHome";
 
 export default function QuickActions() {
   return (
@@ -39,6 +40,7 @@ export default function QuickActions() {
           <Button
             key={item.to}
             sx={{
+              ...animateIconSx,
               p: 4,
               mr: "10px",
               mb: "10px",

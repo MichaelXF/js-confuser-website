@@ -48,7 +48,7 @@ export default function Message({
 
       refCounter.current += deltaTime;
 
-      let speed = 1.85;
+      let speed = 2.5;
 
       let charsToShow = Math.floor(refCounter.current / speed);
 

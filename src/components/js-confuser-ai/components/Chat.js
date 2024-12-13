@@ -33,6 +33,8 @@ export default function Chat({ maxHeight = "100vh", immediateMessage }) {
 
   useEffect(() => {
     if (!cfAuth) {
+      let script;
+
       // Dispose the CF script - Allows new session to re-auth
       function disposeScript() {
         if (!script) return;
@@ -70,7 +72,7 @@ export default function Chat({ maxHeight = "100vh", immediateMessage }) {
       if (exists) return;
 
       // Create a new script element
-      const script = document.createElement("script");
+      script = document.createElement("script");
 
       // Set the src attribute to the desired URL
       script.src =
@@ -464,7 +466,11 @@ export default function Chat({ maxHeight = "100vh", immediateMessage }) {
                           }
                         }}
                       >
-                        {generating ? <StopCircle /> : <Send />}
+                        {generating ? (
+                          <StopCircle className="blinking" />
+                        ) : (
+                          <Send />
+                        )}
                       </IconButton>
                     </InputAdornment>
                   ),

@@ -14,6 +14,7 @@ import { Link as ReactLink } from "react-router-dom";
 import { RiSparkling2Line } from "react-icons/ri";
 import { useContext } from "react";
 import { AIContext } from "../App";
+import { animateIconSx } from "../pages/PageHome";
 
 export default function Nav() {
   const aiValue = useContext(AIContext);
@@ -30,7 +31,7 @@ export default function Nav() {
     >
       <Toolbar>
         <Stack
-          spacing={4}
+          spacing={isMdOrLarger ? 4 : 2}
           direction="row"
           alignItems="center"
           width="100%"
@@ -42,7 +43,7 @@ export default function Nav() {
             </Typography>
           </ReactLink>
 
-          <Divider orientation="vertical" flexItem />
+          {isMdOrLarger ? <Divider orientation="vertical" flexItem /> : null}
 
           <Button
             endIcon={<KeyboardArrowRight />}
@@ -50,6 +51,7 @@ export default function Nav() {
             to="/editor"
             component={ReactLink}
             sx={{
+              ...animateIconSx,
               display: {
                 xs: "none",
                 sm: "flex",

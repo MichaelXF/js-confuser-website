@@ -89,7 +89,7 @@ export const parseLine = (
           rel="noopener noreferrer"
           key={"link_" + match.index}
           sx={{
-            wordBreak: "break-word",
+            wordBreak: "break-all",
             display: "inline",
           }}
         >

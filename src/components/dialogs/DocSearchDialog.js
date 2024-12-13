@@ -14,7 +14,7 @@ import { useContext, useEffect, useState } from "react";
 import { similarity } from "../../utils/string-utils";
 import { Link } from "react-router-dom";
 import { getRandomString } from "../../utils/random-utils";
-import { toUrlCase } from "../../utils/format-utils";
+import { textEllipsis, toUrlCase } from "../../utils/format-utils";
 import useSnackbar from "../../hooks/useSnackbar";
 import { parseLine } from "../Markdown";
 import {
@@ -276,8 +276,9 @@ export default function DocSearchDialog({ open, onClose }) {
                           typography="inherit"
                           component="span"
                           color="primary.main"
+                          sx={{ wordBreak: "break-all" }}
                         >
-                          {result.query}
+                          {textEllipsis(result.query, 50)}
                         </Typography>
                       </Typography>
                       <Typography color="text.secondary" lineHeight="30px">

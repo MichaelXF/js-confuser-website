@@ -22,6 +22,7 @@ import { textEllipsis, toUrlCase } from "../utils/format-utils";
 import { KeyboardArrowRight, OpenInNew } from "@mui/icons-material";
 import { trimRemovePrefix } from "../utils/md-utils";
 import { useNavigate } from "react-router-dom";
+import { animateIconSx } from "../pages/PageHome";
 
 export const parseLine = (
   line,
@@ -364,6 +365,7 @@ export default function Markdown({
 
                       navigator("/editor?" + searchParams.toString());
                     }}
+                    sx={animateIconSx}
                   >
                     Try It Out
                   </Button>

@@ -14,6 +14,7 @@ import { landingPageCode } from "../constants";
 import useJSConfuser from "../hooks/useJSConfuser";
 import * as monaco from "monaco-editor";
 import TextBadge from "../components/TextBadge";
+import { animateIconSx } from "../pages/PageHome";
 
 export default function HomeAnimation() {
   var JSConfuser = useJSConfuser();
@@ -236,6 +237,7 @@ export default function HomeAnimation() {
               LinkComponent={Link}
               to="/editor"
               endIcon={<KeyboardArrowRight />}
+              sx={animateIconSx}
             >
               Try It Out
             </Button>

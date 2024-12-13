@@ -222,6 +222,21 @@ function FeatureRows({ items }) {
   );
 }
 
+// Animate the arrow icons on hover
+export const animateIconSx = {
+  px: "20px",
+  "& .MuiButton-icon": {
+    pl: "10px",
+    transform: "translateX(0px)",
+    transition: "transform 0.2s",
+  },
+  "&:hover": {
+    "& .MuiButton-icon": {
+      transform: "translateX(4px)",
+    },
+  },
+};
+
 export default function PageHome() {
   useSEO(
     "JS-Confuser",
@@ -232,7 +247,12 @@ export default function PageHome() {
 
   const ctaButton = (
     <Link to="/editor">
-      <Button variant="contained" size="large" endIcon={<KeyboardArrowRight />}>
+      <Button
+        variant="contained"
+        size="large"
+        endIcon={<KeyboardArrowRight />}
+        sx={animateIconSx}
+      >
         Get Started
       </Button>
     </Link>
@@ -288,10 +308,12 @@ export default function PageHome() {
                   <Button
                     size="large"
                     color="inherit"
+                    endIcon={<KeyboardArrowRight />}
                     sx={{
                       color: "text.secondary_darker",
+
+                      ...animateIconSx,
                     }}
-                    endIcon={<KeyboardArrowRight />}
                   >
                     Read the docs
                   </Button>
@@ -388,7 +410,7 @@ export default function PageHome() {
             <InfoOutlined
               sx={{ fontSize: "0.9rem", mb: "-2.75px", mr: "2.5px" }}
             />
-            This feature is currently experimental and may not be function as
+            This feature is currently experimental and may not function as
             expected.
           </Typography>
         </Container>

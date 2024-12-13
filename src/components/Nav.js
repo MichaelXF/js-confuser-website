@@ -82,6 +82,12 @@ export default function Nav() {
               <Button
                 variant="text"
                 startIcon={<Icon component={RiSparkling2Line} />}
+                sx={{
+                  // Idk why -4px margin left is being added
+                  "& .MuiButton-startIcon": {
+                    ml: "0px",
+                  },
+                }}
                 onClick={() => {
                   aiValue.setAI(true);
                 }}

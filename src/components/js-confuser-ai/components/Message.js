@@ -78,20 +78,40 @@ export default function Message({
       }
 
       // Jump sequences for URLs as it can cause rapid layout shifts
-      let sliced = assistantMessage.content.slice(0, charsToShow);
-
       const jumpSequences = {
+        // Links -> jump just enough for blue text
         "[": ")",
         "https://": ".",
+        // Markdown list -> jump into line item
       };
 
       const jumpSequencesExtra = {
         "https://": 1,
       };
 
+      function moveToIndex(index) {
+        charsToShow = index;
+        refCounter.current = charsToShow * speed;
+      }
+
       if (lastCharsToShow !== charsToShow) {
-        for (var i = lastCharsToShow; i < charsToShow; i++) {
-          for (var sequenceStart in jumpSequences) {
+        outer: for (let i = lastCharsToShow; i <= charsToShow; i++) {
+          if (assistantMessage.content.charAt(i) === "\n") {
+            // Try to find new list item
+            let nextLine = assistantMessage.content.slice(i + 1).split("\n")[0];
+            let match = nextLine.match(/^\s*(\*|-) /);
+            if (match) {
+              let matchJump = i + match.index + match[0].length + 1;
+              if (matchJump > charsToShow) {
+                i = matchJump;
+
+                moveToIndex(i);
+              }
+            }
+          }
+
+          // Defined jump sequences
+          for (let sequenceStart in jumpSequences) {
             if (assistantMessage.content.startsWith(sequenceStart, i)) {
               const sequenceEnd = jumpSequences[sequenceStart];
               let endIndex = assistantMessage.content.indexOf(
@@ -102,17 +122,17 @@ export default function Message({
                 const extra = jumpSequencesExtra[sequenceStart] || 0;
                 endIndex += extra;
 
-                i = charsToShow = endIndex + 1;
+                i = endIndex + 1;
 
-                refCounter.current = charsToShow * speed;
-                sliced = assistantMessage.content.slice(0, charsToShow);
-                break;
+                moveToIndex(i);
+                break outer;
               }
             }
           }
         }
       }
 
+      let sliced = assistantMessage.content.slice(0, charsToShow);
       lastCharsToShow = charsToShow;
 
       setDisplayMessage(sliced);

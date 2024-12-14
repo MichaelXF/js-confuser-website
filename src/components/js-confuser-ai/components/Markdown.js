@@ -315,9 +315,8 @@ export default function Markdown({
         );
       }
 
-      if (isValidBulletPoint(trimmed)) {
-        const isUnordered =
-          trimmed.startsWith("- ") || trimmed.startsWith("* ");
+      if (isValidBulletPoint(line.trimStart())) {
+        const isUnordered = trimmed.startsWith("-") || trimmed.startsWith("*");
         const bulletLines = [];
         let i = index;
         let startLineIndex = index;
@@ -329,7 +328,7 @@ export default function Markdown({
           do {
             i++;
             if (i > lines.length) break outer;
-            trimmed = lines[i]?.trim();
+            trimmed = lines[i]?.trimStart();
           } while (typeof trimmed === "string" && !trimmed.trim());
         } while (isValidBulletPoint(trimmed));
 

@@ -176,16 +176,38 @@ export default function Chat({
 
   const containerRef = useRef();
   const flexRef = useRef();
+  const shouldAutoScrollRef = useRef(true);
 
+  // When the user manually scrolls - release auto scroll
+  useEffect(() => {
+    if (!flexRef.current) return;
+    const cb = (e) => {
+      shouldAutoScrollRef.current = false;
+
+      // Re enable auto scroll if the user is at the bottom
+      if (e.target.scrollTop >= e.target.scrollHeight - e.target.clientHeight) {
+        shouldAutoScrollRef.current = true;
+      }
+    };
+    flexRef.current.addEventListener("scroll", cb);
+
+    return () => {
+      if (!flexRef.current) return;
+      flexRef.current.removeEventListener("scroll", cb);
+    };
+  }, [flexRef.current]);
+
+  // Scroll to bottom on new message
   function scrollToBottom(forceScroll = false) {
     const flex = flexRef.current;
     if (!flex) return;
-    const isAtBottom =
-      forceScroll ||
-      flex.scrollHeight - flex.clientHeight <= flex.scrollTop + 5;
+
+    if (forceScroll) {
+      shouldAutoScrollRef.current = true;
+    }
 
     // Scroll to bottom if the user was already at the bottom
-    if (isAtBottom) {
+    if (shouldAutoScrollRef.current || forceScroll) {
       setTimeout(() => {
         flex.scrollTop = flex.scrollHeight;
       }, 16);

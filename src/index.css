@@ -13,10 +13,10 @@ a {
 }
 
 .LandingBackground {
-  --grid-color: hsla(210, 100%, 45%, 0.175);
+  --grid-color: hsla(210, 100%, 30%, 0.125);
   --grid-size: 39px;
 
-  background: linear-gradient(180deg, hsla(210, 100%, 50%, 0.0175), #0f1214 65%),
+  background: linear-gradient(180deg, hsla(210, 100%, 50%, 0.0175), #0f1214 85%),
     repeating-linear-gradient(
       180deg,
       transparent 0px,

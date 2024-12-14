@@ -27,7 +27,7 @@ export const parseLine = (
 ) => {
   const elements = [];
   const regex =
-    /(\*\*(.*?)\*\*|\*(.*?)\*|`(.*?)`|\[([^)]+)\]\(((https?:\/\/)?[^\s]+)\))|(((https?:\/\/)|(www\.))[A-z-.\/]+\.[A-z-.\/]+)/g;
+    /(\*\*(.*?)\*\*|\*(.*?)\*|`(.*?)`|\[([^)]+)\]\(((https?:\/\/)?[^\s\)]+)\))|(((https?:\/\/)|(www\.))[A-z-.\/]+\.[0-9A-z-?=&#.\/]+)/g;
   let match;
   let lastIndex = 0;
 
@@ -450,7 +450,7 @@ export default function Markdown({
         allowActualBreak = false;
 
         return (
-          <Box key={index} pt={1} mt={2} mb={4}>
+          <Box key={"table_" + index} pt={1} mt={2} mb={4}>
             <TableContainer
               component={Paper}
               key={index}
@@ -483,7 +483,8 @@ export default function Markdown({
                 </TableHead>
                 <TableBody>
                   {rows.map((row, rowIndex) => {
-                    if (row[0]?.trim() === "---") return null;
+                    // Skip divider rows "----"
+                    if (row.every((x) => x.match(/^\s*-+\s*$/g))) return null;
 
                     return (
                       <TableRow key={rowIndex}>

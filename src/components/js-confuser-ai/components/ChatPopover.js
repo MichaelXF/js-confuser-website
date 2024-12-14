@@ -52,9 +52,10 @@ export default function ChatPopover({ immediateMessage, onClose }) {
         size: "small",
       };
 
+  // Remove scrollbars when fullscreen chat is open
   useEffect(() => {
     if (fullScreen) {
-      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
     }
 
     const cb = (e) => {
@@ -67,7 +68,7 @@ export default function ChatPopover({ immediateMessage, onClose }) {
 
     return () => {
       window.removeEventListener("keydown", cb);
-      document.body.style.overflow = "auto";
+      document.documentElement.style.overflow = "auto";
     };
   }, [fullScreen]);
 
@@ -84,11 +85,11 @@ export default function ChatPopover({ immediateMessage, onClose }) {
       width="100%"
       p={2}
       height="542px"
-      zIndex="999"
       px={isMdOrLarger ? 4 : 2}
       bgcolor={"rgba(15, 18, 20, 0.95)"}
       sx={{
         backdropFilter: "blur(8px)",
+        zIndex: 1200,
       }}
       {...fullScreenStyles}
     >
@@ -120,6 +121,7 @@ export default function ChatPopover({ immediateMessage, onClose }) {
         <Chat
           immediateMessage={immediateMessage}
           maxHeight={fullScreen ? "100vh" : "500px"}
+          fullScreen={fullScreen}
         />
       </Box>
     </Box>

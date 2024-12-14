@@ -4,7 +4,8 @@ import { rgbToHex } from "../utils/color-utils";
 import Editor from "@monaco-editor/react";
 import useSEO from "../hooks/useSEO";
 import { LocalStorageKeys } from "../constants";
-import Markdown from "../components/Markdown";
+// import Markdown from "../components/Markdown";
+import Markdown from "../components/js-confuser-ai/components/Markdown";
 
 const DEFAULT_MARKDOWN_CODE = `# Markdown Live Preview
 

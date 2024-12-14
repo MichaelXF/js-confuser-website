@@ -19,7 +19,7 @@ import {
 } from "@mui/icons-material";
 import { Link } from "react-router-dom";
 import { useContext, useEffect, useRef, useState } from "react";
-import Nav from "../components/Nav";
+import Nav, { NAV_HEIGHT } from "../components/Nav";
 import QuickActions from "../components/QuickActions";
 import useSEO from "../hooks/useSEO";
 import websiteImage1 from "../static/websiteImage1.png";
@@ -262,20 +262,25 @@ export default function PageHome() {
 
   return (
     <Box sx={isMdOrLarger ? {} : { wordBreak: "break-word" }}>
-      <Nav />
+      <Box mb={isMdOrLarger ? NAV_HEIGHT : "0"}>
+        <Nav position={isMdOrLarger ? "fixed" : "static"} />
+      </Box>
 
       <Box
         display="flex"
         alignItems="center"
         justifyContent="center"
-        minHeight="calc(100vh - 65px)"
+        minHeight={`calc(100vh - ${NAV_HEIGHT})`}
         width="100%"
         className={isMdOrLarger ? "LandingBackground" : ""}
         position="relative"
       >
-        <Container maxWidth="lg" sx={{ py: isMdOrLarger ? 10 : 0 }}>
+        <Container
+          maxWidth="lg"
+          sx={{ pt: isMdOrLarger ? 8 : 0, pb: isMdOrLarger ? 12 : 0 }}
+        >
           <Stack direction="row" spacing={10} alignItems="center" width="100%">
-            <Box textAlign="left" flex="1 1 42%" pt={6}>
+            <Box textAlign="left" flex="1 1 42%" pt={4}>
               <Typography
                 variant="h1"
                 className="GradientText"
@@ -299,6 +304,16 @@ export default function PageHome() {
                 JS-Confuser is a powerful JavaScript obfuscation tool that makes
                 your programs impossible to understand, copy, re-use or modify
                 without authorization.
+                <Typography
+                  component="span"
+                  sx={{
+                    fontSize: "0.8rem",
+                    transform: "translate(0,-4px)",
+                    display: "inline-block",
+                  }}
+                >
+                  *
+                </Typography>{" "}
               </Typography>
 
               <Stack direction={isMdOrLarger ? "row" : "column"} spacing={2}>
@@ -336,6 +351,13 @@ export default function PageHome() {
                     </Stack>
                   );
                 })}
+
+                <Box mt={1}>
+                  <Typography variant="caption" color="text.secondary">
+                    *May not be entirely impossible, but it will be very
+                    difficult.
+                  </Typography>
+                </Box>
               </Box>
             </Box>
 

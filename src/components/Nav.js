@@ -16,14 +16,16 @@ import { useContext } from "react";
 import { AIContext } from "../App";
 import { animateIconSx } from "../pages/PageHome";
 
-export default function Nav() {
+export const NAV_HEIGHT = "65px";
+
+export default function Nav({ position = "static" }) {
   const aiValue = useContext(AIContext);
 
   const isMdOrLarger = useMediaQuery((theme) => theme.breakpoints.up("md"));
 
   return (
     <AppBar
-      position="static"
+      position={position}
       sx={{
         color: "text.primary",
         px: 0,

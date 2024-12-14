@@ -2,6 +2,7 @@ import {
   Alert,
   AlertTitle,
   Box,
+  Button,
   CircularProgress,
   IconButton,
   InputAdornment,
@@ -11,14 +12,32 @@ import {
 } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { getRandomString } from "../../../utils/random-utils";
-import { InfoOutlined, Send, StopCircle } from "@mui/icons-material";
+import {
+  InfoOutlined,
+  Key,
+  KeyboardArrowRight,
+  Send,
+  StopCircle,
+} from "@mui/icons-material";
 import Message from "./Message";
-import { RiSparklingLine } from "react-icons/ri";
+import {
+  RiErrorWarningLine,
+  RiSignalWifiErrorLine,
+  RiSparklingLine,
+  RiWifiOffLine,
+} from "react-icons/ri";
 import ChatLanding from "./ChatLanding";
 
-let globalCfAuthState = false;
+const webSocketURL = process.env.REACT_APP_WS_HOST + "v1/chat/ws";
+const isLocalhost = webSocketURL.startsWith("ws://localhost:");
 
-export default function Chat({ maxHeight = "100vh", immediateMessage }) {
+let globalCfAuthState = isLocalhost; // Save CloudFlare captcha completion, not needed on localhost
+
+export default function Chat({
+  maxHeight = "100vh",
+  immediateMessage,
+  fullScreen,
+}) {
   const webSocketRef = useRef();
   const incomingMessageCallbackRef = useRef();
   const [error, setError] = useState(null);
@@ -60,7 +79,7 @@ export default function Chat({ maxHeight = "100vh", immediateMessage }) {
           errorCallback: function (error) {
             // Authentication failed, handle error
             console.error("Challenge Error:", error);
-            setError(error);
+            setError("Cloudflare authentication failed. Please try again.");
 
             disposeScript();
           },
@@ -91,7 +110,6 @@ export default function Chat({ maxHeight = "100vh", immediateMessage }) {
   useEffect(() => {
     if (!cfAuth) return;
 
-    const webSocketURL = process.env.REACT_APP_WS_HOST + "v1/chat/ws";
     let websocket;
 
     try {
@@ -124,7 +142,7 @@ export default function Chat({ maxHeight = "100vh", immediateMessage }) {
 
     // Handle incoming messages
     websocket.onmessage = (event) => {
-      console.log("Message from server:", event.data);
+      // console.log("Message from server:", event.data);
 
       incomingMessageCallbackRef.current?.(JSON.parse(event.data));
       // Append the message to the chat box or any UI component
@@ -282,7 +300,7 @@ export default function Chat({ maxHeight = "100vh", immediateMessage }) {
       const clientHeight = element.clientHeight;
       const elementHeight = element.scrollHeight;
 
-      console.log(clientHeight, elementHeight);
+      // console.log(clientHeight, elementHeight);
 
       if (elementHeight > clientHeight) {
         if (!didForceScroll) {
@@ -399,21 +417,73 @@ export default function Chat({ maxHeight = "100vh", immediateMessage }) {
                   ) : null}
 
                   {error ? (
-                    <Alert severity="error" sx={{ mt: 2, borderRadius: "6px" }}>
-                      <AlertTitle fontWeight="bold" color="text.primary">
-                        Error!
-                      </AlertTitle>
-                      {typeof error === "string"
-                        ? error
-                        : "The connection to the server has been lost. Please try again later."}
-                    </Alert>
+                    <Stack
+                      direction="row"
+                      spacing={2}
+                      p={2}
+                      boxShadow="2"
+                      bgcolor="background.paper"
+                      border="1px solid"
+                      borderColor="custom_error_alpha"
+                      borderRadius="8px"
+                    >
+                      <Box>
+                        <Box
+                          sx={{
+                            width: "36px",
+                            height: "36px",
+                            borderRadius: "50%",
+                            fontSize: "1.25rem",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            backgroundColor: "custom_error_alpha",
+                            color: "custom_error",
+                          }}
+                        >
+                          <RiErrorWarningLine />
+                        </Box>
+                      </Box>
+                      <Box>
+                        <Typography variant="h6" color="text.primary">
+                          Connection Failed
+                        </Typography>
+
+                        <Typography variant="body1" color="text.secondary">
+                          {typeof error === "string"
+                            ? error
+                            : "The connection to the server has been lost. Please try again later."}
+                        </Typography>
+
+                        <Button
+                          onClick={() => {
+                            setLoading(true);
+                            setError(null);
+
+                            // Reconnect
+                            setTimeout(() => {
+                              // Hacky way to get rerender but maintaining truthy/falsy value
+                              if (cfAuth) {
+                                setCfAuth({});
+                              } else {
+                                setCfAuth(cfAuth === 0 ? false : 0);
+                              }
+                            }, 300);
+                          }}
+                          sx={{ mt: 2 }}
+                          endIcon={<KeyboardArrowRight />}
+                        >
+                          Try Again
+                        </Button>
+                      </Box>
+                    </Stack>
                   ) : null}
                 </>
               )}
             </Stack>
           </Box>
 
-          <Box py={5} flexShrink={0}>
+          <Box py={fullScreen ? 5 : 2} flexShrink={0}>
             <Stack direction="row" spacing={2}>
               <TextField
                 autoFocus={true}

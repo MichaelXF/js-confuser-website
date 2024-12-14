@@ -267,14 +267,26 @@ export default function Markdown({
 
         const languageString = trimmed.slice(3).trim();
 
+        const indentationAmount = line.length - line.trimStart().length;
+
         for (var i = index + 1; i < lines.length; i++) {
           let currentLine = lines[i];
+          let currentLineTrimmed = currentLine.trimStart();
 
-          if (currentLine.trimStart().startsWith(endToken)) {
+          if (currentLineTrimmed.startsWith(endToken)) {
             endLineIndex = i;
             break;
           } else {
-            valueLines.push(currentLine);
+            // Apply indentation fix if code block was indented
+            if (
+              indentationAmount > 0 &&
+              currentLine.length - currentLineTrimmed.length >=
+                indentationAmount
+            ) {
+              valueLines.push(currentLine.slice(indentationAmount));
+            } else {
+              valueLines.push(currentLine);
+            }
           }
         }
 
@@ -308,21 +320,26 @@ export default function Markdown({
       function isValidBulletPoint(trimmed) {
         if (!trimmed) return false;
 
-        return (
-          trimmed.startsWith("- ") ||
-          trimmed.startsWith("* ") ||
-          trimmed.match(/^[0-9]+. +/)
-        );
+        if (trimmed.startsWith("- ") || trimmed.startsWith("* "))
+          return "initial";
+
+        if (trimmed.match(/^[0-9]+. +/)) return "decimal";
+
+        return false;
       }
 
-      if (isValidBulletPoint(line.trimStart())) {
-        const isUnordered = trimmed.startsWith("-") || trimmed.startsWith("*");
+      let possibleBulletKind;
+      if ((possibleBulletKind = isValidBulletPoint(line.trimStart()))) {
+        const isUnordered = possibleBulletKind === "initial";
         const bulletLines = [];
         let i = index;
         let startLineIndex = index;
         let endLineIndex = index;
+
+        const initialIndentation = line.length - line.trimStart().length;
+
         outer: do {
-          bulletLines.push(trimmed);
+          bulletLines.push(lines[i]);
           endLineIndex = i;
 
           do {
@@ -352,15 +369,23 @@ export default function Markdown({
             component={isUnordered ? "ul" : "ol"}
           >
             {bulletLines.map((line, i) => {
-              var bulletLevel = 0;
-              var bulletPoint = line.trim();
+              let bulletPoint = line.slice(initialIndentation);
+              let bulletLevel = Math.floor(
+                (bulletPoint.length - bulletPoint.trimStart().length) / 4
+              );
+
+              let kind = isUnordered ? "initial" : "decimal";
 
               if (!bulletPoint) return null;
 
-              do {
-                bulletPoint = bulletPoint.slice(2).trim();
+              let currentKind;
+              while (
+                (currentKind = isValidBulletPoint(bulletPoint.trimStart()))
+              ) {
+                bulletPoint = bulletPoint.trimStart().slice(2);
                 bulletLevel++;
-              } while (bulletPoint.startsWith("- "));
+                kind = currentKind;
+              }
 
               var marginInlineStart =
                 Math.max(0, (bulletLevel - 1) * LIST_START_PADDING) + "px";
@@ -371,6 +396,9 @@ export default function Markdown({
                   component="li"
                   sx={{
                     marginInlineStart,
+                  }}
+                  style={{
+                    listStyle: kind,
                   }}
                   key={i}
                   mb={1}
@@ -483,7 +511,8 @@ export default function Markdown({
                 <TableBody>
                   {rows.map((row, rowIndex) => {
                     // Skip divider rows "----"
-                    if (row.every((x) => x.match(/^\s*-+\s*$/g))) return null;
+                    if (row.every((x) => x.match(/^\s*[:-]+\s*$/g)))
+                      return null;
 
                     return (
                       <TableRow key={rowIndex}>

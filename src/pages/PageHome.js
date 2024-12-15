@@ -11,159 +11,20 @@ import {
   Bolt,
   Check,
   Copyright,
-  Info,
   InfoOutlined,
   KeyboardArrowDown,
   KeyboardArrowRight,
   PriceCheck,
 } from "@mui/icons-material";
 import { Link } from "react-router-dom";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext } from "react";
 import Nav, { NAV_HEIGHT } from "../components/Nav";
 import QuickActions from "../components/QuickActions";
 import useSEO from "../hooks/useSEO";
-import websiteImage1 from "../static/websiteImage1.png";
-import websiteImage2 from "../static/websiteImage2.png";
-import websiteImage3 from "../static/websiteImage3.png";
-import websiteImage4 from "../static/websiteImage4.png";
-// import websiteImageDocs from "../static/websiteImageDocs.png";
 import HomeAnimation from "../components/HomeAnimation";
 import { RiSparkling2Line } from "react-icons/ri";
 import { AIContext } from "../App";
-
-const imageContainerProps = {
-  boxShadow:
-    "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
-  border: "2px solid",
-  borderColor: "divider_opaque",
-  borderRadius: "8px",
-  overflow: "hidden",
-};
-
-function WebsiteAnimation() {
-  const images = [websiteImage1, websiteImage2, websiteImage3, websiteImage4];
-  const [index, setIndex] = useState(0);
-  const [lastIndex, setLastIndex] = useState(0);
-
-  /**
-   * @type {React.MutableRefObject<HTMLImageElement>}
-   */
-  const lastImageElementRef = useRef();
-
-  // Preload images
-  useEffect(() => {
-    images.forEach((src) => {
-      const img = new Image();
-      img.src = src;
-    });
-  }, []);
-
-  function changeImage(newIndex) {
-    const newLastIndex = index;
-    setLastIndex(newLastIndex);
-    setIndex(newIndex);
-
-    if (lastImageElementRef.current) {
-      lastImageElementRef.current.src = images[newLastIndex];
-      lastImageElementRef.current.style.transition = "none";
-      lastImageElementRef.current.style.opacity = "1";
-
-      setTimeout(() => {
-        lastImageElementRef.current.style.transition = "opacity 0.3s";
-        lastImageElementRef.current.style.opacity = 0;
-      }, 50);
-    }
-  }
-
-  function nextImage() {
-    changeImage((index + 1) % images.length);
-  }
-
-  return (
-    <Box>
-      <Box
-        {...imageContainerProps}
-        position="relative"
-        onClick={() => {
-          nextImage();
-        }}
-        sx={{
-          cursor: "pointer",
-          userSelect: "none",
-        }}
-      >
-        <Box
-          ref={lastImageElementRef}
-          component="img"
-          src={images[lastIndex]}
-          width="100%"
-          sx={{
-            aspectRatio: "2880/1624",
-            verticalAlign: "middle",
-            position: "absolute",
-            zIndex: 2,
-          }}
-        />
-        <Box
-          component="img"
-          src={images[index]}
-          width="100%"
-          sx={{
-            aspectRatio: "2880/1624",
-            verticalAlign: "middle",
-          }}
-        />
-      </Box>
-
-      <Box mt={3}>
-        <Stack
-          direction="row"
-          justifyContent="center"
-          alignItems="center"
-          spacing={2}
-        >
-          {images.map((_image, i) => {
-            const hoverBg = "rgba(109, 127, 145, 0.9)";
-            return (
-              <Box
-                onClick={() => changeImage(i)}
-                key={i}
-                alt={`${i + 1}`}
-                sx={{
-                  width: "14px",
-                  height: "14px",
-                  borderRadius: "50%",
-                  padding: 0,
-                  margin: 0,
-                  border: "none",
-                  cursor: "pointer",
-
-                  transition: "background-color 0.25s",
-                  backgroundColor:
-                    i === index ? hoverBg : "rgba(61, 71, 81, 0.5)",
-                  "&:hover": {
-                    backgroundColor:
-                      i === index ? hoverBg : "rgba(61, 71, 81, 0.8)",
-                  },
-                }}
-                component="button"
-              />
-            );
-          })}
-        </Stack>
-      </Box>
-
-      <Typography
-        textAlign="center"
-        color="text.secondary"
-        typography="body2"
-        mt={2}
-      >
-        Animation of JS-Confuser.com Playground in Action
-      </Typography>
-    </Box>
-  );
-}
+import HomeImageCarousel from "../components/HomeImageCarousel";
 
 function FeatureRow({ item }) {
   const [Icon, title, description] = item;
@@ -525,7 +386,7 @@ export default function PageHome() {
 
           <Stack spacing={8}>
             <Box>
-              <WebsiteAnimation />
+              <HomeImageCarousel />
             </Box>
 
             <Stack

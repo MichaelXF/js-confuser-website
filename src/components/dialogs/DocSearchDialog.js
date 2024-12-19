@@ -176,7 +176,7 @@ export default function DocSearchDialog({ open, onClose }) {
           px: 4,
           py: 2,
           fontSize: "1.125rem",
-          color: "primary.main",
+          color: "text.primary",
         }}
         autoFocus={true}
         onKeyDown={(e) => {
@@ -234,14 +234,14 @@ export default function DocSearchDialog({ open, onClose }) {
                   textAlign: "left",
                   bgcolor:
                     activeEl?.id === result.key.toString()
-                      ? "primary.alpha"
+                      ? "rgba(61, 71, 81, 0.15)"
                       : "transparent",
 
                   "&:hover": {
                     bgcolor:
                       activeEl && activeEl.id !== result.key.toString()
                         ? "transparent"
-                        : "primary.alpha",
+                        : "rgba(61, 71, 81, 0.15)",
                   },
                 }}
                 component={Link}
@@ -262,14 +262,14 @@ export default function DocSearchDialog({ open, onClose }) {
                 }}
               >
                 {result.type === "ai" ? (
-                  <Box color="primary.main" fontSize="1.25rem" mr={2}>
+                  <Box color="primary.main" fontSize="1.125rem" mr={"12px"}>
                     <RiSparkling2Line />
                   </Box>
                 ) : null}
                 <Box mr="auto" pr={1}>
                   {result.type === "ai" ? (
                     <>
-                      <Typography fontSize="1.125rem" color="white">
+                      <Typography fontSize="1rem" color="white">
                         Can you tell me about{" "}
                         <Typography
                           fontWeight="bold"
@@ -281,22 +281,29 @@ export default function DocSearchDialog({ open, onClose }) {
                           {textEllipsis(result.query, 50)}
                         </Typography>
                       </Typography>
-                      <Typography color="text.secondary" lineHeight="30px">
+                      <Typography
+                        fontSize="0.85rem"
+                        color="text.secondary_darker"
+                      >
                         Use AI to answer your question
                       </Typography>
                     </>
                   ) : (
                     <>
-                      <Typography fontWeight="bold" fontSize="1.125rem">
+                      <Typography fontWeight="bold" fontSize="1rem">
                         {result.title}
-                      </Typography>
-                      <Typography color="text.secondary" lineHeight="30px">
-                        {parseLine(result.description, false, 110)}
                       </Typography>
                       <Typography
                         color="text.secondary"
-                        fontSize="0.8rem"
-                        mt={2}
+                        fontSize="1rem"
+                        lineHeight="1.5rem"
+                      >
+                        {parseLine(result.description, false, 110)}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary_darker"
+                        mt={1}
                       >
                         {result.subtitle}
                       </Typography>

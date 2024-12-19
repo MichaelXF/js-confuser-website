@@ -1,32 +1,16 @@
 import {
-  Alert,
-  AlertTitle,
   Box,
-  Button,
-  CircularProgress,
   IconButton,
   InputAdornment,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { getRandomString } from "../../../utils/random-utils";
-import {
-  InfoOutlined,
-  Key,
-  KeyboardArrowRight,
-  Send,
-  StopCircle,
-} from "@mui/icons-material";
-import Message from "./Message";
-import {
-  RiErrorWarningLine,
-  RiSignalWifiErrorLine,
-  RiSparklingLine,
-  RiWifiOffLine,
-} from "react-icons/ri";
-import ChatLanding from "./ChatLanding";
+import { InfoOutlined, Send, StopCircle } from "@mui/icons-material";
+import { RiSparklingLine } from "react-icons/ri";
+import ChatContent from "./ChatContent";
 
 const webSocketURL = process.env.REACT_APP_WS_HOST + "v1/chat/ws";
 const isLocalhost = webSocketURL.startsWith("ws://localhost:");
@@ -49,6 +33,8 @@ export default function Chat({
   const hasSentImmediateMessage = useRef(false); // Send the immediate message only once
 
   const [cfAuth, setCfAuth] = useState(globalCfAuthState); // Does this user have Cloudflare authentication?
+
+  const typingAnimationRef = useRef({});
 
   useEffect(() => {
     if (!cfAuth) {
@@ -198,20 +184,14 @@ export default function Chat({
   }, [flexRef.current]);
 
   // Scroll to bottom on new message
-  function scrollToBottom(forceScroll = false) {
+  function scrollToBottom() {
     const flex = flexRef.current;
     if (!flex) return;
 
-    if (forceScroll) {
-      shouldAutoScrollRef.current = true;
-    }
-
-    // Scroll to bottom if the user was already at the bottom
-    if (shouldAutoScrollRef.current || forceScroll) {
-      setTimeout(() => {
-        flex.scrollTop = flex.scrollHeight;
-      }, 16);
-    }
+    flex.scrollTop = flex.scrollHeight;
+    setTimeout(() => {
+      flex.scrollTop = flex.scrollHeight;
+    }, 20);
   }
 
   function stopGenerating() {
@@ -288,7 +268,6 @@ export default function Chat({
         lastMessage.content += partMessage.content;
         lastMessage.loading = false;
 
-        scrollToBottom();
         setMessages([...responseMessages]);
       }
     }
@@ -315,9 +294,6 @@ export default function Chat({
 
     if (!element) return;
 
-    // One time force scroll
-    let didForceScroll = false;
-
     const cb = () => {
       const clientHeight = element.clientHeight;
       const elementHeight = element.scrollHeight;
@@ -325,10 +301,6 @@ export default function Chat({
       // console.log(clientHeight, elementHeight);
 
       if (elementHeight > clientHeight) {
-        if (!didForceScroll) {
-          scrollToBottom(true);
-          didForceScroll = true;
-        }
         setJustifyContent("flex-start");
 
         cleanup();
@@ -365,6 +337,9 @@ export default function Chat({
     };
   }, [maxHeight]);
 
+  const ContentWrapperElement =
+    justifyContent === "center" ? React.Fragment : "div";
+
   return (
     <Box>
       {/* <Box className="CustomBGContainer">
@@ -394,114 +369,46 @@ export default function Chat({
               flexGrow={1}
               spacing={0}
               justifyContent={justifyContent}
-              overflow={justifyContent === "center" ? "hidden" : "auto"}
-              display={justifyContent === "center" ? "flex" : "block"}
               minHeight="100%"
               ref={flexRef}
+              sx={
+                justifyContent === "center"
+                  ? {
+                      overflow: "hidden",
+                      display: "flex",
+                    }
+                  : {
+                      overflow: "auto",
+                      display: "flex",
+                      flexDirection: "column-reverse",
+                    }
+              }
             >
-              {!cfAuth ? (
-                <Box width="100%" textAlign="center">
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html: `<div id="turnstile-container"></div>`,
-                    }}
-                  ></div>
-                </Box>
-              ) : loading && !error ? (
-                <Box
-                  display="flex"
-                  height="100%"
-                  justifyContent="center"
-                  alignItems="center"
-                >
-                  <CircularProgress />
-                </Box>
-              ) : (
-                <>
-                  {combinedMessages.map((message, index) => (
-                    <Message
-                      key={index}
-                      userMessage={message.user}
-                      assistantMessage={message.assistant}
-                      showIncompleteTools={
-                        generating && index === combinedMessages.length - 1
+              <ContentWrapperElement key="content">
+                <ChatContent
+                  typingAnimationRef={typingAnimationRef}
+                  cfAuth={cfAuth}
+                  combinedMessages={combinedMessages}
+                  error={error}
+                  loading={loading}
+                  generating={generating}
+                  sendMessage={sendMessage}
+                  retryConnection={() => {
+                    setLoading(true);
+                    setError(null);
+
+                    // Reconnect
+                    setTimeout(() => {
+                      // Hacky way to get rerender but maintaining truthy/falsy value
+                      if (cfAuth) {
+                        setCfAuth({});
+                      } else {
+                        setCfAuth(cfAuth === 0 ? false : 0);
                       }
-                      scrollToBottom={scrollToBottom}
-                    />
-                  ))}
-
-                  {combinedMessages.length === 0 && !error ? (
-                    <ChatLanding
-                      onSelectPrompt={(message) => {
-                        sendMessage(message);
-                      }}
-                    />
-                  ) : null}
-
-                  {error ? (
-                    <Stack
-                      direction="row"
-                      spacing={2}
-                      p={2}
-                      boxShadow="2"
-                      bgcolor="background.paper"
-                      border="1px solid"
-                      borderColor="custom_error_alpha"
-                      borderRadius="8px"
-                    >
-                      <Box>
-                        <Box
-                          sx={{
-                            width: "36px",
-                            height: "36px",
-                            borderRadius: "50%",
-                            fontSize: "1.25rem",
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            backgroundColor: "custom_error_alpha",
-                            color: "custom_error",
-                          }}
-                        >
-                          <RiErrorWarningLine />
-                        </Box>
-                      </Box>
-                      <Box>
-                        <Typography variant="h6" color="text.primary">
-                          Connection Failed
-                        </Typography>
-
-                        <Typography variant="body1" color="text.secondary">
-                          {typeof error === "string"
-                            ? error
-                            : "The connection to the server has been lost. Please try again later."}
-                        </Typography>
-
-                        <Button
-                          onClick={() => {
-                            setLoading(true);
-                            setError(null);
-
-                            // Reconnect
-                            setTimeout(() => {
-                              // Hacky way to get rerender but maintaining truthy/falsy value
-                              if (cfAuth) {
-                                setCfAuth({});
-                              } else {
-                                setCfAuth(cfAuth === 0 ? false : 0);
-                              }
-                            }, 300);
-                          }}
-                          sx={{ mt: 2 }}
-                          endIcon={<KeyboardArrowRight />}
-                        >
-                          Try Again
-                        </Button>
-                      </Box>
-                    </Stack>
-                  ) : null}
-                </>
-              )}
+                    }, 300);
+                  }}
+                />
+              </ContentWrapperElement>
             </Stack>
           </Box>
 

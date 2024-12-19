@@ -44,11 +44,17 @@ export default function ChatLanding({ onSelectPrompt }) {
                 fontWeight: "normal",
                 display: "flex",
               }}
-              startIcon={<RiQuestionLine />}
               onClick={() => {
                 onSelectPrompt(message);
               }}
             >
+              <RiQuestionLine
+                style={{
+                  fontSize: "1.125rem",
+                  marginRight: "6px",
+                  marginBottom: "-1px",
+                }}
+              />
               {message}
             </Button>
           </Box>

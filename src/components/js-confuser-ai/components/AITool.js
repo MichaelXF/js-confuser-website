@@ -11,6 +11,7 @@ export default function AITool({ message, complete }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          color: "text.secondary",
         }}
       >
         {complete ? (

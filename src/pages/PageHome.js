@@ -19,12 +19,12 @@ import {
 import { Link } from "react-router-dom";
 import { useContext } from "react";
 import Nav, { NAV_HEIGHT } from "../components/Nav";
-import QuickActions from "../components/QuickActions";
 import useSEO from "../hooks/useSEO";
 import HomeAnimation from "../components/HomeAnimation";
 import { RiSparkling2Line } from "react-icons/ri";
 import { AIContext } from "../App";
 import HomeImageCarousel from "../components/HomeImageCarousel";
+import Footer from "../components/Footer";
 
 function FeatureRow({ item }) {
   const [Icon, title, description] = item;
@@ -253,7 +253,7 @@ export default function PageHome() {
         overflow="hidden"
         bgcolor="rgba(29,34,38,0.1)"
         textAlign="center"
-        py={8}
+        py={9}
       >
         <Container maxWidth="lg">
           <Typography variant="h3" fontWeight="bold" color="white">
@@ -469,28 +469,7 @@ export default function PageHome() {
         </Container>
       </Box>
 
-      <Box
-        minHeight="100vh"
-        height="100%"
-        borderTop="1px solid"
-        borderColor="divider"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-      >
-        <Container maxWidth="lg" sx={{ py: 10 }}>
-          <Typography
-            variant="h3"
-            className="GradientText"
-            fontWeight="bold"
-            mb={6}
-          >
-            More Options
-          </Typography>
-
-          <QuickActions />
-        </Container>
-      </Box>
+      <Footer />
     </Box>
   );
 }

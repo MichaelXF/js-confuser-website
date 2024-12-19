@@ -1,8 +1,10 @@
-import { Box, Button, Collapse, Stack } from "@mui/material";
+import { Box, Button, Collapse, Icon, Stack, Typography } from "@mui/material";
 import { ChevronRight, KeyboardArrowDown, Search } from "@mui/icons-material";
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { DOC_PATH_SEPARATOR } from "../../utils/doc-utils";
+import { RiSparkling2Line } from "react-icons/ri";
+import { AIContext } from "../../App";
 
 const NAV_ITEM_HEIGHT = "36px";
 
@@ -163,40 +165,59 @@ export default function DocNavigation({
     });
   }, [pathname]);
 
-  /**
-   * @type {import("@mui/material").ButtonProps}
-   */
-  const btnProps = {
-    sx: {
-      color: "primary.main",
-      cursor: "pointer",
-      px: 2,
-      py: "8px",
-      borderRadius: "6px",
-      transition: "0.3s ease background-color",
-      "&:hover": {
-        bgcolor: "primary.alpha",
-      },
-      fontWeight: "normal",
-      typography: "1rem",
-      alignItems: "center",
-    },
-    display: "flex",
-    fullWidth: true,
-  };
+  const { setAI } = useContext(AIContext);
 
   return (
     <Box>
-      <Box mt={1} mb={2}>
-        <Button
-          {...btnProps}
-          onClick={() => {
-            openSearchDialog();
-          }}
-        >
-          <Search sx={{ mr: 1, fontSize: "1.125rem", color: "primary.main" }} />
-          Search the docs...
-        </Button>
+      <Box my={2}>
+        <Box color="text.secondary_darker" typography="body2">
+          <Button
+            variant="inherit"
+            onClick={() => {
+              openSearchDialog();
+            }}
+            sx={{
+              px: 3,
+              justifyContent: "flex-start",
+              fontWeight: "normal",
+              textTransform: "none",
+            }}
+            fullWidth
+          >
+            <Search
+              sx={{
+                mr: 1,
+                fontSize: "1.125rem",
+                color: "primary.main",
+              }}
+            />
+            Search JS-Confuser Docs
+          </Button>
+
+          <Button
+            variant="inherit"
+            sx={{
+              px: 3,
+              justifyContent: "flex-start",
+              fontWeight: "normal",
+              textTransform: "none",
+            }}
+            fullWidth
+            onClick={() => {
+              setAI(true);
+            }}
+          >
+            <Icon
+              component={RiSparkling2Line}
+              sx={{
+                mr: 1,
+                fontSize: "1.125rem",
+                color: "primary.main",
+              }}
+            />
+            Ask JS-Confuser AI for help
+          </Button>
+        </Box>
       </Box>
 
       {navigationItems.map((section, index) => {

@@ -155,7 +155,7 @@ export default function HomeAnimation() {
   return (
     <Box
       border="2px solid"
-      borderColor="divider_opaque"
+      borderColor="rgb(26, 31, 38)"
       height="100%"
       maxWidth="850px"
       maxHeight="calc(100vh - 56px)"
@@ -164,12 +164,13 @@ export default function HomeAnimation() {
       borderRadius={2}
       bgcolor="code_viewer_background"
       boxShadow="0 25px 50px -12px rgb(0 0 0 / 0.25)"
+      position="relative"
     >
       <Stack
         height="34px"
         p={1}
         px={2}
-        sx={{ bgcolor: "divider_opaque" }}
+        sx={{ bgcolor: "rgb(26, 31, 38)" }}
         textAlign="center"
         display="flex"
         justifyContent="center"

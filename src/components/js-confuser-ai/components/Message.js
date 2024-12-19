@@ -1,10 +1,4 @@
-import {
-  Box,
-  CircularProgress,
-  IconButton,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Box, IconButton, Stack } from "@mui/material";
 import {
   CheckCircleOutline,
   ContentCopyOutlined,
@@ -14,30 +8,39 @@ import {
 import Markdown from "./Markdown";
 import { textEllipsis } from "../../../utils/format-utils";
 import AITool from "./AITool";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import useSnackbar from "../../../hooks/useSnackbar";
 
 export default function Message({
   userMessage,
   assistantMessage,
-  scrollToBottom,
   showIncompleteTools,
+  allowAnimation,
+  typingAnimationRef,
 }) {
   const [displayMessage, setDisplayMessage] = useState(
     assistantMessage?.content
   );
-  const refCounter = useRef(0);
   const [replay, setReplay] = useState(false);
   const snackbar = useSnackbar();
 
   // TYPING ANIMATION
   // Make it seem like the AI is typing, when in reality it's streaming chunks of the response
   useEffect(() => {
-    if (!assistantMessage.content) return;
+    if (!assistantMessage.content || !allowAnimation) return;
 
     var ignore = false;
     var lastTime = performance.now();
     let lastCharsToShow = 0;
+
+    const refCounter = {
+      set current(value) {
+        typingAnimationRef.current[userMessage.id] = value;
+      },
+      get current() {
+        return typingAnimationRef.current[userMessage.id] || 0;
+      },
+    };
 
     function animate() {
       if (ignore) return;
@@ -48,7 +51,7 @@ export default function Message({
 
       refCounter.current += deltaTime;
 
-      let speed = 2.5;
+      let speed = 2.4;
 
       let charsToShow = Math.floor(refCounter.current / speed);
 
@@ -136,7 +139,6 @@ export default function Message({
       lastCharsToShow = charsToShow;
 
       setDisplayMessage(sliced);
-      scrollToBottom();
 
       if (charsToShow >= assistantMessage.content.length) return;
 
@@ -148,7 +150,7 @@ export default function Message({
     return () => {
       ignore = true;
     };
-  }, [assistantMessage.content, replay]);
+  }, [assistantMessage.content, replay, allowAnimation]);
 
   return (
     <Box p={2}>
@@ -183,14 +185,14 @@ export default function Message({
               icon: ThumbUpOutlined,
               tooltip: "Good response",
               onClick: () => {
-                alert("Thanks, this button does nothing");
+                alert("Not implemented yet");
               },
             },
             {
               icon: ThumbDownOutlined,
               tooltip: "Bad response",
               onClick: () => {
-                alert("Thanks, this button does nothing");
+                alert("Not implemented yet");
 
                 // Replay typing animation for developing purposes
                 // refCounter.current = 0;

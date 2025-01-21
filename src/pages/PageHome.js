@@ -18,7 +18,7 @@ import {
 } from "@mui/icons-material";
 import { Link } from "react-router-dom";
 import { useContext } from "react";
-import Nav, { NAV_HEIGHT } from "../components/Nav";
+import Nav, { NAV_FLOAT_HEIGHT } from "../components/Nav";
 import useSEO from "../hooks/useSEO";
 import HomeAnimation from "../components/HomeAnimation";
 import { RiSparkling2Line } from "react-icons/ri";
@@ -123,7 +123,7 @@ export default function PageHome() {
 
   return (
     <Box sx={isMdOrLarger ? {} : { wordBreak: "break-word" }}>
-      <Box mb={isMdOrLarger ? NAV_HEIGHT : "0"}>
+      <Box>
         <Nav position={isMdOrLarger ? "fixed" : "static"} />
       </Box>
 
@@ -131,14 +131,18 @@ export default function PageHome() {
         display="flex"
         alignItems="center"
         justifyContent="center"
-        minHeight={`calc(100vh - ${NAV_HEIGHT})`}
+        minHeight={`calc(100vh)`}
         width="100%"
-        className={isMdOrLarger ? "LandingBackground" : ""}
         position="relative"
+        className={isMdOrLarger ? "LandingBackground" : ""}
+        pt={isMdOrLarger ? NAV_FLOAT_HEIGHT : 0}
       >
         <Container
           maxWidth="lg"
-          sx={{ pt: isMdOrLarger ? 8 : 0, pb: isMdOrLarger ? 12 : 0 }}
+          sx={{
+            pt: isMdOrLarger ? 6 : 0,
+            pb: isMdOrLarger ? 12 : 0,
+          }}
         >
           <Stack direction="row" spacing={10} alignItems="center" width="100%">
             <Box textAlign="left" flex="1 1 42%" pt={4}>

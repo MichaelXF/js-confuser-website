@@ -53,7 +53,7 @@ export default function Chat({
 
       // Show loading text
       if (textEl) {
-        textEl.style.display = "block";
+        textEl.style.display = "inline-block";
       }
 
       // Turnstile callback

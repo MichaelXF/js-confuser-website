@@ -49,8 +49,20 @@ export default function Chat({
         }, 1000);
       }
 
+      let textEl = document.getElementById("turnstile-loading-text");
+
+      // Show loading text
+      if (textEl) {
+        textEl.style.display = "block";
+      }
+
       // Turnstile callback
       window.onloadTurnstileCallback = function () {
+        // Hide the loading text
+        if (textEl) {
+          textEl.style.display = "none";
+        }
+
         window.turnstile.render("#turnstile-container", {
           sitekey: "0x4AAAAAAA2IS1nneh9eH4R1",
           callback: function (token) {

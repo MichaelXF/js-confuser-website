@@ -24,6 +24,14 @@ export default function ChatContent({
     <>
       {!cfAuth ? (
         <Box width="100%" textAlign="center">
+          <Typography
+            id="turnstile-loading-text"
+            className="loading-text"
+            component="span"
+            style={{ mx: "auto", display: "none" }}
+          >
+            Loading Cloudflare Captcha...
+          </Typography>
           <div
             dangerouslySetInnerHTML={{
               __html: `<div id="turnstile-container"></div>`,

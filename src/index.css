@@ -122,3 +122,39 @@ a {
     opacity: 1;
   }
 }
+/* Base class for the loading text effect */
+.loading-text {
+  width: max-content;
+
+  /* Set up a gradient background using your base color and white */
+  background: linear-gradient(
+    90deg,
+    rgb(152, 164, 179) 0%,
+    rgb(152, 164, 179) 40%,
+    #ffffff 50%,
+    rgb(152, 164, 179) 60%,
+    rgb(152, 164, 179) 100%
+  );
+  /* Make the gradient span wide enough to animate across the text */
+  background-size: 210% auto;
+
+  /* Use background-clip so that the gradient shows only on the text */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  /* For browsers supporting the non-prefixed version (optional) */
+  background-clip: text;
+  color: transparent;
+
+  /* Animate the background position to create the shiny effect */
+  animation: shine 3.25s ease-in-out infinite;
+}
+
+/* Keyframes for moving the gradient from right to left */
+@keyframes shine {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
+}

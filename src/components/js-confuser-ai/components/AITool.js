@@ -2,7 +2,12 @@ import { CheckCircleOutline } from "@mui/icons-material";
 import { Box, CircularProgress, Typography } from "@mui/material";
 export default function AITool({ message, complete }) {
   return (
-    <Box display="flex" alignItems="center" mb={2}>
+    <Box
+      display="flex"
+      alignItems="center"
+      mb={2}
+      className={complete ? "" : "fade-in-quick-animation"}
+    >
       <Box
         sx={{
           minWidth: "24px",
@@ -26,7 +31,11 @@ export default function AITool({ message, complete }) {
         )}
       </Box>
 
-      <Typography variant="body1" color="text.secondary">
+      <Typography
+        variant="body1"
+        color="text.secondary"
+        className={complete ? "" : "loading-text"}
+      >
         {message ? message : null}
       </Typography>
     </Box>

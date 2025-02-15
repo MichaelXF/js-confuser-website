@@ -1,23 +1,49 @@
-import { Box, Button, Divider, Stack, Typography } from "@mui/material";
-import { RiQuestionLine, RiSparklingLine } from "react-icons/ri";
+import { Info, InfoOutlined } from "@mui/icons-material";
+import { Box, Button, Divider, Icon, Stack, Typography } from "@mui/material";
+import {
+  RiArrowRightDoubleFill,
+  RiArrowRightFill,
+  RiQuestionLine,
+  RiSparklingLine,
+} from "react-icons/ri";
 
 export default function ChatLanding({ onSelectPrompt }) {
   return (
-    <Box textAlign="center">
-      <Box color="primary.main" fontSize="2rem"></Box>
-
-      <Typography variant="h4" color="primary.main" className="GradientText">
-        Meet JS-Confuser AI <RiSparklingLine />
-      </Typography>
-
-      <Box my={4} maxWidth="500px" mx="auto">
-        <Divider />
+    <Box
+      textAlign="center"
+      maxWidth="600px"
+      width="100%"
+      mx="auto"
+      pt={4}
+      className="fade-in-landing-animation"
+    >
+      <Box
+        sx={{
+          display: "inline-flex",
+          mx: "auto",
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: "6px",
+          padding: "8px 12px",
+          fontWeight: "bold",
+        }}
+        className="GradientShineTextPrimary"
+        mb={2}
+      >
+        <RiSparklingLine style={{ marginRight: "4px" }} />
+        JS-Confuser AI
       </Box>
+
+      <Typography color="text.secondary">
+        Welcome! JS-Confuser AI is a powerful AI chat assistant to answer
+        complex questions about JS-Confuser.
+      </Typography>
 
       <Typography
         variant="body2"
         fontStyle="italic"
         color="text.secondary_darker"
+        mt={6}
         mb={2}
       >
         Try these examples:
@@ -43,16 +69,17 @@ export default function ChatLanding({ onSelectPrompt }) {
                 color: "text.secondary_darker",
                 fontWeight: "normal",
                 display: "flex",
+                textTransform: "none",
               }}
               onClick={() => {
                 onSelectPrompt(message);
               }}
             >
-              <RiQuestionLine
+              <RiArrowRightDoubleFill
                 style={{
                   fontSize: "1.125rem",
                   marginRight: "6px",
-                  marginBottom: "-1px",
+                  marginBottom: "1px",
                 }}
               />
               {message}

@@ -45,7 +45,13 @@ export default function ChatContent({
           justifyContent="center"
           alignItems="center"
         >
-          <CircularProgress />
+          <Typography
+            className="loading-text"
+            component="span"
+            style={{ mx: "auto", display: "inline-block" }}
+          >
+            Connecting...
+          </Typography>
         </Box>
       ) : (
         <>

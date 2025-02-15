@@ -152,8 +152,10 @@ export default function Message({
     };
   }, [assistantMessage.content, replay, allowAnimation]);
 
+  const fadeIn = assistantMessage?.loading;
+
   return (
-    <Box p={2}>
+    <Box p={2} className={fadeIn ? "fade-in-quick-animation" : ""}>
       <Box typography="body">
         <Box color="primary.main" fontWeight="bold">
           <CheckCircleOutline

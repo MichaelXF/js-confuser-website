@@ -143,6 +143,7 @@ export default function PageHome() {
             pt: isMdOrLarger ? 6 : 0,
             pb: isMdOrLarger ? 12 : 0,
           }}
+          className="landing-hero-section-animation"
         >
           <Stack direction="row" spacing={10} alignItems="center" width="100%">
             <Box textAlign="left" flex="1 1 42%" pt={4}>

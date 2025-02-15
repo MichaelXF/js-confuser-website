@@ -33,7 +33,7 @@ export default function HomeAnimation() {
     setAnimation(true);
     setShowTryIOut(false);
 
-    let index = Math.max(landingPageCode.length - 101, 0);
+    let index = Math.max(landingPageCode.length - 77, 0);
     editor.setValue(landingPageCode.substring(0, index));
     editor.setPosition(editor.getModel().getFullModelRange().getEndPosition());
 
@@ -145,7 +145,7 @@ export default function HomeAnimation() {
 
     setTimeout(() => {
       typeCharacter(); // Start typing effect
-    }, 50);
+    }, 1700);
 
     return () => {
       mounted = false;

@@ -24,7 +24,7 @@ async function checkUserLicense(){
 
   // User does not have a valid license :(
   if (!data.licenseStatus) {
-    alert("You do not have a valid license.");
+    console.error("You do not have a valid license.");
     process.exit(1);
   }
 }`;

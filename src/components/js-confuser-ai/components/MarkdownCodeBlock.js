@@ -30,11 +30,12 @@ export default function MarkdownCodeBlock({ code, language }) {
             html: "HTML",
             css: "CSS",
             shell: "Shell",
+            bash: "Bash",
             markdown: "Markdown",
             text: "Text",
             plaintext: "Plain Text",
             code: "Code",
-          }[language] || "Code"}
+          }[language?.toLowerCase()] || "Code"}
         </Typography>
         <Button
           size="small"

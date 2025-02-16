@@ -405,6 +405,7 @@ export default function Chat({
                   loading={loading}
                   generating={generating}
                   sendMessage={sendMessage}
+                  fullScreen={fullScreen}
                   retryConnection={() => {
                     setLoading(true);
                     setError(null);

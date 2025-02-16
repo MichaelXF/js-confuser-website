@@ -11,6 +11,7 @@ import { KeyboardArrowRight } from "@mui/icons-material";
 import ChatLanding from "./ChatLanding";
 
 export default function ChatContent({
+  fullScreen,
   cfAuth,
   loading,
   error,
@@ -71,6 +72,7 @@ export default function ChatContent({
 
           {combinedMessages.length === 0 && !error ? (
             <ChatLanding
+              fullScreen={fullScreen}
               onSelectPrompt={(message) => {
                 sendMessage(message);
               }}

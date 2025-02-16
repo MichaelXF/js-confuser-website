@@ -1,20 +1,14 @@
-import { Info, InfoOutlined } from "@mui/icons-material";
-import { Box, Button, Divider, Icon, Stack, Typography } from "@mui/material";
-import {
-  RiArrowRightDoubleFill,
-  RiArrowRightFill,
-  RiQuestionLine,
-  RiSparklingLine,
-} from "react-icons/ri";
+import { Box, Button, Stack, Typography } from "@mui/material";
+import { RiCornerDownRightLine, RiSparklingLine } from "react-icons/ri";
 
-export default function ChatLanding({ onSelectPrompt }) {
+export default function ChatLanding({ fullScreen, onSelectPrompt }) {
   return (
     <Box
       textAlign="center"
       maxWidth="600px"
       width="100%"
       mx="auto"
-      pt={4}
+      pt={fullScreen ? 6 : 0}
       className="fade-in-landing-animation"
     >
       <Box
@@ -75,7 +69,7 @@ export default function ChatLanding({ onSelectPrompt }) {
                 onSelectPrompt(message);
               }}
             >
-              <RiArrowRightDoubleFill
+              <RiCornerDownRightLine
                 style={{
                   fontSize: "1.125rem",
                   marginRight: "6px",

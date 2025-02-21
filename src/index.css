@@ -122,61 +122,64 @@ a {
     opacity: 1;
   }
 }
-/* Base class for the loading text effect */
+
 .loading-text {
-  width: max-content;
-
-  /* Set up a gradient background using your base color and white */
-  background: linear-gradient(
-    90deg,
-    rgb(152, 164, 179) 0%,
-    rgb(152, 164, 179) 40%,
-    #ffffff 50%,
-    rgb(152, 164, 179) 60%,
-    rgb(152, 164, 179) 100%
-  );
-  /* Make the gradient span wide enough to animate across the text */
-  background-size: 210% auto;
-
-  /* Use background-clip so that the gradient shows only on the text */
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  /* For browsers supporting the non-prefixed version (optional) */
+  display: inline-block;
+  background: rgb(152, 164, 179)
+    linear-gradient(
+      90deg,
+      rgb(152, 164, 179) 0%,
+      rgb(255, 255, 255) 50%,
+      rgb(152, 164, 179) 100%
+    );
+  background-size: 50% 200%;
+  background-position: -100% top;
+  background-repeat: no-repeat;
   background-clip: text;
+  -webkit-background-clip: text;
   color: transparent;
-
-  /* Animate the background position to create the shiny effect */
-  animation: shine 3.25s ease-in-out infinite;
+  animation: loading-shimmer 3s infinite;
+  animation-delay: 0.5s;
 }
 
-/* Keyframes for moving the gradient from right to left */
-@keyframes shine {
+.loading-text:hover {
+  color: rgb(255, 255, 255);
+  animation: none;
+  background: transparent;
+}
+
+@keyframes loading-shimmer {
   0% {
-    background-position: 0% center;
+    background-position: -100% top;
   }
   100% {
-    background-position: -200% center;
+    background-position: 250% top;
   }
 }
 
 .GradientShineTextPrimary {
-  width: max-content;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: linear-gradient(
-    90deg,
-    hsl(210, 100%, 60%) 0%,
-    hsl(210, 100%, 60%) 40%,
-    hsl(210, 100%, 80%) 50%,
-    hsl(210, 100%, 60%) 60%,
-    hsl(210, 100%, 60%) 100%
-  );
-  background-size: 210% auto;
-  -webkit-background-clip: text;
+  display: inline-block;
+  background: hsl(210, 100%, 60%)
+    linear-gradient(
+      90deg,
+      hsl(210, 100%, 60%) 0%,
+      hsl(210, 100%, 80%) 50%,
+      hsl(210, 100%, 60%) 100%
+    );
+  background-size: 50% 200%;
+  background-position: -100% top;
+  background-repeat: no-repeat;
   background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: shineTextPrimary 3.25s ease-in-out infinite;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: loading-shine-primary 3s infinite;
+  animation-delay: 1s;
+}
+
+.GradientShineTextPrimary:hover {
+  color: hsl(210, 100%, 60%);
+  animation: none;
+  background: transparent;
 }
 
 .GradientShineTextPrimary svg {
@@ -186,12 +189,12 @@ a {
   background-clip: text;
 }
 
-@keyframes shineTextPrimary {
+@keyframes loading-shine-primary {
   0% {
-    background-position: 0% center;
+    background-position: -100% top;
   }
   100% {
-    background-position: -200% center;
+    background-position: 250% top;
   }
 }
 

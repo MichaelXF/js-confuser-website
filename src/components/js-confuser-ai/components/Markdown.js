@@ -116,6 +116,38 @@ export const parseLine = (
   return elements;
 };
 
+const parseAIToolLine = (trimmed, showIncompleteTools, isLastLine) => {
+  if (
+    trimmed.startsWith("- Running: ") ||
+    trimmed.startsWith("- search_knowledge_base(")
+  ) {
+    // Remove the prefix "- "
+    if (trimmed.startsWith("- ")) {
+      trimmed = trimmed.slice(2);
+    }
+
+    // Remove the prefix "- Running: "
+    if (trimmed.startsWith("Running: ")) {
+      trimmed = trimmed.slice("Running: ".length);
+    }
+
+    let toolMessage = "Running tool";
+    let toolComplete = !showIncompleteTools || !isLastLine;
+
+    if (trimmed.startsWith("search_knowledge_base(query=")) {
+      const searchQuery = (
+        trimmed.split("query=")[1]?.trim() ?? "Related Information"
+      ).split(")")[0];
+
+      toolMessage = "Searching for " + searchQuery;
+    }
+
+    return { toolMessage, toolComplete };
+  }
+
+  return null;
+};
+
 export default function Markdown({
   value,
   showIncompleteTools,
@@ -177,35 +209,18 @@ export default function Markdown({
       }
 
       // - search_knowledge_base(query=Rename Variables)
-      if (
-        trimmed.startsWith("- Running: ") ||
-        trimmed.startsWith("- search_knowledge_base(")
-      ) {
-        // Remove the prefix "- "
-        if (trimmed.startsWith("- ")) {
-          trimmed = trimmed.slice(2);
-        }
-
-        // Remove the prefix "- Running: "
-        if (trimmed.startsWith("Running: ")) {
-          trimmed = trimmed.slice("Running: ".length);
-        }
-
-        const isLastLine = index === lines.length - 1;
-
-        let toolMessage = "Running tool";
-        let toolComplete = !showIncompleteTools || !isLastLine;
-
-        if (trimmed.startsWith("search_knowledge_base(query=")) {
-          const searchQuery = (
-            trimmed.split("query=")[1]?.trim() ?? "Related Information"
-          ).split(")")[0];
-
-          toolMessage = "Searching for " + searchQuery;
-        }
-
+      const aiToolInfo = parseAIToolLine(
+        trimmed,
+        showIncompleteTools,
+        index === lines.length - 1
+      );
+      if (aiToolInfo) {
         return (
-          <AITool key={index} message={toolMessage} complete={toolComplete} />
+          <AITool
+            key={index}
+            message={aiToolInfo.toolMessage}
+            complete={aiToolInfo.toolComplete}
+          />
         );
       }
 
@@ -369,6 +384,23 @@ export default function Markdown({
             component={isUnordered ? "ul" : "ol"}
           >
             {bulletLines.map((line, i) => {
+              // AI Tool check
+              const aiToolInfo = parseAIToolLine(
+                line.trim(),
+                showIncompleteTools,
+                endLineIndex >= lines.length - 1 && i === bulletLines.length - 1
+              );
+              if (aiToolInfo) {
+                return (
+                  <Box key={i} ml={-LIST_START_PADDING + "px"}>
+                    <AITool
+                      message={aiToolInfo.toolMessage}
+                      complete={aiToolInfo.toolComplete}
+                    />
+                  </Box>
+                );
+              }
+
               let bulletPoint = line.slice(initialIndentation);
               let bulletLevel = Math.floor(
                 (bulletPoint.length - bulletPoint.trimStart().length) / 4

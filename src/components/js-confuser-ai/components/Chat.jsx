@@ -12,7 +12,7 @@ import { InfoOutlined, Send, StopCircle } from "@mui/icons-material";
 import { RiSparklingLine } from "react-icons/ri";
 import ChatContent from "./ChatContent";
 
-const webSocketURL = process.env.VITE_API_WS_HOST + "v1/chat/ws";
+const webSocketURL = import.meta.env.VITE_API_WS_HOST + "v1/chat/ws";
 const isLocalhost = webSocketURL.startsWith("ws://localhost:");
 
 let globalCfAuthState = isLocalhost; // Save CloudFlare captcha completion, not needed on localhost
@@ -293,10 +293,7 @@ export default function Chat({
 
   const combinedMessages = [];
   for (var i = 0; i < messages.length; i += 2) {
-    combinedMessages.push({
-      user: messages[i],
-      assistant: messages[i + 1],
-    });
+    combinedMessages.push({ user: messages[i], assistant: messages[i + 1] });
   }
 
   const [justifyContent, setJustifyContent] = useState("center");
@@ -326,10 +323,7 @@ export default function Chat({
 
     const mutationObserver = new MutationObserver(cb);
 
-    mutationObserver.observe(element, {
-      childList: true,
-      subtree: true,
-    });
+    mutationObserver.observe(element, { childList: true, subtree: true });
 
     cb();
 
@@ -385,10 +379,7 @@ export default function Chat({
               ref={flexRef}
               sx={
                 justifyContent === "center"
-                  ? {
-                      overflow: "hidden",
-                      display: "flex",
-                    }
+                  ? { overflow: "hidden", display: "flex" }
                   : {
                       overflow: "auto",
                       display: "flex",
@@ -445,9 +436,7 @@ export default function Chat({
                   maxWidth: "100%",
                   width: "100%",
 
-                  "& > .MuiOutlinedInput-root": {
-                    bgcolor: "divider_opaque",
-                  },
+                  "& > .MuiOutlinedInput-root": { bgcolor: "divider_opaque" },
 
                   "& > .MuiInputBase-formControl > .MuiOutlinedInput-notchedOutline, & > .MuiInputBase-formControl:hover:not(:focus-within) > .MuiOutlinedInput-notchedOutline":
                     {
@@ -458,9 +447,7 @@ export default function Chat({
                 size="small"
                 variant="outlined"
                 InputProps={{
-                  sx: {
-                    bgcolor: "divider_opaque",
-                  },
+                  sx: { bgcolor: "divider_opaque" },
                   startAdornment: (
                     <InputAdornment position="start">
                       <RiSparklingLine />

@@ -1,5 +1,3 @@
-self.console.log("JSConfuser worker loading...");
-
 // Import with proper Vite syntax
 import traverse from "@babel/traverse";
 import JsConfuser from "js-confuser/src/index.ts";
@@ -7,8 +5,6 @@ import * as t from "@babel/types";
 
 import { Buffer } from "buffer";
 self.Buffer = Buffer;
-
-console.log(traverse);
 
 function getByteSize(str) {
   return new Blob([str]).size;
@@ -18,9 +14,9 @@ function getByteSize(str) {
  * Modules that JSConfuser.ts can import
  */
 const modules = {
-  // "js-confuser": JsConfuser,
-  // Buffer: Buffer,
-  // "@babel/types": t,
+  "js-confuser": JsConfuser,
+  Buffer: Buffer,
+  "@babel/types": t,
 };
 
 function evaluateOptions(optionsJS) {
@@ -48,12 +44,6 @@ function evaluateOptions(optionsJS) {
 
 // Export functions for Vite worker compatibility
 function obfuscateCode(requestID, code, optionsJS, editorOptions = {}) {
-  console.log("obfuscateCode called with:", {
-    requestID,
-    code: code?.length,
-    optionsJS,
-    editorOptions,
-  });
   const { captureInsights, capturePerformanceInsights } = editorOptions;
 
   let originalExecutionTime;
@@ -77,11 +67,7 @@ function obfuscateCode(requestID, code, optionsJS, editorOptions = {}) {
       }
 
       // Count the number of nodes
-      var nodeCounts = {
-        functions: 0,
-        blocks: 0,
-        controlFlow: 0,
-      };
+      var nodeCounts = { functions: 0, blocks: 0, controlFlow: 0 };
 
       traverse(ast, {
         Function(_path) {
@@ -98,13 +84,7 @@ function obfuscateCode(requestID, code, optionsJS, editorOptions = {}) {
       entry.nodeCounts = nodeCounts;
     }
 
-    postMessage({
-      event: "progress",
-      data: {
-        requestID,
-        ...log,
-      },
-    });
+    postMessage({ event: "progress", data: { requestID, ...log } });
   };
 
   const reportError = (error) => {
@@ -131,10 +111,7 @@ function obfuscateCode(requestID, code, optionsJS, editorOptions = {}) {
   JsConfuser.obfuscateWithProfiler(
     code,
     { ...options, verbose: true },
-    {
-      callback: reportProgress,
-      performance,
-    }
+    { callback: reportProgress, performance }
   )
     .then((resultObject) => {
       console.log("Successfully obfuscated code");
@@ -285,22 +262,17 @@ function preObfuscationAnalysis(requestID, code) {
 
   postMessage({
     event: "success",
-    data: {
-      requestID,
-      nodes: Array.from(meaningfulNodesToSymbols),
-    },
+    data: { requestID, nodes: Array.from(meaningfulNodesToSymbols) },
   });
 }
 
 // Handle incoming messages
 self.onmessage = function (event) {
-  console.log("Worker received message:", event.data);
   const { method, requestID, args } = event.data;
 
   try {
     switch (method) {
       case "obfuscateCode":
-        console.log("Routing to obfuscateCode with args:", args);
         obfuscateCode(requestID, ...args);
         break;
       case "applyTransformations":
@@ -313,10 +285,7 @@ self.onmessage = function (event) {
         console.log("Unknown method:", method);
         postMessage({
           event: "error",
-          data: {
-            requestID,
-            errorString: `Unknown method: ${method}`,
-          },
+          data: { requestID, errorString: `Unknown method: ${method}` },
         });
     }
   } catch (error) {

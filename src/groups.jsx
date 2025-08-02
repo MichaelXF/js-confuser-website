@@ -5,9 +5,7 @@ export const groups = {
       name: "target",
       modes: ["browser", "node"],
       description: "The execution context for your output.",
-      exampleConfig: {
-        target: "node",
-      },
+      exampleConfig: { target: "node" },
     },
     {
       type: "boolean",
@@ -69,12 +67,7 @@ console.log(myVar); // "Modified Value"
       | \`"number"\` | Numbered sequence | var_1, var_2 |
       | \`<function>\` | Write a custom name generator | See Below |
       `,
-      seeAlso: [
-        {
-          label: "Rename Variables",
-          to: "./renameVariables",
-        },
-      ],
+      seeAlso: [{ label: "Rename Variables", to: "./renameVariables" }],
     },
     {
       type: "boolean",
@@ -371,7 +364,7 @@ module.exports = {
       - This encoding algorithm is instantiated multiple times, each with a different shuffled charset. This makes it difficult to reverse-engineer the encoding algorithm. 
 
       ---{ header: "Options.js" }
-      const { default: JsConfuser } = require("js-confuser");
+      const { Template } = require("js-confuser");
       const { stringLiteral } = require("@babel/types");
 
       function shuffle(array) {
@@ -415,7 +408,7 @@ module.exports = {
         const shuffledCharset = shuffle(customCharset.split("")).join("");
 
         return {
-          code: new JsConfuser.Template(\`
+          code: new Template(\`
             // Creates a reverse lookup table from the given charset
             function createReverseCharset(charset) {
               if (charset.length !== 64) {
@@ -642,12 +635,7 @@ Control Flow Flattening reduces the performance of your program. You should adju
 Control Flow Flattening only applies to:
 
 - Blocks of 3 statements or more`,
-      seeAlso: [
-        {
-          label: "Pack",
-          to: "./pack",
-        },
-      ],
+      seeAlso: [{ label: "Pack", to: "./pack" }],
     },
     {
       type: "probability",
@@ -802,14 +790,8 @@ printToConsole("Hello World"); // "Hello World"`,
       - Cannot use \`this\`, \`arguments\`, or \`eval\`
       `,
       seeAlso: [
-        {
-          label: "Flatten",
-          to: "./flatten",
-        },
-        {
-          label: "String Concealing",
-          to: "./stringConcealing",
-        },
+        { label: "Flatten", to: "./flatten" },
+        { label: "String Concealing", to: "./stringConcealing" },
       ],
     },
   ],
@@ -821,9 +803,7 @@ printToConsole("Hello World"); // "Hello World"`,
       description:
         "Ensures the script can only execute on the specified domain. Set the Counter Measures option to control what happens if violated.",
       exampleConfig: {
-        lock: {
-          domainLock: ["https://example.com", "https://example.org"],
-        },
+        lock: { domainLock: ["https://example.com", "https://example.org"] },
       },
     },
     {
@@ -831,11 +811,7 @@ printToConsole("Hello World"); // "Hello World"`,
       parentField: "lock",
       name: "startDate",
       description: "When the program is first able to be used.",
-      exampleConfig: {
-        lock: {
-          startDate: "2024-01-01",
-        },
-      },
+      exampleConfig: { lock: { startDate: "2024-01-01" } },
       optionValues: "Date/string",
     },
     {
@@ -843,11 +819,7 @@ printToConsole("Hello World"); // "Hello World"`,
       parentField: "lock",
       name: "endDate",
       description: "When the program is no longer able to be used.",
-      exampleConfig: {
-        lock: {
-          endDate: "2024-12-31",
-        },
-      },
+      exampleConfig: { lock: { endDate: "2024-12-31" } },
       optionValues: "Date/string",
     },
     {
@@ -887,10 +859,7 @@ printToConsole("Hello World"); // "Hello World"`,
       },
       exampleConfig: {
         globalConcealing: true,
-        lock: {
-          tamperProtection: true,
-          countermeasures: "onTamperDetected",
-        },
+        lock: { tamperProtection: true, countermeasures: "onTamperDetected" },
       },
       docContent: `
 #### Improves Global Concealing
@@ -1059,11 +1028,7 @@ If you decide to use Integrity, consider the following:
         throw new Error("The code has been tampered with!");
       }
       `,
-      exampleConfig: {
-        lock: {
-          countermeasures: "onTamperDetected",
-        },
-      },
+      exampleConfig: { lock: { countermeasures: "onTamperDetected" } },
       docContent: `
 #### Crash Process
 
@@ -1109,14 +1074,8 @@ Try setting your machine time to before or past the allowed range.
 Try changing a string within your code.
       `,
       seeAlso: [
-        {
-          label: "Integrity",
-          to: "./integrity",
-        },
-        {
-          label: "Tamper Protection",
-          to: "./tamperProtection",
-        },
+        { label: "Integrity", to: "./integrity" },
+        { label: "Tamper Protection", to: "./tamperProtection" },
       ],
     },
   ],
@@ -1132,9 +1091,7 @@ Try changing a string within your code.
 
       console.log(ten, negativeSixteen, float);
       `,
-      exampleConfig: {
-        renameVariables: false,
-      },
+      exampleConfig: { renameVariables: false },
     },
     {
       type: "boolean",
@@ -1208,9 +1165,7 @@ for (var i = 1; i <= 25; i++) {
       
       console.log(add.length); // 2
       `,
-      exampleConfig: {
-        preset: "medium",
-      },
+      exampleConfig: { preset: "medium" },
       docContent: `
       #### Preserving Function Length
 

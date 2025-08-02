@@ -1,4 +1,4 @@
 [submodule "js-confuser"]
 	path = js-confuser
-	url = git@github.com:MichaelXF/js-confuser.git
+	url = https://github.com/MichaelXF/js-confuser.git
 	branch = development

@@ -5,6 +5,9 @@ import path from "path";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  build: {
+    outDir: "build"
+  },
   resolve: {
     alias: {
       "js-confuser": path.resolve(__dirname, "./js-confuser"),

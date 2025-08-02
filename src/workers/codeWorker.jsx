@@ -1,10 +1,10 @@
-import acorn from "acorn";
+import { Parser } from "acorn";
 import acornTypeScript from "acorn-typescript";
 import escodegen from "escodegen";
 import prettier from "prettier/standalone";
-import parserBabel from "prettier/parser-babel";
-import parserTypeScript from "prettier/parser-typescript";
-import prettierPluginEstree from "prettier/plugins/estree";
+import * as parserBabel from "prettier/parser-babel";
+import * as parserTypeScript from "prettier/parser-typescript";
+import * as prettierPluginEstree from "prettier/plugins/estree";
 
 self.onmessage = function (e) {
   const { type, requestID, code, language } = e.data;
@@ -28,38 +28,30 @@ async function formatCode(requestID, code, language = "javascript") {
     } else if (language === "typescript") {
       formattedCode = await prettier.format(code, {
         parser: "typescript",
-        plugins: [parserTypeScript, prettierPluginEstree], // Use TypeScript parser
+        plugins: [parserTypeScript, prettierPluginEstree],
         singleQuote: true,
       });
     } else if (language === "json") {
-      formattedCode = await prettier.format(code, {
-        parser: "json",
-      });
+      formattedCode = await prettier.format(code, { parser: "json" });
     } else {
       throw new Error(`Unsupported language: ${language}`);
     }
   } catch (err) {
     self.postMessage({
       event: "error",
-      data: {
-        requestID: requestID,
-        error: err,
-      },
+      data: { requestID: requestID, error: err },
     });
     return;
   }
 
   self.postMessage({
     event: "success",
-    data: {
-      requestID: requestID,
-      code: formattedCode,
-    },
+    data: { requestID: requestID, code: formattedCode },
   });
 }
 
 function convertTSCodeToJSCode(requestID, code) {
-  const parser = acorn.Parser.extend(acornTypeScript());
+  const parser = Parser.extend(acornTypeScript());
 
   try {
     const ast = parser.parse(code, {
@@ -100,18 +92,12 @@ function convertTSCodeToJSCode(requestID, code) {
 
     self.postMessage({
       event: "success",
-      data: {
-        requestID: requestID,
-        code: jsCode,
-      },
+      data: { requestID: requestID, code: jsCode },
     });
   } catch (error) {
     self.postMessage({
       event: "error",
-      data: {
-        requestID: requestID,
-        error: error,
-      },
+      data: { requestID: requestID, error: error },
     });
   }
 }

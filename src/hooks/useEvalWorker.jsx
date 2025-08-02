@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 // Inline the worker code - Avoid spamming the network with requests
-import worker from "workerize-loader?inline!../workers/evalWorker"; // eslint-disable-line import/no-webpack-loader-syntax
+import Worker from "../workers/evalWorker?worker";
 import { getRandomString } from "../utils/random-utils";
 
 export default function useEvalWorker(consoleRef) {
@@ -32,7 +32,7 @@ export default function useEvalWorker(consoleRef) {
     // }
 
     // Create a new worker
-    const myWorker = worker();
+    const myWorker = new Worker();
     workerRef.current = myWorker;
 
     // Receive console messages through this event handler
@@ -55,29 +55,20 @@ export default function useEvalWorker(consoleRef) {
 
     // Delay purely for UX purposes
     setTimeout(() => {
-      // Sometimes the worker doesn't load in development?
-      if (typeof myWorker.evaluateCodeSandbox !== "function") {
-        cb({
-          data: {
-            event: "write",
-            data: {
-              requestID,
-              messages: ["Worker function not available."],
-            },
-          },
-        });
-        return;
-      }
-
-      // Execute the code
-      myWorker.evaluateCodeSandbox(requestID, code, evalOptions);
+      // Execute the code by posting a message to the worker
+      myWorker.postMessage({
+        type: "evaluateCodeSandbox",
+        requestID,
+        code,
+        evalOptions,
+      });
     }, 200);
   }
 
   function evaluateOptions(code, evalOptions) {
     return new Promise((resolve, reject) => {
       // Create a new worker
-      const myWorker = worker();
+      const myWorker = new Worker();
 
       const requestID = getRandomString(10);
 
@@ -100,7 +91,12 @@ export default function useEvalWorker(consoleRef) {
         myWorker.removeEventListener("message", cb);
       }
 
-      myWorker.evaluateOptions(requestID, code, evalOptions);
+      myWorker.postMessage({
+        type: "evaluateOptions",
+        requestID,
+        code,
+        evalOptions,
+      });
     });
   }
 

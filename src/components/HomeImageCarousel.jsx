@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Box, Stack, Typography } from "@mui/material";
+import { Box, IconButton, Stack, Typography } from "@mui/material";
 import websiteImage1 from "../static/websiteImage1.png";
 import websiteImage2 from "../static/websiteImage2.png";
 import websiteImage3 from "../static/websiteImage3.png";
 import websiteImage4 from "../static/websiteImage4.png";
+import { KeyboardArrowLeft, KeyboardArrowRight } from "@mui/icons-material";
 // import websiteImageDocs from "../static/websiteImageDocs.png";
 
 const imageContainerProps = {
@@ -13,6 +14,21 @@ const imageContainerProps = {
   borderColor: "divider_opaque",
   borderRadius: "8px",
   overflow: "hidden",
+};
+
+const iconButtonSx = {
+  color: "text.secondary",
+  bgcolor: "#1d2226",
+  borderRadius: "50%",
+  padding: 0,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  "&:hover": {
+    bgcolor: "#242b30",
+  },
+  width: "34px",
+  height: "34px",
 };
 
 export default function HomeImageCarousel() {
@@ -30,6 +46,13 @@ export default function HomeImageCarousel() {
   }, []);
 
   function changeImage(newIndex) {
+    if (newIndex < 0) {
+      newIndex = images.length + newIndex;
+    }
+    if (newIndex >= images.length) {
+      newIndex = images.length % 4;
+    }
+
     if (newIndex === index) {
       return;
     }
@@ -64,6 +87,32 @@ export default function HomeImageCarousel() {
           userSelect: "none",
         }}
       >
+        <Stack
+          position={"absolute"}
+          bottom="32px"
+          right="32px"
+          direction={"row"}
+          gap={1}
+          zIndex={zIndexMax + 2}
+        >
+          <IconButton
+            sx={iconButtonSx}
+            children={<KeyboardArrowLeft />}
+            onClick={(e) => {
+              changeImage(index - 1);
+              e.stopPropagation();
+            }}
+          />
+          <IconButton
+            sx={iconButtonSx}
+            children={<KeyboardArrowRight />}
+            onClick={(e) => {
+              changeImage(index + 1);
+              e.stopPropagation();
+            }}
+          />
+        </Stack>
+
         {images.map((image, i) => {
           const isFirst = i == 0;
           const zIndex = zIndexes[i];

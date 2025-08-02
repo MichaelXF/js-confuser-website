@@ -20,7 +20,7 @@ import ErrorDialog from "../components/dialogs/ErrorDialog";
 
 // Obfuscator Options
 import { convertOptionsToJS } from "../utils/option-utils";
-import presets from "js-confuser/dist/presets";
+import presets from "js-confuser/src/presets";
 import useEditorComponent from "../hooks/useEditorComponent";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import useEvalWorker from "../hooks/useEvalWorker";

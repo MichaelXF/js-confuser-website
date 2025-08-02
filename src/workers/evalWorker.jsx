@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-globals */
 const workerScope = self;
 
-export const evaluateCodeSandbox = function (
+function evaluateCodeSandbox(
   requestID,
   code,
   { strictModeEval, allowNetworkRequests }
@@ -36,11 +36,7 @@ export const evaluateCodeSandbox = function (
 
       postMessage({
         event: "write",
-        data: {
-          requestID,
-          type: writeType,
-          messages: messages.map(StringFn),
-        },
+        data: { requestID, type: writeType, messages: messages.map(StringFn) },
       });
     };
   };
@@ -56,14 +52,12 @@ export const evaluateCodeSandbox = function (
     };
 
     // Redefine the 'global' variables
-    var window = Function("return this")();
+    var window = self;
+    var globalThis = self;
+    var global = self;
+
     window.console = console;
     window.window = window;
-
-    var global = window;
-    global.global = global;
-
-    this.console = console;
 
     try {
       if (strictModeEval) {
@@ -87,15 +81,10 @@ export const evaluateCodeSandbox = function (
     }
   })();
 
-  postMessage({
-    event: "done",
-    data: {
-      requestID,
-    },
-  });
-};
+  postMessage({ event: "done", data: { requestID } });
+}
 
-export const evaluateOptions = function (
+function evaluateOptions(
   requestID,
   code,
   { strictModeEval, allowNetworkRequests }
@@ -121,20 +110,24 @@ export const evaluateOptions = function (
     console.error(err);
     postMessage({
       event: "error",
-      data: {
-        requestID,
-        error: err.toString(),
-        errorStack: err.stack,
-      },
+      data: { requestID, error: err.toString(), errorStack: err.stack },
     });
     return;
   }
 
   postMessage({
     event: "success",
-    data: {
-      requestID,
-      options: module.exports,
-    },
+    data: { requestID, options: module.exports },
   });
-};
+}
+
+// Listen for messages from the main thread
+workerScope.addEventListener("message", (event) => {
+  const { type, requestID, code, evalOptions } = event.data;
+
+  if (type === "evaluateCodeSandbox") {
+    evaluateCodeSandbox(requestID, code, evalOptions);
+  } else if (type === "evaluateOptions") {
+    evaluateOptions(requestID, code, evalOptions);
+  }
+});

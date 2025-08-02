@@ -15,8 +15,8 @@ window.updates = true;
 
 let allowValueRefresh = true;
 
-const { default: traverse, NodePath, Scope } = require("@babel/traverse");
-const { default: generate } = require("@babel/generator");
+import { traverse, NodePath, Scope } from "@babel/traverse";
+import generate from "@babel/generator";
 
 const prototypePatches = [
   {

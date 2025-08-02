@@ -12,7 +12,7 @@ import { InfoOutlined, Send, StopCircle } from "@mui/icons-material";
 import { RiSparklingLine } from "react-icons/ri";
 import ChatContent from "./ChatContent";
 
-const webSocketURL = process.env.REACT_APP_WS_HOST + "v1/chat/ws";
+const webSocketURL = process.env.VITE_API_WS_HOST + "v1/chat/ws";
 const isLocalhost = webSocketURL.startsWith("ws://localhost:");
 
 let globalCfAuthState = isLocalhost; // Save CloudFlare captcha completion, not needed on localhost

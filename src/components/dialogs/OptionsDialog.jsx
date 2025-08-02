@@ -12,7 +12,7 @@ import {
 import { groups } from "../../groups";
 import OptionComponent from "../OptionComponent";
 import { useRef, useState } from "react";
-import presets from "js-confuser/dist/presets";
+import presets from "js-confuser/src/presets";
 import { getOptionSchemasWithDefaultValues } from "../../utils/option-utils";
 
 export default function OptionsDialog({ open, onClose, options, setOptions }) {

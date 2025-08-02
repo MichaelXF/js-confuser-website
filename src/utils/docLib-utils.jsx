@@ -1,5 +1,5 @@
-import jsConfuserOptionsTS from "!!raw-loader!js-confuser/src/options.ts"; // eslint-disable-line import/no-webpack-loader-syntax
-import jsConfuserChangelogMD from "!!raw-loader!js-confuser/CHANGELOG.md"; // eslint-disable-line import/no-webpack-loader-syntax
+import jsConfuserOptionsTS from "js-confuser/src/options.ts?raw";
+import jsConfuserChangelogMD from "js-confuser/CHANGELOG.md?raw";
 
 const jsConfuserTypes = `
 declare module 'js-confuser' {

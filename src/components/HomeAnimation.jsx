@@ -9,11 +9,11 @@ import {
 import { Error, KeyboardArrowRight, Lock } from "@mui/icons-material";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { CodeViewer } from "../components/codeViewer/CodeViewer";
+import { CodeViewer } from "./codeViewer/CodeViewer";
 import { landingPageCode } from "../constants";
 import useJSConfuser from "../hooks/useJSConfuser";
 import * as monaco from "monaco-editor";
-import TextBadge from "../components/TextBadge";
+import TextBadge from "./TextBadge";
 import { animateIconSx } from "../pages/PageHome";
 
 export default function HomeAnimation() {

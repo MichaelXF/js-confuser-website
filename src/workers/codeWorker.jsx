@@ -1,12 +1,22 @@
-import * as acorn from "acorn";
+import acorn from "acorn";
 import acornTypeScript from "acorn-typescript";
-const escodegen = require("escodegen");
-const prettier = require("prettier/standalone");
-const parserBabel = require("prettier/parser-babel");
-const parserTypeScript = require("prettier/parser-typescript");
-const prettierPluginEstree = require("prettier/plugins/estree");
+import escodegen from "escodegen";
+import prettier from "prettier/standalone";
+import parserBabel from "prettier/parser-babel";
+import parserTypeScript from "prettier/parser-typescript";
+import prettierPluginEstree from "prettier/plugins/estree";
 
-export async function formatCode(requestID, code, language = "javascript") {
+self.onmessage = function (e) {
+  const { type, requestID, code, language } = e.data;
+
+  if (type === "formatCode") {
+    formatCode(requestID, code, language);
+  } else if (type === "convertTSCodeToJSCode") {
+    convertTSCodeToJSCode(requestID, code);
+  }
+};
+
+async function formatCode(requestID, code, language = "javascript") {
   let formattedCode;
   try {
     if (language === "javascript") {
@@ -29,7 +39,7 @@ export async function formatCode(requestID, code, language = "javascript") {
       throw new Error(`Unsupported language: ${language}`);
     }
   } catch (err) {
-    postMessage({
+    self.postMessage({
       event: "error",
       data: {
         requestID: requestID,
@@ -39,7 +49,7 @@ export async function formatCode(requestID, code, language = "javascript") {
     return;
   }
 
-  postMessage({
+  self.postMessage({
     event: "success",
     data: {
       requestID: requestID,
@@ -48,7 +58,7 @@ export async function formatCode(requestID, code, language = "javascript") {
   });
 }
 
-export function convertTSCodeToJSCode(requestID, code) {
+function convertTSCodeToJSCode(requestID, code) {
   const parser = acorn.Parser.extend(acornTypeScript());
 
   try {
@@ -88,7 +98,7 @@ export function convertTSCodeToJSCode(requestID, code) {
 
     const jsCode = escodegen.generate(transformedAst);
 
-    postMessage({
+    self.postMessage({
       event: "success",
       data: {
         requestID: requestID,
@@ -96,7 +106,7 @@ export function convertTSCodeToJSCode(requestID, code) {
       },
     });
   } catch (error) {
-    postMessage({
+    self.postMessage({
       event: "error",
       data: {
         requestID: requestID,

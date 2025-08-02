@@ -1,15 +1,14 @@
-/* eslint-disable no-restricted-globals */
-const workerScope = self;
+self.console.log("JSConfuser worker loading...");
 
-const { Buffer } = require("buffer");
+// Import with proper Vite syntax
+import traverse from "@babel/traverse";
+import JsConfuser from "js-confuser/src/index.ts";
+import * as t from "@babel/types";
 
-global.Buffer = Buffer;
-workerScope.Buffer = Buffer;
+import { Buffer } from "buffer";
+self.Buffer = Buffer;
 
-const { default: traverse } = require("@babel/traverse");
-
-const JsConfuser = require("js-confuser");
-const { default: Obfuscator } = require("js-confuser/dist/obfuscator");
+console.log(traverse);
 
 function getByteSize(str) {
   return new Blob([str]).size;
@@ -19,9 +18,9 @@ function getByteSize(str) {
  * Modules that JSConfuser.ts can import
  */
 const modules = {
-  "js-confuser": JsConfuser,
-  Buffer: Buffer,
-  "@babel/types": require("@babel/types"),
+  // "js-confuser": JsConfuser,
+  // Buffer: Buffer,
+  // "@babel/types": t,
 };
 
 function evaluateOptions(optionsJS) {
@@ -47,7 +46,14 @@ function evaluateOptions(optionsJS) {
       `)(createRequire())?.exports;
 }
 
-export const obfuscateCode = (requestID, code, optionsJS, editorOptions) => {
+// Export functions for Vite worker compatibility
+function obfuscateCode(requestID, code, optionsJS, editorOptions = {}) {
+  console.log("obfuscateCode called with:", {
+    requestID,
+    code: code?.length,
+    optionsJS,
+    editorOptions,
+  });
   const { captureInsights, capturePerformanceInsights } = editorOptions;
 
   let originalExecutionTime;
@@ -62,7 +68,7 @@ export const obfuscateCode = (requestID, code, optionsJS, editorOptions) => {
   const reportProgress = (log, entry, ast) => {
     if (captureInsights) {
       // Calculate the size of the code
-      var code = Obfuscator.generateCode(ast);
+      var code = JsConfuser.generateCode(ast);
       entry.fileSize = getByteSize(code);
 
       // Calculate the execution time (if enabled)
@@ -118,7 +124,6 @@ export const obfuscateCode = (requestID, code, optionsJS, editorOptions) => {
     options = evaluateOptions(optionsJS);
   } catch (error) {
     reportError(error);
-
     return;
   }
 
@@ -169,7 +174,7 @@ export const obfuscateCode = (requestID, code, optionsJS, editorOptions) => {
     .catch((error) => {
       reportError(error);
     });
-};
+}
 
 function getExecutionTime(code, editorOptions) {
   const iterations = editorOptions.performanceIterations;
@@ -204,14 +209,9 @@ function getExecutionTime(code, editorOptions) {
  */
 
 let walkthroughAst = null;
-export const applyTransformations = (
-  requestID,
-  code,
-  optionsJS,
-  transformationNames
-) => {
+function applyTransformations(requestID, code, optionsJS, transformationNames) {
   if (typeof code === "string") {
-    walkthroughAst = Obfuscator.parseCode(code);
+    walkthroughAst = JsConfuser.parseCode(code);
   }
 
   // Evaluate the user's JSConfuser.ts config file
@@ -222,7 +222,7 @@ export const applyTransformations = (
     return;
   }
 
-  const obfuscator = new Obfuscator(options);
+  const obfuscator = new JsConfuser.Obfuscator(options);
   let output = "";
 
   if (transformationNames.length) {
@@ -245,15 +245,15 @@ export const applyTransformations = (
       ),
     },
   });
-};
+}
 
 // Collects Pre-obfuscation analysis (Preparation transformation)
-export const preObfuscationAnalysis = (requestID, code) => {
-  const obfuscator = new Obfuscator({
+function preObfuscationAnalysis(requestID, code) {
+  const obfuscator = new JsConfuser.Obfuscator({
     target: "node",
     compact: true,
   });
-  const ast = Obfuscator.parseCode(code);
+  const ast = JsConfuser.parseCode(code);
 
   obfuscator.obfuscateAST(ast);
 
@@ -290,4 +290,44 @@ export const preObfuscationAnalysis = (requestID, code) => {
       nodes: Array.from(meaningfulNodesToSymbols),
     },
   });
+}
+
+// Handle incoming messages
+self.onmessage = function (event) {
+  console.log("Worker received message:", event.data);
+  const { method, requestID, args } = event.data;
+
+  try {
+    switch (method) {
+      case "obfuscateCode":
+        console.log("Routing to obfuscateCode with args:", args);
+        obfuscateCode(requestID, ...args);
+        break;
+      case "applyTransformations":
+        applyTransformations(requestID, ...args);
+        break;
+      case "preObfuscationAnalysis":
+        preObfuscationAnalysis(requestID, ...args);
+        break;
+      default:
+        console.log("Unknown method:", method);
+        postMessage({
+          event: "error",
+          data: {
+            requestID,
+            errorString: `Unknown method: ${method}`,
+          },
+        });
+    }
+  } catch (error) {
+    console.log("Error in worker message handler:", error);
+    postMessage({
+      event: "error",
+      data: {
+        requestID,
+        errorString: error.toString(),
+        errorStack: error?.stack?.toString?.() || null,
+      },
+    });
+  }
 };

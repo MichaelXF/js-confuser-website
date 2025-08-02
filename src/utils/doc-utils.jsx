@@ -1,5 +1,5 @@
-import presets from "js-confuser/dist/presets";
-import Docs from "../docs/";
+import presets from "js-confuser/src/presets";
+import Docs from "../docs";
 import {
   camelCaseToTitleCase,
   formatPercentage,
@@ -141,20 +141,21 @@ function generate() {
     }
   };
 
-  for (var path of Docs) {
-    var parts = path.split("/");
-
-    // console.log(parts[parts.length - 1]);
+  for (var path in Docs) {
+    var content = Docs[path];
 
     // "Getting_Started__FAQ"
-    var partsByDot = parts[parts.length - 1].split(".");
-    partsByDot.pop();
-    partsByDot.pop();
-    var fileName = partsByDot.join(".");
+    var fileName = path;
+    if (fileName.startsWith("./")) {
+      fileName = fileName.slice(2);
+    }
+    if (fileName.endsWith(".md")) {
+      fileName = fileName.slice(0, -3);
+    }
 
     var fileNameSplit = fileName.split("__");
     if (fileNameSplit.length !== 3) {
-      throw new Error(fileName + " does not have 3 parts");
+      throw new Error(JSON.stringify(fileName) + " does not have 3 parts");
     }
 
     var group = fileNameSplit[0].replace(/_/g, " ");
@@ -174,7 +175,7 @@ function generate() {
 
     urlPath = urlPath.toLowerCase().replace(/ /g, "-");
 
-    addDoc(urlPath, group, title, { contentPath: path, order });
+    addDoc(urlPath, group, title, { contentPath: path, content, order });
   }
 
   createContentDocs(addDoc);

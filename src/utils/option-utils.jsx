@@ -3,16 +3,6 @@ import { groups } from "../groups";
 import { getRandomString } from "./random-utils";
 import { optionsJSHeader } from "../constants";
 
-export function getHost() {
-  const location = window.location;
-  return (
-    location.protocol +
-    "//" +
-    location.hostname +
-    (location.port ? ":" + location.port : "")
-  );
-}
-
 const optionsByID = {};
 Object.values(groups)
   .flat()

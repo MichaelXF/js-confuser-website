@@ -132,14 +132,7 @@ export default function useJSConfuser({ onError } = {}) {
     worker.addEventListener("message", callback);
     isObfuscatingRef.current = true;
 
-    console.log(worker);
-
     // Post message to worker with correct parameter order
-    console.log("Sending message to worker:", {
-      method: "obfuscateCode",
-      requestID,
-      args: [code, options, advancedOptions],
-    });
     worker.postMessage({
       method: "obfuscateCode",
       requestID,

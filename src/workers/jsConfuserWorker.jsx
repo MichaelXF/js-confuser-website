@@ -282,7 +282,6 @@ self.onmessage = function (event) {
         preObfuscationAnalysis(requestID, ...args);
         break;
       default:
-        console.log("Unknown method:", method);
         postMessage({
           event: "error",
           data: { requestID, errorString: `Unknown method: ${method}` },

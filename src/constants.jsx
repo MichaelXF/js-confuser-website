@@ -7,7 +7,7 @@ export const LocalStorageKeys = {
   JsConfuserMarkdownCode: "JSConfuser_MarkdownCode",
 };
 
-export const JsConfuserVersion = jsConfuserPackageJson.version.substring(1);
+export const JsConfuserVersion = jsConfuserPackageJson.version;
 
 export const landingPageCode = `// Verify the user's license key
 async function checkUserLicense(){

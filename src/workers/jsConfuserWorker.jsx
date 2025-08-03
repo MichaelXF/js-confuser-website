@@ -230,7 +230,7 @@ function preObfuscationAnalysis(requestID, code) {
     target: "node",
     compact: true,
   });
-  const ast = JsConfuser.parseCode(code);
+  const ast = JsConfuser.Obfuscator.parseCode(code);
 
   obfuscator.obfuscateAST(ast);
 

@@ -5,6 +5,10 @@ import { getRandomString } from "../utils/random-utils";
 
 export default function useEvalWorker(consoleRef) {
   var [running, setRunning] = useState();
+
+  /**
+   * @type {React.Ref<Worker|null>}
+   */
   var workerRef = useRef();
 
   var runningRef = useRef();

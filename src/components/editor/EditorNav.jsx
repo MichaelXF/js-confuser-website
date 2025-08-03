@@ -434,7 +434,8 @@ export default function EditorNav({
                     );
                   })
                   .catch((err) => {
-                    alert(err.toString());
+                    console.error(err);
+                    alert((err?.errorString || err).toString());
                   });
               },
             },

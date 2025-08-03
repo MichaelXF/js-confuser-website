@@ -3,7 +3,10 @@ import JSConfuserWorker from "../workers/jsConfuserWorker?worker";
 import { getRandomString } from "../utils/random-utils";
 
 export default function useJSConfuser({ onError } = {}) {
-  var workerRef = useRef();
+  /**
+   * @type {React.Ref<Worker|null>}
+   */
+  var workerRef = useRef(null);
   var isObfuscatingRef = useRef(false);
 
   function createWrapper(methodName) {
@@ -148,12 +151,10 @@ export default function useJSConfuser({ onError } = {}) {
     isObfuscatingRef.current = false;
   }
 
+  // Stop the worker when the component unmounts
   useEffect(() => {
-    // On unmount, cancel any obfuscation
     return () => {
-      if (isObfuscatingRef.current) {
-        cancel();
-      }
+      cancel();
     };
   }, []);
 

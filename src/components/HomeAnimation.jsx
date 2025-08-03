@@ -94,11 +94,11 @@ export default function HomeAnimation() {
         setTimeout(typeCharacter, delay);
       } else {
         // done
-        onDone();
+        onTypingAnimationFinished();
       }
     };
 
-    async function onDone() {
+    async function onTypingAnimationFinished() {
       if (!mounted) return;
 
       const currentPosition = editor.getPosition();
@@ -112,9 +112,9 @@ export default function HomeAnimation() {
       function timeout(ms) {
         return new Promise((resolve) => setTimeout(resolve, ms));
       }
-      await timeout(2500);
+      await timeout(1500);
       setLoading(true);
-      await timeout(2500);
+      await timeout(2000);
 
       if (!mounted) return;
 

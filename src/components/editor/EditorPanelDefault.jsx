@@ -99,7 +99,6 @@ export default function EditorPanelDefault({
                 backgroundColor: isChecked ? "primary.alpha" : "transparent",
                 border: "1px solid",
                 p: 1,
-                pr: 2,
                 width: "100%",
                 textAlign: "center",
                 borderColor: isChecked ? "primary.main" : "divider",

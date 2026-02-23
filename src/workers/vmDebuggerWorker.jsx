@@ -61,13 +61,21 @@ function loadProgram(program) {
             t.sequenceExpression([
               t.assignmentExpression(
                 "=",
-                t.identifier("_vm"),
+                t.memberExpression(
+                  t.identifier("self"),
+                  t.identifier("_vm"),
+                  false,
+                ),
                 t.identifier("vm"),
               ),
 
               t.assignmentExpression(
                 "=",
-                t.identifier("_VM"),
+                t.memberExpression(
+                  t.identifier("self"),
+                  t.identifier("_VM"),
+                  false,
+                ),
                 t.identifier("VM"),
               ),
 
@@ -93,8 +101,6 @@ function loadProgram(program) {
 
   // Eval and extract the VM class
   var window = self;
-  var _VM;
-  var _vm;
   var iterator;
   eval(output);
 

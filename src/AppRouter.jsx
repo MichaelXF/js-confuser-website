@@ -6,6 +6,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import PageAST from "./pages/PageAST";
 import PageMarkdown from "./pages/PageMarkdown";
 import PageNotFound from "./pages/PageNotFound";
+import PageVM from "./pages/PageVM";
 
 export default function AppRouter() {
   return (
@@ -15,6 +16,8 @@ export default function AppRouter() {
         <Route path="/" element={<PageHome />} />
         <Route path="/editor" element={<PageEditor />} />
         <Route path="/ast" element={<PageAST />} />
+        <Route path="/vm" element={<PageVM />} />
+
         <Route path="/markdown" element={<PageMarkdown />} />
 
         <Route path="/docs/" element={<PageDoc />} />

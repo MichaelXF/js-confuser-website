@@ -1,0 +1,199 @@
+import * as babelParser from "@babel/parser";
+import traverseImport from "@babel/traverse";
+import { generate } from "@babel/generator";
+import * as t from "@babel/types";
+import { astConsoleMessage } from "../constants";
+
+var currentVM;
+var currentIterator;
+
+var _consoleLog = console.log;
+
+var traverse = traverseImport.default || traverseImport;
+
+// Jump opcodes: JUMP, JUMP_IF_FALSE, JUMP_IF_TRUE_OR_POP, JUMP_IF_FALSE_OR_POP, FOR_IN_NEXT
+const jumpOpCodes = new Set([246, 215, 151, 88, 199]);
+
+function loadProgram(program) {
+  // Parse the program and transform VM.prototype.run into a generator
+  var ast = babelParser.parse(program, { sourceType: "script" });
+
+  traverse(ast, {
+    AssignmentExpression(path) {
+      var right = path.node.right;
+      // Find VM.prototype.run = function(...) { ... }
+      if (
+        right.type === "FunctionExpression" &&
+        path.node.left.type === "MemberExpression" &&
+        path.node.left.property.type === "Identifier" &&
+        path.node.left.property.name === "run"
+      ) {
+        // Make it a generator
+        right.generator = true;
+        // Push `yield this;` at the end of the while loop body
+        // The while loop is the first statement in the function body
+        var body = right.body.body;
+
+        var whileStatement = body.find((x) => x.type === "WhileStatement");
+
+        whileStatement.body.body.push(
+          t.expressionStatement(t.yieldExpression(t.thisExpression())),
+        );
+      }
+    },
+  });
+
+  // Remove the original vm.run() call (ExpressionStatement: vm.run())
+  traverse(ast, {
+    ExpressionStatement(path) {
+      var expr = path.node.expression;
+      // vm.run(...) -> (_vm = vm, _VM = VM, iterator = vm.run(...))
+      if (
+        expr.type === "CallExpression" &&
+        expr.callee.type === "MemberExpression" &&
+        expr.callee.object.type === "Identifier" &&
+        expr.callee.object.name === "vm" &&
+        expr.callee.property.type === "Identifier" &&
+        expr.callee.property.name === "run"
+      ) {
+        path.replaceWith(
+          t.expressionStatement(
+            t.sequenceExpression([
+              t.assignmentExpression(
+                "=",
+                t.identifier("_vm"),
+                t.identifier("vm"),
+              ),
+
+              t.assignmentExpression(
+                "=",
+                t.identifier("_VM"),
+                t.identifier("VM"),
+              ),
+
+              t.assignmentExpression("=", t.identifier("iterator"), expr),
+            ]),
+          ),
+        );
+      }
+    },
+  });
+
+  var output = generate(ast, {}, program).code;
+
+  // console.log(output);
+
+  console.log = function (...args) {
+    _consoleLog(...args);
+    postMessage({
+      event: "log",
+      data: args,
+    });
+  };
+
+  // Eval and extract the VM class
+  var window = self;
+  var _VM;
+  var _vm;
+  var iterator;
+  eval(output);
+
+  currentVM = _vm;
+  currentIterator = iterator;
+  return { event: "ready", data: null };
+}
+
+// runMode: "instruction" | "jump" | "all"
+function next(runMode) {
+  if (!currentIterator) return null;
+
+  try {
+    var stepResult = currentIterator.next();
+  } catch (err) {
+    console.log("VM Debugger Step error", err);
+    return { event: "error", error: "" + (err?.stack || err) };
+  }
+  if (stepResult.done) {
+    return { event: "done", data: null };
+  }
+
+  var runtime = stepResult.value;
+
+  var frame = runtime._currentFrame;
+  var pc = frame._pc - 1;
+  var word = runtime.bytecode[pc];
+  var op = word & 0xff;
+  var operand = word >>> 8;
+
+  var data = {
+    pc,
+    op,
+    operand,
+    stack: runtime._stack.map((x) => String(x)),
+    locals: frame.locals.map((x) => String(x)),
+  };
+
+  if (runMode === "all") {
+    // Run to completion
+    while (!stepResult.done) {
+      stepResult = currentIterator.next();
+    }
+    return { event: "done", data: null };
+  }
+
+  if (runMode === "jump") {
+    // Step until we hit a jump opcode or done
+    while (!stepResult.done) {
+      var frame = stepResult.value._currentFrame;
+      var pc = frame._pc - 1;
+      var word = stepResult.value.bytecode[pc];
+      var op = word & 0xff;
+      if (jumpOpCodes.has(op)) break;
+      stepResult = currentIterator.next();
+    }
+    if (stepResult.done) return { event: "done", data: null };
+    runtime = stepResult.value;
+  }
+
+  // "instruction" mode or after stopping at a jump
+  return {
+    event: "step",
+    data: data,
+  };
+}
+
+// Handle incoming messages
+self.onmessage = function (event) {
+  const { method, requestID, args } = event.data;
+  let response;
+
+  try {
+    switch (method) {
+      case "loadProgram":
+        response = loadProgram(...args);
+        break;
+      case "next":
+        response = next(...args);
+        break;
+      default:
+        postMessage({
+          event: "error",
+          data: { requestID, errorString: `Unknown method: ${method}` },
+        });
+    }
+  } catch (error) {
+    console.log("Error in worker message handler:", error);
+    postMessage({
+      event: "error",
+      data: {
+        requestID,
+        errorString: error.toString(),
+        errorStack: error?.stack?.toString?.() || null,
+      },
+    });
+  }
+
+  if (response !== undefined) {
+    postMessage({ ...response, requestID });
+  }
+};

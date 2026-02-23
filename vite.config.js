@@ -6,11 +6,19 @@ import path from "path";
 export default defineConfig({
   plugins: [react()],
   build: {
-    outDir: "build"
+    outDir: "build",
   },
   resolve: {
     alias: {
       "js-confuser": path.resolve(__dirname, "./js-confuser"),
+      "js-confuser-vm": path.resolve(__dirname, "./js-confuser-vm"),
+      "google-closure-compiler": path.resolve(
+        __dirname,
+        "./src/stubs/empty.js",
+      ),
+      "fancy-log": path.resolve(__dirname, "./src/stubs/empty.js"),
+      assert: path.resolve(__dirname, "./src/stubs/assert.js"),
+      module: path.resolve(__dirname, "./src/stubs/stripTypeScriptTypes.js"),
     },
   },
   define: {

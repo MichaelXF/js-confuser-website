@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import JSConfuserWorker from "../workers/jsConfuserVMWorker?worker";
+import JSConfuserVMWorker from "../workers/jsConfuserVMWorker?worker";
 import { getRandomString } from "../utils/random-utils";
 
 export default function useJSConfuserVM({ onError } = {}) {
@@ -16,7 +16,7 @@ export default function useJSConfuserVM({ onError } = {}) {
 
         // Create worker instance if needed
         if (!workerRef.current) {
-          workerRef.current = new JSConfuserWorker();
+          workerRef.current = new JSConfuserVMWorker();
         }
 
         var worker = workerRef.current;
@@ -85,7 +85,7 @@ export default function useJSConfuserVM({ onError } = {}) {
     // Cancel pending obfuscation, create new worker
     if (!workerRef.current || isObfuscatingRef.current) {
       cancel();
-      workerRef.current = new JSConfuserWorker();
+      workerRef.current = new JSConfuserVMWorker();
     }
 
     var worker = workerRef.current;

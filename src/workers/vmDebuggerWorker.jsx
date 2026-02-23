@@ -104,7 +104,7 @@ function loadProgram(program) {
   var iterator;
   eval(output);
 
-  currentVM = _vm;
+  currentVM = self._vm;
   currentIterator = iterator;
   return { event: "ready", data: null };
 }

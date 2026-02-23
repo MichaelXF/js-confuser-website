@@ -43,11 +43,24 @@ export default function PageVM() {
   var [state, setState] = useState();
   var [logs, setLogs] = useState();
 
+  var stateRef = useRef();
+  stateRef.current = state;
+
   const vmDebugger = useVMDebugger({
     onEvent: (event) => {
       setState(event);
 
-      if (event.data?.pc != null) {
+      if (event.event === "done") {
+        // remove the highlight
+        const { editor, monaco } = ref.current.output;
+        if (!editor || !monaco) return;
+        if (outputActiveDecorations.current?.length) {
+          outputActiveDecorations.current = editor.deltaDecorations(
+            outputActiveDecorations.current,
+            [],
+          );
+        }
+      } else if (event.data?.pc != null) {
         const { editor, monaco } = ref.current.output;
         if (!editor || !monaco) return;
 
@@ -146,6 +159,8 @@ export default function PageVM() {
       editor.onDidChangeCursorPosition((e) => {
         const model = editor.getModel();
         if (!model) return;
+
+        if (stateRef.current) return;
 
         const lineContent = model.getLineContent(e.position.lineNumber);
         // Match bytecode comment source location: ", // LINE:COL  INSTRUCTION"

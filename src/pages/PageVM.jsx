@@ -503,6 +503,12 @@ export default function PageVM() {
             if (state) {
               setState(null);
             } else {
+              if (options?.timingChecks) {
+                alert(
+                  "The option Timing Checks is enabled and will most likely break the debugger.",
+                );
+                return;
+              }
               handleStartDebugger();
             }
           }}

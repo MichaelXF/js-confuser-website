@@ -397,54 +397,60 @@ export default function PageVM() {
         alignItems="center"
         gap={2}
       >
-        <Button
-          sx={{
-            fontWeight: "bold",
-            width: "160px",
-            minHeight: "42px",
-            flexShrink: 0,
-          }}
-          startIcon={<Lock sx={{ transform: "scale(0.9)" }} />}
-          variant="contained"
-          onClick={handleObfuscateClick}
-        >
-          {loading ? (
-            <CircularProgress size={20} color="inherit" />
-          ) : (
-            "Obfuscate"
-          )}
-        </Button>
+        {state ? null : (
+          <>
+            <Button
+              sx={{
+                fontWeight: "bold",
+                width: "160px",
+                minHeight: "42px",
+                flexShrink: 0,
+              }}
+              startIcon={<Lock sx={{ transform: "scale(0.9)" }} />}
+              variant="contained"
+              onClick={handleObfuscateClick}
+            >
+              {loading ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                "Obfuscate"
+              )}
+            </Button>
 
-        <Button
-          sx={{
-            fontWeight: "bold",
-            width: "160px",
-            minHeight: "42px",
-            bgcolor: "divider",
-            color: "primary.main",
-            flexShrink: 0,
-          }}
-          color="inherit"
-          onClick={() => setShowOptionsDialog(true)}
-        >
-          Options
-        </Button>
+            <Button
+              sx={{
+                fontWeight: "bold",
+                width: "160px",
+                minHeight: "42px",
+                bgcolor: "divider",
+                color: "primary.main",
+                flexShrink: 0,
+              }}
+              color="inherit"
+              onClick={() => setShowOptionsDialog(true)}
+            >
+              Options
+            </Button>
 
-        <Button
-          sx={{
-            fontWeight: "bold",
-            width: "160px",
-            minHeight: "42px",
-            bgcolor: "divider",
-            color: "primary.main",
-            flexShrink: 0,
-          }}
-          startIcon={<KeyboardArrowRight sx={{ transform: "scale(1.1)" }} />}
-          color="inherit"
-          onClick={() => setShowConsoleDialog(true)}
-        >
-          Evaluate Code
-        </Button>
+            <Button
+              sx={{
+                fontWeight: "bold",
+                width: "160px",
+                minHeight: "42px",
+                bgcolor: "divider",
+                color: "primary.main",
+                flexShrink: 0,
+              }}
+              startIcon={
+                <KeyboardArrowRight sx={{ transform: "scale(1.1)" }} />
+              }
+              color="inherit"
+              onClick={() => setShowConsoleDialog(true)}
+            >
+              Evaluate Code
+            </Button>
+          </>
+        )}
 
         {/* Debugger controls - only show once a program is loaded (state !== undefined) */}
         {state ? (
@@ -506,7 +512,7 @@ export default function PageVM() {
       </Box>
 
       {/* Debugger state panel */}
-      {state !== undefined && (
+      {state && (
         <Box
           sx={{
             position: "fixed",

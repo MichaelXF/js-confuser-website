@@ -9,7 +9,7 @@ import { useRef, useState } from "react";
 import { rgbToHex } from "../utils/color-utils";
 import Editor from "@monaco-editor/react";
 import useSEO from "../hooks/useSEO";
-import { defaultCode } from "../constants";
+import { defaultCode, LocalStorageKeys } from "../constants";
 import VMOptionsDialog from "../components/dialogs/VMOptionsDialog.jsx";
 import ConsoleDialog from "../components/dialogs/ConsoleDialog";
 import useJSConfuser from "../hooks/useJSConfuser.jsx";
@@ -21,6 +21,7 @@ import {
   SkipNext,
 } from "@mui/icons-material";
 import useVMDebugger from "../hooks/useVMDebugger.jsx";
+import { useLocalStorage } from "usehooks-ts";
 
 export default function PageVM() {
   useSEO(
@@ -46,20 +47,90 @@ export default function PageVM() {
   var stateRef = useRef();
   stateRef.current = state;
 
+  function highlightLineFromOutput(lineNumber) {
+    const { editor, monaco } = ref.current.output;
+    if (!editor || !monaco) return;
+
+    const model = editor.getModel();
+    if (!model) return;
+
+    const lineContent = model.getLineContent(lineNumber);
+    // Match bytecode comment source location: ", // LINE:COL  INSTRUCTION"
+    const match = lineContent.match(/,\s*\/\/\s+(\d+):(\d+)\s/);
+
+    const inputEditor = ref.current.input.editor;
+    if (!inputEditor) return;
+
+    console.log(lineNumber, match, lineContent);
+
+    if (match) {
+      const targetLine = parseInt(match[1], 10);
+      const targetCol = parseInt(match[2], 10) + 1; // Monaco columns are 1-indexed
+
+      inputEditor.revealPositionInCenter({
+        lineNumber: targetLine,
+        column: targetCol,
+      });
+
+      const inputModel = inputEditor.getModel();
+      const inputEndCol = inputModel
+        ? inputModel.getLineMaxColumn(targetLine)
+        : 1;
+      sourceHighlightDecorations.current = inputEditor.deltaDecorations(
+        sourceHighlightDecorations.current,
+        [
+          {
+            range: new monaco.Range(targetLine, 1, targetLine, inputEndCol),
+            options: {
+              isWholeLine: true,
+              className: "source-location-highlight",
+              linesDecorationsClassName: "source-location-glyph",
+            },
+          },
+        ],
+      );
+    } else {
+      if (sourceHighlightDecorations.current.length > 0) {
+        sourceHighlightDecorations.current = inputEditor.deltaDecorations(
+          sourceHighlightDecorations.current,
+          [],
+        );
+      }
+    }
+
+    if (lineContent.includes("// ")) {
+      const outputLine = lineNumber;
+      const outputEndCol = model.getLineMaxColumn(outputLine);
+      outputActiveDecorations.current = editor.deltaDecorations(
+        outputActiveDecorations.current,
+        [
+          {
+            range: new monaco.Range(outputLine, 1, outputLine, outputEndCol),
+            options: {
+              isWholeLine: true,
+              className: "source-location-highlight",
+              linesDecorationsClassName: "source-location-glyph",
+            },
+          },
+        ],
+      );
+    } else {
+      if (outputActiveDecorations.current.length > 0) {
+        outputActiveDecorations.current = editor.deltaDecorations(
+          outputActiveDecorations.current,
+          [],
+        );
+      }
+    }
+  }
+
   const vmDebugger = useVMDebugger({
     onEvent: (event) => {
       setState(event);
 
       if (event.event === "done") {
         // remove the highlight
-        const { editor, monaco } = ref.current.output;
-        if (!editor || !monaco) return;
-        if (outputActiveDecorations.current?.length) {
-          outputActiveDecorations.current = editor.deltaDecorations(
-            outputActiveDecorations.current,
-            [],
-          );
-        }
+        highlightLineFromOutput(1);
       } else if (event.data?.pc != null) {
         const { editor, monaco } = ref.current.output;
         if (!editor || !monaco) return;
@@ -83,23 +154,7 @@ export default function PageVM() {
         // pc is 0-based index into bytecode instructions; each instruction is one line after "// BYTECODE"
         const targetLine = bytecodeLineIndex + 1 + event.data.pc + 1; // +1 for 1-based Monaco line numbers
 
-        editor.revealLineInCenter(targetLine);
-        editor.setPosition({ lineNumber: targetLine, column: 1 });
-
-        const endCol = model.getLineMaxColumn(targetLine);
-        outputActiveDecorations.current = editor.deltaDecorations(
-          outputActiveDecorations.current,
-          [
-            {
-              range: new monaco.Range(targetLine, 1, targetLine, endCol),
-              options: {
-                isWholeLine: true,
-                className: "source-location-highlight",
-                linesDecorationsClassName: "source-location-glyph",
-              },
-            },
-          ],
-        );
+        highlightLineFromOutput(targetLine);
       }
 
       if (event.event === "log") {
@@ -119,14 +174,17 @@ export default function PageVM() {
   const outputActiveDecorations = useRef([]);
 
   const [loading, setLoading] = useState(false);
-  const [options, setOptions] = useState({
-    randomizeOpcodes: true, // randomize opcode values in OP mapping?
-    shuffleOpcodes: true, // shuffle order of opcode handlers in the runtime?
-    encodeBytecode: true, // encode bytecode? when off, comments for instructions are added
-    selfModifying: true, // do self-modifying bytecode for function bodies?
-    timingChecks: true, // add timing checks to detect debuggers?
-    minify: false, // pass final output through Google Closure Compiler? (Renames VM class properties)
-  });
+  const [options, setOptions] = useLocalStorage(
+    LocalStorageKeys.JsConfuserVMOptions,
+    {
+      randomizeOpcodes: true, // randomize opcode values in OP mapping?
+      shuffleOpcodes: true, // shuffle order of opcode handlers in the runtime?
+      encodeBytecode: true, // encode bytecode? when off, comments for instructions are added
+      selfModifying: true, // do self-modifying bytecode for function bodies?
+      timingChecks: true, // add timing checks to detect debuggers?
+      minify: false, // pass final output through Google Closure Compiler? (Renames VM class properties)
+    },
+  );
 
   const theme = useTheme();
   const bodyBackgroundColor = theme.palette.background.default;
@@ -157,79 +215,9 @@ export default function PageVM() {
 
     if (key === "output") {
       editor.onDidChangeCursorPosition((e) => {
-        const model = editor.getModel();
-        if (!model) return;
-
         if (stateRef.current) return;
 
-        const lineContent = model.getLineContent(e.position.lineNumber);
-        // Match bytecode comment source location: ", // LINE:COL  INSTRUCTION"
-        const match = lineContent.match(/,\s*\/\/\s+(\d+):(\d+)\s/);
-
-        const inputEditor = ref.current.input.editor;
-        if (!inputEditor) return;
-
-        if (match) {
-          const targetLine = parseInt(match[1], 10);
-          const targetCol = parseInt(match[2], 10) + 1; // Monaco columns are 1-indexed
-
-          inputEditor.revealPositionInCenter({
-            lineNumber: targetLine,
-            column: targetCol,
-          });
-
-          const inputModel = inputEditor.getModel();
-          const inputEndCol = inputModel
-            ? inputModel.getLineMaxColumn(targetLine)
-            : 1;
-          sourceHighlightDecorations.current = inputEditor.deltaDecorations(
-            sourceHighlightDecorations.current,
-            [
-              {
-                range: new monaco.Range(targetLine, 1, targetLine, inputEndCol),
-                options: {
-                  isWholeLine: true,
-                  className: "source-location-highlight",
-                  linesDecorationsClassName: "source-location-glyph",
-                },
-              },
-            ],
-          );
-
-          const outputLine = e.position.lineNumber;
-          const outputEndCol = model.getLineMaxColumn(outputLine);
-          outputActiveDecorations.current = editor.deltaDecorations(
-            outputActiveDecorations.current,
-            [
-              {
-                range: new monaco.Range(
-                  outputLine,
-                  1,
-                  outputLine,
-                  outputEndCol,
-                ),
-                options: {
-                  isWholeLine: true,
-                  className: "source-location-highlight",
-                  linesDecorationsClassName: "source-location-glyph",
-                },
-              },
-            ],
-          );
-        } else {
-          if (sourceHighlightDecorations.current.length > 0) {
-            sourceHighlightDecorations.current = inputEditor.deltaDecorations(
-              sourceHighlightDecorations.current,
-              [],
-            );
-          }
-          if (outputActiveDecorations.current.length > 0) {
-            outputActiveDecorations.current = editor.deltaDecorations(
-              outputActiveDecorations.current,
-              [],
-            );
-          }
-        }
+        highlightLineFromOutput(e.position.lineNumber);
       });
     }
   };
@@ -467,6 +455,7 @@ export default function PageVM() {
               startIcon={<SkipNext />}
               color="inherit"
               onClick={() => vmDebugger.next("instruction")}
+              disabled={state?.event === "done"}
             >
               Step
             </Button>
@@ -482,6 +471,7 @@ export default function PageVM() {
               startIcon={<SkipNext />}
               color="inherit"
               onClick={() => vmDebugger.next("jump")}
+              disabled={state?.event === "done"}
             >
               Step Jump
             </Button>
@@ -503,11 +493,15 @@ export default function PageVM() {
             if (state) {
               setState(null);
             } else {
-              if (options?.timingChecks) {
+              var enabledOptions = Object.keys(options).filter(
+                (optName) => options[optName],
+              );
+              if (enabledOptions.length) {
                 alert(
-                  "The option Timing Checks is enabled and will most likely break the debugger.",
+                  "Warning: You have option(s) enabled (" +
+                    enabledOptions.join(", ") +
+                    ") which will most likely break the debugger. Disable all options for the best results.",
                 );
-                return;
               }
               handleStartDebugger();
             }
@@ -538,74 +532,84 @@ export default function PageVM() {
             <Typography
               variant="caption"
               fontFamily="inherit"
-              fontSize="inherit"
+              fontSize="medium"
               color="text.secondary"
             >
               Event:{" "}
               <strong style={{ color: "white" }}>{state?.event ?? "—"}</strong>
             </Typography>
-            {state?.pc != null && (
+            {state?.data?.pc != null && (
               <Typography
                 variant="caption"
                 fontFamily="inherit"
-                fontSize="inherit"
+                fontSize="medium"
                 color="text.secondary"
               >
-                PC: <strong style={{ color: "white" }}>{state.pc}</strong>
+                PC:{" "}
+                <strong style={{ color: "white" }}>{state?.data?.pc}</strong>
               </Typography>
             )}
-            {state?.op != null && (
+            {state?.data?.op != null && (
               <Typography
                 variant="caption"
                 fontFamily="inherit"
-                fontSize="inherit"
+                fontSize="medium"
                 color="text.secondary"
               >
-                OP: <strong style={{ color: "white" }}>{state.op}</strong>
-              </Typography>
-            )}
-            {state?.operand != null && (
-              <Typography
-                variant="caption"
-                fontFamily="inherit"
-                fontSize="inherit"
-                color="text.secondary"
-              >
-                Operand:{" "}
-                <strong style={{ color: "white" }}>{state.operand}</strong>
-              </Typography>
-            )}
-            {state?.stack != null && (
-              <Typography
-                variant="caption"
-                fontFamily="inherit"
-                fontSize="inherit"
-                color="text.secondary"
-              >
-                Stack:{" "}
+                OP:{" "}
                 <strong style={{ color: "white" }}>
-                  [{state.stack.join(", ")}]
+                  {state?.data?.opName || ""} {state?.data?.op}
                 </strong>
               </Typography>
             )}
-            {state?.locals != null && (
+            {state?.data?.operand != null && (
               <Typography
                 variant="caption"
                 fontFamily="inherit"
-                fontSize="inherit"
+                fontSize="medium"
                 color="text.secondary"
               >
-                Locals:{" "}
+                Operand:{" "}
                 <strong style={{ color: "white" }}>
-                  [{state.locals.join(", ")}]
+                  {state?.data?.operand}
                 </strong>
               </Typography>
             )}
           </Box>
           <Box>
+            {(state?.data?.stack || []).map((stackItem, i) => {
+              return (
+                <Typography
+                  key={i}
+                  fontFamily="inherit"
+                  fontSize="medium"
+                  color="text.secondary"
+                >
+                  stack[{i}]:{" "}
+                  <strong style={{ color: "white" }}>{"" + stackItem}</strong>
+                </Typography>
+              );
+            })}
+          </Box>
+          <Box>
+            {(state?.data?.locals || []).map((localsItem, i) => {
+              return (
+                <Typography
+                  key={i}
+                  fontFamily="inherit"
+                  fontSize="medium"
+                  color="text.secondary"
+                >
+                  locals[{i}]:{" "}
+                  <strong style={{ color: "white" }}>{"" + localsItem}</strong>
+                </Typography>
+              );
+            })}
+          </Box>
+          <Box>
             {logs.map((log, i) => {
               return (
-                <Typography key={i} fontFamily="monospace">
+                <Typography key={i} fontFamily="monospace" fontSize="medium">
                   {(log || []).join(" ")}
                 </Typography>
               );

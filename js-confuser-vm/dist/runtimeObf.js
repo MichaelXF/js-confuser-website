@@ -12,6 +12,7 @@ export async function obfuscateRuntime(runtime, options) {
       sourceType: "unambiguous"
     });
   } catch (error) {
+    console.error(runtime);
     throw new Error("VM-Runtime final parsing failed", {
       cause: error
     });

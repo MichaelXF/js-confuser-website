@@ -1,5 +1,6 @@
 import { compileAndSerialize } from "./compiler.js";
-async function obfuscate(source, options = {}) {
+import { DEFAULT_OPTIONS } from "./options.js";
+async function obfuscate(source, options = DEFAULT_OPTIONS) {
   const result = compileAndSerialize(source, options);
   return result;
 }

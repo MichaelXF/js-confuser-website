@@ -55,8 +55,9 @@ export default function PageVM() {
     if (!model) return;
 
     const lineContent = model.getLineContent(lineNumber);
-    // Match bytecode comment source location: ", // LINE:COL  INSTRUCTION"
-    const match = lineContent.match(/,\s*\/\/\s+(\d+):(\d+)\s/);
+    // Match new bytecode comment source location: "LINE:COL-LINE:COL" at end of line
+    // e.g., "// [14],        POP                                     22:0-22:23"
+    const match = lineContent.match(/(\d+):(\d+)-(\d+):(\d+)\s*$/);
 
     const inputEditor = ref.current.input.editor;
     if (!inputEditor) return;
@@ -64,25 +65,23 @@ export default function PageVM() {
     console.log(lineNumber, match, lineContent);
 
     if (match) {
-      const targetLine = parseInt(match[1], 10);
-      const targetCol = parseInt(match[2], 10) + 1; // Monaco columns are 1-indexed
+      const startLine = parseInt(match[1], 10);
+      const startCol = parseInt(match[2], 10) + 1; // Monaco columns are 1-indexed
+      const endLine = parseInt(match[3], 10);
+      const endCol = parseInt(match[4], 10) + 1; // Monaco columns are 1-indexed
 
       inputEditor.revealPositionInCenter({
-        lineNumber: targetLine,
-        column: targetCol,
+        lineNumber: startLine,
+        column: startCol,
       });
 
-      const inputModel = inputEditor.getModel();
-      const inputEndCol = inputModel
-        ? inputModel.getLineMaxColumn(targetLine)
-        : 1;
       sourceHighlightDecorations.current = inputEditor.deltaDecorations(
         sourceHighlightDecorations.current,
         [
           {
-            range: new monaco.Range(targetLine, 1, targetLine, inputEndCol),
+            range: new monaco.Range(startLine, startCol, endLine, endCol),
             options: {
-              isWholeLine: true,
+              isWholeLine: false,
               className: "source-location-highlight",
               linesDecorationsClassName: "source-location-glyph",
             },
@@ -138,21 +137,8 @@ export default function PageVM() {
         const model = editor.getModel();
         if (!model) return;
 
-        // Find the line that contains "// BYTECODE" to get the offset
-        const fullText = model.getValue();
-        const lines = fullText.split("\n");
-        let bytecodeLineIndex = -1;
-        for (let i = 0; i < lines.length; i++) {
-          if (lines[i].includes("// BYTECODE")) {
-            bytecodeLineIndex = i;
-            break;
-          }
-        }
-
-        if (bytecodeLineIndex === -1) return;
-
-        // pc is 0-based index into bytecode instructions; each instruction is one line after "// BYTECODE"
-        const targetLine = bytecodeLineIndex + 1 + event.data.pc + 1; // +1 for 1-based Monaco line numbers
+        // pc is 0-based; bytecode now always starts at the top of the file
+        const targetLine = event.data.pc + 1; // +1 for 1-based Monaco line numbers
 
         highlightLineFromOutput(targetLine);
       }
@@ -341,9 +327,8 @@ export default function PageVM() {
         }
         .source-location-glyph {
           background: rgba(255, 200, 0, 0.75);
-          width: 3px !important;
+          width: 2px !important;
           margin-left: 5px;
-          border-radius: 2px;
         }
       `}</style>
       <ConsoleDialog

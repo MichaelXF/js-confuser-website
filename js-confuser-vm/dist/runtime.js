@@ -84,6 +84,24 @@ VM.prototype._pop = function () {
 VM.prototype.peek = function () {
   return this._stack[this._stack.length - 1];
 };
+
+// Read one instruction word from this.bytecode at `pc`, unwrapping the
+// encoding so callers always get a plain { op, operand } pair regardless
+// of whether ENCODE_BYTECODE is active.
+VM.prototype.readWord = function (pc) {
+  var word = this.bytecode[pc];
+  if (ENCODE_BYTECODE) {
+    return {
+      op: word & 0xff,
+      operand: word >>> 8
+    };
+  } else {
+    return {
+      op: word[0],
+      operand: word[1]
+    };
+  }
+};
 VM.prototype.captureUpvalue = function (frame, slot) {
   // Reuse existing open upvalue for this frame+slot if one exists.
   // This is what makes two closures share the same mutable cell.
@@ -116,14 +134,9 @@ VM.prototype.run = function () {
     var bc = this.bytecode;
     if (frame._pc >= bc.length) break;
     var op, operand;
-    var word = bc[frame._pc++];
-    if (ENCODE_BYTECODE) {
-      op = word & 0xff;
-      operand = word >>> 8;
-    } else {
-      op = word[0];
-      operand = word[1];
-    }
+    var word = this.readWord(frame._pc++);
+    op = word.op;
+    operand = word.operand;
 
     // console.log(frame._pc - 1, op, operand);
 
@@ -141,6 +154,9 @@ VM.prototype.run = function () {
       switch (op) {
         case OP.LOAD_CONST:
           this._push(this.constants[operand]);
+          break;
+        case OP.LOAD_INT:
+          this._push(operand);
           break;
         case OP.LOAD_LOCAL:
           this._push(frame.locals[operand]);
@@ -361,16 +377,40 @@ VM.prototype.run = function () {
           break;
         case OP.MAKE_CLOSURE:
           {
-            var fn = this.constants[operand];
+            // operand = startPc: absolute index of the function body's first instruction.
+            // Metadata is read from the value stack (pushed by _emitClosureMetadata).
+            // Stack layout when we arrive here (top is rightmost):
+            //   [isLocal_0, idx_0, ..., isLocal_N-1, idx_N-1, uvCount, localCount, paramCount]
+            var startPc = operand;
+            var paramCount = this._pop();
+            var localCount = this._pop();
+            var uvCount = this._pop();
+
+            // Upvalues were pushed in order 0..N-1 so we pop them in reverse.
+            var uvDescs = new Array(uvCount);
+            for (var i = uvCount - 1; i >= 0; i--) {
+              var uvIndex = this._pop();
+              var isLocalRaw = this._pop();
+              uvDescs[i] = {
+                isLocal: isLocalRaw,
+                _index: uvIndex
+              };
+            }
+            var fn = {
+              paramCount: paramCount,
+              localCount: localCount,
+              startPc: startPc,
+              upvalueDescriptors: uvDescs
+            };
             var closure = new Closure(fn);
-            for (var i = 0; i < fn.upvalueDescriptors.length; i++) {
-              var desc = fn.upvalueDescriptors[i];
-              if (desc.isLocal) {
+            for (var i = 0; i < uvDescs.length; i++) {
+              var uvd = uvDescs[i];
+              if (uvd.isLocal) {
                 // Capture directly from current frame's local slot
-                closure.upvalues.push(this.captureUpvalue(frame, desc._index));
+                closure.upvalues.push(this.captureUpvalue(frame, uvd._index));
               } else {
                 // Relay - take upvalue from the enclosing closure's list
-                closure.upvalues.push(frame.closure.upvalues[desc._index]);
+                closure.upvalues.push(frame.closure.upvalues[uvd._index]);
               }
             }
             // Wrap in a native callable shell so host code (array methods,
@@ -394,6 +434,9 @@ VM.prototype.run = function () {
             this._push(shell);
             break;
           }
+        case OP.DATA:
+          // Should never appear in compiled output (reserved opcode slot).
+          throw new Error("DATA opcode executed at pc " + (frame._pc - 1));
         case OP.LOAD_UPVALUE:
           this._push(frame.closure.upvalues[operand]._read());
           break;
@@ -581,15 +624,11 @@ VM.prototype.run = function () {
           }
         case OP.PATCH:
           {
-            // Pop destination PC, then write constants[operand] (packed word array)
-            // directly into this.bytecode starting at that PC.
-            var destPc = this._pop();
-            var words = this.constants[operand];
-            if (ENCODE_BYTECODE) {
-              words = decodeBytecode(words);
-            }
-            for (var i = 0; i < words.length; i++) {
-              this.bytecode[destPc + i] = words[i];
+            // Writes at operand the bytecode[arg1:arg2]
+            var destPc = operand;
+            var instructions = this.bytecode.slice(this._pop(), this._pop());
+            for (var i = 0; i < instructions.length; i++) {
+              this.bytecode[destPc + i] = instructions[i];
             }
             break;
           }

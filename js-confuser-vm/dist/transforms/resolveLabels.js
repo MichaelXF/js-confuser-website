@@ -43,7 +43,7 @@ export function resolveLabels(bc, compiler) {
     if (operand !== undefined && operand !== null && typeof operand === "object" && operand.type === "label") {
       const pc = labelToPc.get(operand.label);
       if (pc === undefined) throw new Error(`Undefined label: ${operand.label}`);
-      resolved.push([op, pc]);
+      resolved.push([op, pc + (operand.offset ?? 0)]);
     } else {
       resolved.push(instr);
     }

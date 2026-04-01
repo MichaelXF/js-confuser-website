@@ -1,4 +1,5 @@
 import jsConfuserPackageJson from "js-confuser/package.json";
+import jsConfuserVMPackageJson from "js-confuser-vm/package.json";
 
 export const LocalStorageKeys = {
   JsConfuserOptionsJS: "JSConfuser_Options",
@@ -9,6 +10,7 @@ export const LocalStorageKeys = {
 };
 
 export const JsConfuserVersion = jsConfuserPackageJson.version;
+export const JsConfuserVMVersion = jsConfuserVMPackageJson.version;
 
 export const landingPageCode = `// Verify the user's license key
 async function checkUserLicense(){

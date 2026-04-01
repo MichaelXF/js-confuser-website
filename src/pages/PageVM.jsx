@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import { rgbToHex } from "../utils/color-utils";
 import Editor from "@monaco-editor/react";
 import useSEO from "../hooks/useSEO";
-import { defaultCode, LocalStorageKeys } from "../constants";
+import { JsConfuserVMVersion, LocalStorageKeys } from "../constants";
 import VMOptionsDialog from "../components/dialogs/VMOptionsDialog.jsx";
 import ConsoleDialog from "../components/dialogs/ConsoleDialog";
 import useJSConfuser from "../hooks/useJSConfuser.jsx";
@@ -16,6 +16,29 @@ import {
 } from "@mui/icons-material";
 import useVMDebugger from "../hooks/useVMDebugger.jsx";
 import { useLocalStorage } from "usehooks-ts";
+
+const defaultCode = `/**
+ * GitHub: https://github.com/MichaelXF/js-confuser-vm
+ * NPM: https://www.npmjs.com/package/js-confuser-vm
+ *
+ * Welcome to JS Confuser VM!
+ * This is an experimental JavaScript VM obfuscator that compiles your code into custom bytecode and interprets it with a custom runtime.
+ * 
+ * You can obfuscate the code with the top right button 'Obfuscate'.
+ * 
+ * You can customize the obfuscator with the button 'Options'.
+ *
+ * Version: ${JsConfuserVMVersion}
+ *
+ * Happy Hacking!
+ */
+
+function greet(name) {
+  var output = 'Hello ' + name + '!';
+  console.log(output);
+}
+
+greet('Internet User');`;
 
 export default function PageVM() {
   useSEO(

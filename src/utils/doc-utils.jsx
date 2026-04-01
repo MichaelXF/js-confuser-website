@@ -1,4 +1,4 @@
-import presets from "js-confuser/src/presets";
+import presets from "js-confuser/src/presets.ts";
 import Docs from "../docs";
 import {
   camelCaseToTitleCase,

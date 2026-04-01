@@ -20,6 +20,7 @@ export default function VMOptionsDialog({
   open,
   onClose,
   options,
+  optionsSchema,
   setOptions,
 }) {
   var [proposedOptions, setProposedOptions] = useState(null);
@@ -58,23 +59,27 @@ export default function VMOptionsDialog({
       <DialogTitle sx={{ fontWeight: "bold" }}>Options</DialogTitle>
 
       <DialogContent>
-        {Object.keys(options).map((optionName) => (
-          <OptionComponent
-            key={optionName}
-            option={{
-              name: optionName,
-              type: "boolean",
-              description: camelCaseToTitleCase(optionName),
-            }}
-            valueObject={proposedOptions?.[optionName]}
-            setValueObject={(newValue) => {
-              setProposedOptions((prev) => ({
-                ...prev,
-                [optionName]: newValue,
-              }));
-            }}
-          />
-        ))}
+        {Object.keys(optionsSchema).map((optionName) => {
+          const schema = optionsSchema[optionName];
+
+          return (
+            <OptionComponent
+              key={optionName}
+              option={{
+                name: optionName,
+                type: "boolean",
+                description: schema?.description || "No description",
+              }}
+              valueObject={proposedOptions?.[optionName]}
+              setValueObject={(newValue) => {
+                setProposedOptions((prev) => ({
+                  ...prev,
+                  [optionName]: newValue,
+                }));
+              }}
+            />
+          );
+        })}
       </DialogContent>
 
       <DialogActions>

@@ -11,7 +11,6 @@ export default defineConfig({
   resolve: {
     alias: {
       "js-confuser": path.resolve(__dirname, "./js-confuser"),
-      "js-confuser-vm": path.resolve(__dirname, "./js-confuser-vm"),
       "google-closure-compiler": path.resolve(
         __dirname,
         "./src/stubs/empty.js",

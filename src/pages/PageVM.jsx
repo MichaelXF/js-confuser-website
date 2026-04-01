@@ -1,10 +1,4 @@
-import {
-  Box,
-  Button,
-  CircularProgress,
-  Typography,
-  useTheme,
-} from "@mui/material";
+import { Box, Button, Typography, useTheme } from "@mui/material";
 import { useRef, useState } from "react";
 import { rgbToHex } from "../utils/color-utils";
 import Editor from "@monaco-editor/react";
@@ -41,11 +35,11 @@ export default function PageVM() {
     },
   });
 
-  var [state, setState] = useState();
+  var [debugState, setDebugState] = useState();
   var [logs, setLogs] = useState();
 
   var stateRef = useRef();
-  stateRef.current = state;
+  stateRef.current = debugState;
 
   function highlightLineFromOutput(lineNumber) {
     const { editor, monaco } = ref.current.output;
@@ -61,8 +55,6 @@ export default function PageVM() {
 
     const inputEditor = ref.current.input.editor;
     if (!inputEditor) return;
-
-    console.log(lineNumber, match, lineContent);
 
     if (match) {
       const startLine = parseInt(match[1], 10);
@@ -125,20 +117,38 @@ export default function PageVM() {
 
   const vmDebugger = useVMDebugger({
     onEvent: (event) => {
-      setState(event);
+      setDebugState(event);
+
+      console.log("VM Debugger Event:", event);
 
       if (event.event === "done") {
         // remove the highlight
-        highlightLineFromOutput(1);
-      } else if (event.data?.pc != null) {
+        highlightLineFromOutput(-1);
+      } else if (typeof event.data?.pc === "number") {
         const { editor, monaco } = ref.current.output;
         if (!editor || !monaco) return;
 
         const model = editor.getModel();
         if (!model) return;
 
-        // pc is 0-based; bytecode now always starts at the top of the file
-        const targetLine = event.data.pc + 1; // +1 for 1-based Monaco line numbers
+        // To convert PC into line number we must step through the line contents and count operands
+        const outputText = model.getValue();
+        const lines = outputText.split("var CONSTANTS")[0].split("\n");
+        let remainingPc = event.data.pc;
+        let lineNumber = 0;
+        for (const line of lines) {
+          if (line.startsWith("// [")) {
+            const instr = line.split("[")[1].split("]")[0].split(",").length;
+            remainingPc -= instr;
+            if (remainingPc < 0) {
+              break;
+            }
+          }
+          lineNumber++;
+        }
+
+        // Monaco editor starts at line 1
+        const targetLine = lineNumber + 1;
 
         highlightLineFromOutput(targetLine);
       }
@@ -160,16 +170,46 @@ export default function PageVM() {
   const outputActiveDecorations = useRef([]);
 
   const [loading, setLoading] = useState(false);
+
+  const optionsSchema = {
+    // target: {
+    //   description: "Currently has no effect.",
+    // },
+    randomizeOpcodes: {
+      description: "Randomizes the opcode numbers.",
+    },
+    shuffleOpcodes: {
+      description: "Shuffles the order of opcode handlers in the VM runtime.",
+    },
+    encodeBytecode: {
+      description: "Encodes the bytecode array.",
+    },
+    macroOpcodes: {
+      description:
+        "Combines multiple opcodes commonly used from your bytecode.",
+    },
+    specializedOpcodes: {
+      description:
+        "Creates specialized opcodes for commonly used opcode+operand pairs.",
+    },
+    selfModifying: {
+      description:
+        "Function bodies are replaced upon runtime entry to the real bytecode.",
+    },
+    timingChecks: {
+      description:
+        "Detects the use of debuggers by checking for >1second pauses. May break code with slow sync tasks.",
+    },
+  };
+
+  const defaultOptions = Object.keys(optionsSchema).reduce((opts, key) => {
+    opts[key] = true;
+    return opts;
+  }, {});
+
   const [options, setOptions] = useLocalStorage(
     LocalStorageKeys.JsConfuserVMOptions,
-    {
-      randomizeOpcodes: true, // randomize opcode values in OP mapping?
-      shuffleOpcodes: true, // shuffle order of opcode handlers in the runtime?
-      encodeBytecode: true, // encode bytecode? when off, comments for instructions are added
-      selfModifying: true, // do self-modifying bytecode for function bodies?
-      timingChecks: true, // add timing checks to detect debuggers?
-      minify: false, // pass final output through Google Closure Compiler? (Renames VM class properties)
-    },
+    defaultOptions,
   );
 
   const theme = useTheme();
@@ -299,7 +339,7 @@ export default function PageVM() {
     const code = outputEditor.getValue();
     if (!code.trim()) return;
 
-    setState(null);
+    setDebugState(null);
     setLogs([]);
     await vmDebugger.loadProgram(code);
   };
@@ -356,6 +396,7 @@ export default function PageVM() {
           setShowOptionsDialog(false);
         }}
         options={options}
+        optionsSchema={optionsSchema}
         setOptions={setOptions}
       />
 
@@ -370,7 +411,7 @@ export default function PageVM() {
         alignItems="center"
         gap={2}
       >
-        {state ? null : (
+        {debugState ? null : (
           <>
             <Button
               sx={{
@@ -382,12 +423,9 @@ export default function PageVM() {
               startIcon={<Lock sx={{ transform: "scale(0.9)" }} />}
               variant="contained"
               onClick={handleObfuscateClick}
+              disabled={loading}
             >
-              {loading ? (
-                <CircularProgress size={20} color="inherit" />
-              ) : (
-                "Obfuscate"
-              )}
+              Obfuscate
             </Button>
 
             <Button
@@ -426,7 +464,7 @@ export default function PageVM() {
         )}
 
         {/* Debugger controls - only show once a program is loaded (state !== undefined) */}
-        {state ? (
+        {debugState ? (
           <>
             <Button
               sx={{
@@ -440,7 +478,7 @@ export default function PageVM() {
               startIcon={<SkipNext />}
               color="inherit"
               onClick={() => vmDebugger.next("instruction")}
-              disabled={state?.event === "done"}
+              disabled={debugState?.event === "done"}
             >
               Step
             </Button>
@@ -456,7 +494,7 @@ export default function PageVM() {
               startIcon={<SkipNext />}
               color="inherit"
               onClick={() => vmDebugger.next("jump")}
-              disabled={state?.event === "done"}
+              disabled={debugState?.event === "done"}
             >
               Step Jump
             </Button>
@@ -475,8 +513,8 @@ export default function PageVM() {
           startIcon={<BugReport />}
           color="inherit"
           onClick={() => {
-            if (state) {
-              setState(null);
+            if (debugState) {
+              setDebugState(null);
             } else {
               var enabledOptions = Object.keys(options).filter(
                 (optName) => options[optName],
@@ -492,12 +530,12 @@ export default function PageVM() {
             }
           }}
         >
-          {state ? "Stop" : "Debugger"}
+          {debugState ? "Stop" : "Debugger"}
         </Button>
       </Box>
 
       {/* Debugger state panel */}
-      {state && (
+      {debugState && (
         <Box
           sx={{
             position: "fixed",
@@ -521,9 +559,11 @@ export default function PageVM() {
               color="text.secondary"
             >
               Event:{" "}
-              <strong style={{ color: "white" }}>{state?.event ?? "—"}</strong>
+              <strong style={{ color: "white" }}>
+                {debugState?.event ?? "—"}
+              </strong>
             </Typography>
-            {state?.data?.pc != null && (
+            {debugState?.data?.pc != null && (
               <Typography
                 variant="caption"
                 fontFamily="inherit"
@@ -531,10 +571,12 @@ export default function PageVM() {
                 color="text.secondary"
               >
                 PC:{" "}
-                <strong style={{ color: "white" }}>{state?.data?.pc}</strong>
+                <strong style={{ color: "white" }}>
+                  {debugState?.data?.pc}
+                </strong>
               </Typography>
             )}
-            {state?.data?.op != null && (
+            {debugState?.data?.op != null && (
               <Typography
                 variant="caption"
                 fontFamily="inherit"
@@ -543,26 +585,13 @@ export default function PageVM() {
               >
                 OP:{" "}
                 <strong style={{ color: "white" }}>
-                  {state?.data?.opName || ""} {state?.data?.op}
-                </strong>
-              </Typography>
-            )}
-            {state?.data?.operand != null && (
-              <Typography
-                variant="caption"
-                fontFamily="inherit"
-                fontSize="medium"
-                color="text.secondary"
-              >
-                Operand:{" "}
-                <strong style={{ color: "white" }}>
-                  {state?.data?.operand}
+                  {debugState?.data?.opName || ""} {debugState?.data?.op}
                 </strong>
               </Typography>
             )}
           </Box>
           <Box>
-            {(state?.data?.stack || []).map((stackItem, i) => {
+            {(debugState?.data?.stack || []).map((stackItem, i) => {
               return (
                 <Typography
                   key={i}
@@ -577,7 +606,7 @@ export default function PageVM() {
             })}
           </Box>
           <Box>
-            {(state?.data?.locals || []).map((localsItem, i) => {
+            {(debugState?.data?.locals || []).map((localsItem, i) => {
               return (
                 <Typography
                   key={i}
@@ -592,6 +621,13 @@ export default function PageVM() {
             })}
           </Box>
           <Box>
+            <Typography
+              fontFamily="inherit"
+              fontSize="medium"
+              color="text.secondary"
+            >
+              Logs:
+            </Typography>
             {logs.map((log, i) => {
               return (
                 <Typography key={i} fontFamily="monospace" fontSize="medium">

@@ -2,7 +2,6 @@ import * as babelParser from "@babel/parser";
 import traverseImport from "@babel/traverse";
 import { generate } from "@babel/generator";
 import * as t from "@babel/types";
-import { astConsoleMessage } from "../constants";
 import { Compiler } from "js-confuser-vm/dist/compiler.js";
 
 var currentVM;
@@ -130,15 +129,12 @@ function getData() {
   var runtime = currentVM;
   var frame = runtime._currentFrame;
   var pc = frame._pc;
-  var word = runtime.bytecode[pc];
-  var op = word & 0xff;
-  var operand = word >>> 8;
+  var op = runtime.bytecode[pc];
 
   var data = {
     pc,
     op,
     opName: compiler.OP_NAME[op],
-    operand,
     stack: runtime._stack.map((x) => String(x)),
     locals: frame.locals.map((x) => String(x)),
   };
@@ -155,7 +151,11 @@ function next(runMode) {
     stepResult = currentIterator.next();
   } catch (err) {
     console.log("VM Debugger Step error", err);
-    return { event: "error", error: "" + (err?.stack || err), data: getData() };
+    return {
+      event: "error",
+      error: "" + (err?.stack || err),
+      data: getData(),
+    };
   }
   if (stepResult.done) {
     return { event: "done", data: getData() };
@@ -176,8 +176,7 @@ function next(runMode) {
     while (!stepResult.done) {
       var frame = stepResult.value._currentFrame;
       var pc = frame._pc;
-      var word = stepResult.value.bytecode[pc];
-      var op = word & 0xff;
+      var op = stepResult.value.bytecode[pc];
 
       if (allJumpOpCodes.has(op)) break;
       stepResult = currentIterator.next();

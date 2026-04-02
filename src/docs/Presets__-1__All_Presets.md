@@ -4,5 +4,5 @@ JS-Confuser comes with three presets built into the obfuscator. The easiest way 
 
 | Preset | Performance Reduction | Try It Out |
 | [High Preset](/docs/presets/high) | 98% | [Try It Out](/editor?preset=high) |
-| [Medium Preset](/doc/presets/medium) | 52% | [Try It Out](/editor?preset=medium) |
+| [Medium Preset](/docs/presets/medium) | 52% | [Try It Out](/editor?preset=medium) |
 | [Low Preset](/docs/presets/low) | 30% | [Try It Out](/editor?preset=low) |

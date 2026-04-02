@@ -17,6 +17,7 @@ export default defineConfig({
       ),
       "fancy-log": path.resolve(__dirname, "./src/stubs/empty.js"),
       assert: path.resolve(__dirname, "./src/stubs/assert.js"),
+      "node:assert": path.resolve(__dirname, "./src/stubs/assert.js"),
       module: path.resolve(__dirname, "./src/stubs/stripTypeScriptTypes.js"),
     },
   },

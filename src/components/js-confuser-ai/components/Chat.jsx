@@ -119,12 +119,24 @@ export default function Chat({
       return;
     }
     let didConnect = false;
+
+    // 15 second timeout
+    let timeoutHandle = setTimeout(() => {
+      timeoutHandle = null;
+      websocket.close();
+    }, 15 * 1000);
+
     // Handle WebSocket connection open
     websocket.onopen = () => {
       didConnect = true;
       console.log("WebSocket connection established");
       setConnected(true);
       setLoading(false);
+
+      if (timeoutHandle) {
+        clearTimeout(timeoutHandle);
+        timeoutHandle = null;
+      }
 
       // Send immediate message
       if (
@@ -157,6 +169,11 @@ export default function Chat({
     // Handle WebSocket close
     websocket.onclose = () => {
       setConnected(false);
+
+      if (timeoutHandle) {
+        clearTimeout(timeoutHandle);
+        timeoutHandle = null;
+      }
     };
     webSocketRef.current = websocket;
 
@@ -265,7 +282,7 @@ export default function Chat({
         unlink();
 
         setError(
-          partMessage.error || "An error occurred. Please try again later."
+          partMessage.error || "An error occurred. Please try again later.",
         );
         setGenerating(false);
         return;
@@ -416,7 +433,7 @@ export default function Chat({
             </Stack>
           </Box>
 
-          <Box py={fullScreen ? 5 : 2} flexShrink={0}>
+          <Box py={fullScreen ? 4 : 2} flexShrink={0}>
             <Stack direction="row" spacing={2}>
               <TextField
                 autoFocus={true}

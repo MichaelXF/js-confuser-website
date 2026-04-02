@@ -41,6 +41,9 @@ export const defaultCode = `/**
  * 
  * You can customize the obfuscator from the side-panel.
  * (See all options under 'Create Custom Preset')
+ * 
+ * Try the experimental "JS Confuser VM" for virtual machine obfuscation!
+ * https://js-confuser.com/vm
  *
  * Version: ${JsConfuserVersion}
  *

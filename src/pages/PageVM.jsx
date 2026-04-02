@@ -214,6 +214,9 @@ export default function PageVM() {
       description:
         "Combines multiple opcodes commonly used from your bytecode.",
     },
+    microOpcodes: {
+      description: "Breaks opcodes into mulitple sub-opcodes.",
+    },
     specializedOpcodes: {
       description:
         "Creates specialized opcodes for commonly used opcode+operand pairs.",

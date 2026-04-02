@@ -131,12 +131,16 @@ function getData() {
   var pc = frame._pc;
   var op = runtime.bytecode[pc];
 
+  var regStringed = {};
+  for (const [key, value] of Object.entries(frame.regs)) {
+    regStringed[key] = String(value);
+  }
+
   var data = {
     pc,
     op,
     opName: compiler.OP_NAME[op],
-    stack: runtime._stack.map((x) => String(x)),
-    locals: frame.locals.map((x) => String(x)),
+    regs: regStringed,
   };
 
   return data;

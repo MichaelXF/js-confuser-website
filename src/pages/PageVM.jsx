@@ -614,34 +614,21 @@ export default function PageVM() {
             )}
           </Box>
           <Box>
-            {(debugState?.data?.stack || []).map((stackItem, i) => {
-              return (
-                <Typography
-                  key={i}
-                  fontFamily="inherit"
-                  fontSize="medium"
-                  color="text.secondary"
-                >
-                  stack[{i}]:{" "}
-                  <strong style={{ color: "white" }}>{"" + stackItem}</strong>
-                </Typography>
-              );
-            })}
-          </Box>
-          <Box>
-            {(debugState?.data?.locals || []).map((localsItem, i) => {
-              return (
-                <Typography
-                  key={i}
-                  fontFamily="inherit"
-                  fontSize="medium"
-                  color="text.secondary"
-                >
-                  locals[{i}]:{" "}
-                  <strong style={{ color: "white" }}>{"" + localsItem}</strong>
-                </Typography>
-              );
-            })}
+            {Object.entries(debugState?.data?.regs || {}).map(
+              ([key, regItem], i) => {
+                return (
+                  <Typography
+                    key={i}
+                    fontFamily="inherit"
+                    fontSize="medium"
+                    color="text.secondary"
+                  >
+                    regs[{key}]:{" "}
+                    <strong style={{ color: "white" }}>{"" + regItem}</strong>
+                  </Typography>
+                );
+              },
+            )}
           </Box>
           <Box>
             <Typography

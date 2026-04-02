@@ -207,6 +207,9 @@ export default function PageVM() {
     encodeBytecode: {
       description: "Encodes the bytecode array.",
     },
+    concealConstants: {
+      description: "Conceals strings and integers in the constant pool.",
+    },
     macroOpcodes: {
       description:
         "Combines multiple opcodes commonly used from your bytecode.",

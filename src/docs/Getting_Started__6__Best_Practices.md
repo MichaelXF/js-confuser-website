@@ -1,18 +1,18 @@
 ### Best Practices
 
 **Avoid undeclared variables**
-- While JS-Confuser only renames variables you explicitly define, problems arise with undeclared variables.
-- You're advised to declare each variable you use with `var`/`let`/`const`
-- Avoid accessing global variables directly. Instead use `window.MyGlobalVar` over `MyGlobalVar`
+- JS-Confuser only renames variables you explicitly define, but undeclared variables can still cause issues.
+- Always declare variables using `var`, `let`, or `const`.
+- Avoid referencing global variables directly. Use `window.MyGlobalVar` instead of `MyGlobalVar`.
 
 **Don't rely on `function.name`**
-- [Rename Variables](../options/renameVariables) (and option options) will break this. It's recommended from most build tools to avoid this syntax.
+- [Rename Variables](../options/renameVariables) and related options will break this behavior. Most build tools recommend avoiding this pattern altogether.
 
 **Don't use `eval()` to reference or modify local variables**
-- See [Rename Variables](../options/renameVariables) to properly support this.
+- See [Rename Variables](../options/renameVariables) for how to properly support this use case.
 
-**If you rely on `function.length`**
-- Enable the option [Preserve Function Length](../options/preserveFunctionLength) to help preserve the `function.length` if your code uses it.
+**If your code relies on `function.length`**
+- Enable [Preserve Function Length](../options/preserveFunctionLength) to ensure `function.length` remains accurate.
 
 **Avoid string-based placeholders**
-- If your code has placeholders such as `"COOKIE_NAME"`, use an Identifier such as `COOKIE_NAME`, as strings are heavily encoded throughout JS-Confuser.
+- If your code uses string placeholders like `"COOKIE_NAME"`, replace them with identifiers such as `COOKIE_NAME`. Strings are heavily encoded by JS-Confuser and may not behave as expected.

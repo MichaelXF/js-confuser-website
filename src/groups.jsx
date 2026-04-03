@@ -1156,7 +1156,6 @@ for (var i = 1; i <= 25; i++) {
     {
       type: "boolean",
       name: "preserveFunctionLength",
-      defaultValue: true,
       description: "Preserves the original `function.length` property.",
       exampleCode: `
       function add(a, b){

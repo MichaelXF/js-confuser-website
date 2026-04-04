@@ -138,10 +138,11 @@ export default function PageVM() {
     }
   }
 
+  const locationsRef = useRef([]);
+
   const vmDebugger = useVMDebugger({
     onEvent: (event) => {
       setDebugState(event);
-
       console.log("VM Debugger Event:", event);
 
       if (event.event === "done") {
@@ -157,18 +158,32 @@ export default function PageVM() {
         // To convert PC into line number we must step through the line contents and count operands
         const outputText = model.getValue();
         const lines = outputText.split("var CONSTANTS")[0].split("\n");
-        let remainingPc = event.data.pc;
+
+        let pc = event.data.pc;
+
         let lineNumber = 0;
+        let targetLineText;
+
+        let remainingPc = pc;
         for (const line of lines) {
           if (line.startsWith("// [")) {
             const instr = line.split("[")[1].split("]")[0].split(",").length;
             remainingPc -= instr;
             if (remainingPc < 0) {
+              targetLineText = line;
               break;
             }
           }
           lineNumber++;
         }
+
+        locationsRef.current = [
+          ...locationsRef.current,
+          {
+            pc: pc,
+            text: targetLineText,
+          },
+        ];
 
         // Monaco editor starts at line 1
         const targetLine = lineNumber + 1;
@@ -225,6 +240,9 @@ export default function PageVM() {
       description:
         "Function bodies are replaced upon runtime entry to the real bytecode.",
     },
+    dispatcher: {
+      description: "Creates a middleman block to process jumps.",
+    },
     timingChecks: {
       description:
         "Detects the use of debuggers by checking for >1second pauses. May break code with slow sync tasks.",
@@ -262,6 +280,9 @@ export default function PageVM() {
       fontFamily: "Fira Code, monospace",
       fontSize: 14,
       minimap: { enabled: false },
+      fontLigatures: false,
+      fontVariations: true,
+      tabSize: 2,
     });
 
     if (ref.current.input.editor && ref.current.output.editor) {

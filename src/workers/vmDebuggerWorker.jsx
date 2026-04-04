@@ -132,7 +132,7 @@ function getData() {
   var op = runtime.bytecode[pc];
 
   var regStringed = {};
-  for (const [key, value] of Object.entries(frame.regs)) {
+  for (const [key, value] of Object.entries(runtime._regs)) {
     regStringed[key] = String(value);
   }
 

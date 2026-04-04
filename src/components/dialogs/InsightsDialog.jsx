@@ -128,7 +128,7 @@ function createFileSizeChart(profileData, theme) {
   const sizes = transforms.map((t) =>
     t.fileSize < conversionFactor
       ? Math.floor((t.fileSize / conversionFactor) * 10) / 10
-      : Math.floor(t.fileSize / conversionFactor)
+      : Math.floor(t.fileSize / conversionFactor),
   );
 
   // Chart options
@@ -239,13 +239,13 @@ function createNodeCountsChart(profileData, theme) {
   // Process the data for chart
   const transformNames = Object.keys(profileData.transforms);
   const functionsData = transformNames.map(
-    (name) => profileData.transforms[name].nodeCounts.functions
+    (name) => profileData.transforms[name].nodeCounts.functions,
   );
   const blocksData = transformNames.map(
-    (name) => profileData.transforms[name].nodeCounts.blocks
+    (name) => profileData.transforms[name].nodeCounts.blocks,
   );
   const controlFlowData = transformNames.map(
-    (name) => profileData.transforms[name].nodeCounts.controlFlow
+    (name) => profileData.transforms[name].nodeCounts.controlFlow,
   );
 
   // Chart options
@@ -488,7 +488,7 @@ export default function InsightsDialog({ open, onClose, profileData }) {
         </Box>
       </DialogTitle>
       <DialogContent sx={{ px: 0 }}>
-        <Box sx={{ minWidth: "600px" }}>
+        <Box sx={{ minWidth: "600px", overflowX: "hidden" }}>
           {chartOptions ? (
             <ReactECharts
               key={tab}

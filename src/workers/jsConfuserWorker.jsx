@@ -49,7 +49,7 @@ function obfuscateCode(requestID, code, optionsJS, editorOptions = {}) {
   let originalExecutionTime;
   if (captureInsights && capturePerformanceInsights) {
     editorOptions.performanceIterations = parseInt(
-      editorOptions.performanceIterations
+      editorOptions.performanceIterations,
     );
 
     originalExecutionTime = getExecutionTime(code, editorOptions);
@@ -58,7 +58,7 @@ function obfuscateCode(requestID, code, optionsJS, editorOptions = {}) {
   const reportProgress = (log, entry, ast) => {
     if (captureInsights) {
       // Calculate the size of the code
-      var code = JsConfuser.generateCode(ast);
+      var code = JsConfuser.Obfuscator.generateCode(ast);
       entry.fileSize = getByteSize(code);
 
       // Calculate the execution time (if enabled)
@@ -111,7 +111,7 @@ function obfuscateCode(requestID, code, optionsJS, editorOptions = {}) {
   JsConfuser.obfuscateWithProfiler(
     code,
     { ...options, verbose: true },
-    { callback: reportProgress, performance }
+    { callback: reportProgress, performance },
   )
     .then((resultObject) => {
       console.log("Successfully obfuscated code");
@@ -124,7 +124,7 @@ function obfuscateCode(requestID, code, optionsJS, editorOptions = {}) {
         insightFields.originalExecutionTime = originalExecutionTime;
 
         const lastEntry = Object.values(resultObject.profileData.transforms).at(
-          -1
+          -1,
         );
 
         // Attach the new execution time (And on last transform entry, usually Pack)
@@ -188,7 +188,7 @@ function getExecutionTime(code, editorOptions) {
 let walkthroughAst = null;
 function applyTransformations(requestID, code, optionsJS, transformationNames) {
   if (typeof code === "string") {
-    walkthroughAst = JsConfuser.parseCode(code);
+    walkthroughAst = JsConfuser.Obfuscator.parseCode(code);
   }
 
   // Evaluate the user's JSConfuser.ts config file
@@ -204,7 +204,7 @@ function applyTransformations(requestID, code, optionsJS, transformationNames) {
 
   if (transformationNames.length) {
     obfuscator.plugins = obfuscator.plugins.filter(({ pluginInstance }) =>
-      transformationNames.includes(pluginInstance.name)
+      transformationNames.includes(pluginInstance.name),
     );
 
     walkthroughAst = obfuscator.obfuscateAST(walkthroughAst);
@@ -218,7 +218,7 @@ function applyTransformations(requestID, code, optionsJS, transformationNames) {
       requestID,
       code: output,
       transformationNames: obfuscator.plugins.map(
-        ({ pluginInstance }) => pluginInstance.name
+        ({ pluginInstance }) => pluginInstance.name,
       ),
     },
   });

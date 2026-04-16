@@ -18,7 +18,7 @@ JS-Confuser.com runs entirely in your browser, completely offline. This means yo
 
 #### Recent Files
 
-JS-Confuser.com saves recently opened files in your browser's FileStorage. These files are also 100% local.
+JS-Confuser.com saves recently opened files in your browser's file storage. These files are also 100% local.
 
 #### Prettier Formatter
 

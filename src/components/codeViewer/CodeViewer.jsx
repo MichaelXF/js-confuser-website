@@ -4,7 +4,7 @@ import { Editor } from "@monaco-editor/react";
 import { forwardRef, useRef } from "react";
 
 const editorOptions = {
-  fontFamily: "Fira Code, monospace",
+  fontFamily: "Fira Mono, monospace",
   fontSize: 16,
   lineNumbers: "on",
   minimap: { enabled: false },
@@ -35,7 +35,7 @@ export const CodeViewer = forwardRef(
       heightLines,
       style = {},
     },
-    externalRef
+    externalRef,
   ) => {
     const theme = useTheme();
 
@@ -67,7 +67,7 @@ export const CodeViewer = forwardRef(
 
       monaco.editor.setTheme("myCustomTheme2"); // Set the custom theme
 
-      // Ensure the editor uses Fira Code font
+      // Ensure the editor uses Fira Mono font
       editor.updateOptions({
         ...editorOptions,
         readOnly: readOnly, // Make the editor read-only
@@ -149,5 +149,5 @@ export const CodeViewer = forwardRef(
         />
       </div>
     );
-  }
+  },
 );

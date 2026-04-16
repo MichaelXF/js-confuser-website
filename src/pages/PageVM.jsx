@@ -247,6 +247,10 @@ export default function PageVM() {
       description:
         "Detects the use of debuggers by checking for >1second pauses. May break code with slow sync tasks.",
     },
+    // minify: {
+    //   description:
+    //     "Minifies the final code with Google Closure Compiler. Renames the VM class properties.",
+    // },
   };
 
   const defaultOptions = Object.keys(optionsSchema).reduce((opts, key) => {
@@ -277,7 +281,7 @@ export default function PageVM() {
     monaco.editor.setTheme("myCustomTheme");
 
     editor.updateOptions({
-      fontFamily: "Fira Code, monospace",
+      fontFamily: "Fira Mono, monospace",
       fontSize: 14,
       minimap: { enabled: false },
       fontLigatures: false,
@@ -305,7 +309,7 @@ export default function PageVM() {
         {
           target: "browser",
           ...options,
-          minify: false, // Never use Closure Compiler
+          minify: false, // The Google Closure Compiler isn't available for browsers :(
         },
         {
           onComplete: (data) => {
@@ -334,10 +338,12 @@ export default function PageVM() {
       let { code } = result;
 
       if (options.minify) {
-        const minifyResult = await minify(code);
+        // Use API for Google Closure API
+
+        const minifiedCode = await minify(code);
         code =
-          "// Minified with JS-Confuser\n// (Recommended choice: Google Closure Compile)\n" +
-          minifyResult.code;
+          "// Minified by https://jscompressor.treblereel.dev/\n" +
+          minifiedCode;
       }
 
       console.log(code);
@@ -352,31 +358,38 @@ export default function PageVM() {
     }
   };
 
-  // Since Google Closure Compiler isn't available in the browser, we can use js-confuser's minify which provides some help
+  // Since Google Closure Compiler isn't available in the browser, we use treblereel's API
+  // API was not used as the Google Closure Compiler version is outdated
   const minify = async (originalCode) => {
-    const advancedOptions = {};
-    return new Promise((resolve, reject) => {
-      JsConfuser.obfuscate(
-        originalCode,
-        {
-          target: "browser",
-          minify: true,
-          renameVariables: true,
-          identifierGenerator: "mangled",
-        },
-        {
-          onComplete: (data) => {
-            resolve(data);
-          },
-          onError: (data) => {
-            // Show error dialog
-            reject(data);
-          },
-          onProgress: (data) => {},
-        },
-        advancedOptions,
-      );
+    var body = {
+      payload: originalCode,
+      compilationLevel: "ADVANCED",
+      warningLevel: "QUIET",
+      outputFileName: "default.js",
+      formatting: {
+        prettyPrint: false,
+        printInputDelimiter: false,
+      },
+      language: {
+        languageIn: "ECMASCRIPT_NEXT",
+        languageOut: "ECMASCRIPT_NEXT",
+      },
+      externalScripts: {
+        urls: [],
+      },
+    };
+
+    var response = await fetch("https://jscompressor.treblereel.dev/compile", {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
+
+    var json = await response.json();
+
+    return json.compiledCode;
   };
 
   const [showOptionsDialog, setShowOptionsDialog] = useState(false);

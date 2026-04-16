@@ -40,7 +40,7 @@ export const EditorComponent = forwardRef(({ editorComponent }, ref) => {
     // Register your JSConfuser types with Monaco
     monaco.languages.typescript.typescriptDefaults.addExtraLib(
       getJSConfuserTypes(),
-      "file:///node_modules/@types/obfuscateOptions/index.d.ts"
+      "file:///node_modules/@types/obfuscateOptions/index.d.ts",
     );
 
     monaco.languages.typescript.typescriptDefaults.setEagerModelSync(true);
@@ -48,9 +48,9 @@ export const EditorComponent = forwardRef(({ editorComponent }, ref) => {
     // Apply the custom theme
     monaco.editor.setTheme("myCustomTheme");
 
-    // Ensure the editor uses Fira Code font
+    // Ensure the editor uses Fira Mono font
     editor.updateOptions({
-      fontFamily: "Fira Code, monospace",
+      fontFamily: "Fira Mono, monospace",
       fontSize: 14,
       minimap: { enabled: false },
     });

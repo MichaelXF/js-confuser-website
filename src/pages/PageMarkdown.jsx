@@ -92,9 +92,9 @@ export default function PageMarkdown() {
     // Apply the custom theme
     monaco.editor.setTheme("myCustomTheme");
 
-    // Ensure the editor uses Fira Code font
+    // Ensure the editor uses Fira Mono font
     editor.updateOptions({
-      fontFamily: "Fira Code, monospace",
+      fontFamily: "Fira Mono, monospace",
       fontSize: 14,
       minimap: { enabled: false },
     });
@@ -102,13 +102,13 @@ export default function PageMarkdown() {
 
   var [value, setValue] = useState(
     window.localStorage.getItem(LocalStorageKeys.JSConfuser_MarkdownCode) ||
-      DEFAULT_MARKDOWN_CODE
+      DEFAULT_MARKDOWN_CODE,
   );
 
   let saveCode = debounce((value) => {
     window.localStorage.setItem(
       LocalStorageKeys.JSConfuser_MarkdownCode,
-      value
+      value,
     );
   }, 5000);
 

@@ -15,7 +15,7 @@ window.updates = true;
 
 let allowValueRefresh = true;
 
-import { traverse, NodePath, Scope } from "@babel/traverse";
+import traverse, { NodePath, Scope } from "@babel/traverse";
 import generate from "@babel/generator";
 
 const prototypePatches = [
@@ -73,7 +73,7 @@ function capturePaths(ast) {
         detail: {
           ast,
         },
-      })
+      }),
     );
   }
 
@@ -122,7 +122,7 @@ function findNodeAtPosition(node, positionIndex) {
 export default function PageAST() {
   useSEO(
     "AST Explorer | JS-Confuser",
-    "Explore the AST of your JavaScript code."
+    "Explore the AST of your JavaScript code.",
   );
 
   var [showConsoleDialog, setShowConsoleDialog] = useState(false);
@@ -162,9 +162,9 @@ export default function PageAST() {
     // Apply the custom theme
     monaco.editor.setTheme("myCustomTheme");
 
-    // Ensure the editor uses Fira Code font
+    // Ensure the editor uses Fira Mono font
     editor.updateOptions({
-      fontFamily: "Fira Code, monospace",
+      fontFamily: "Fira Mono, monospace",
       fontSize: 14,
       minimap: { enabled: false },
     });
@@ -186,7 +186,7 @@ export default function PageAST() {
     if (ref.current.input.editor && ref.current.output.editor) {
       ref.current.input.editor.setValue(
         window.localStorage.getItem(LocalStorageKeys.JsConfuserASTCode) ||
-          defaultCode
+          defaultCode,
       );
     }
   };
@@ -231,7 +231,7 @@ export default function PageAST() {
           startPos.lineNumber,
           startPos.column,
           endPos.lineNumber,
-          endPos.column
+          endPos.column,
         ),
         options: {
           inlineClassName: "ast-highlight", // Use inlineClassName for styling
@@ -275,7 +275,7 @@ export default function PageAST() {
     // Create a new position at the end of the line
     const endOfLinePosition = new monaco.Position(
       startPos.lineNumber,
-      endOfLineColumn
+      endOfLineColumn,
     );
 
     // Retrieve font information from editor options
@@ -485,7 +485,7 @@ export default function PageAST() {
               }
               window.localStorage.setItem(
                 LocalStorageKeys.JsConfuserASTCode,
-                value
+                value,
               );
             }}
           />

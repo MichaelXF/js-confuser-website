@@ -1,3 +1,8 @@
+---
+title: "Playground"
+description: "Try out JS-Confuser in your browser"
+---
+
 ### Playground
 
 The JS-Confuser Playground is a rich code editor for obfuscating your JavaScript code.
@@ -30,7 +35,7 @@ JS-Confuser.com comes with Prettier enabled by default. You can disable the auto
 
 The file `JSConfuser.ts` can be edited by navigating to **Tools** > **Edit JSConfuser.ts**. The file serves as a JSON representation for your obfuscator settings. The file is evaluated and can additionally include custom implementations.
 
----{header: "JSConfuser.ts"}
+```js title="JSConfuser.ts"
 var counter = 0;
 
 module.exports = {
@@ -54,7 +59,7 @@ module.exports = {
 
   // ...Other settings...
 };
----
+```
 
 ---
 

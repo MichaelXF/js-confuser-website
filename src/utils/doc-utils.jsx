@@ -242,30 +242,33 @@ function generate() {
 function createAllOptionsDocPage(addDoc) {
   // "All Options" Doc page
 
-  var str = `
-  ### All Options
+  var str = `---
+title: "All Options"
+slug: "/options/all-options"
+---
 
-  JS-Confuser provides a wide range of options to customize the obfuscation process. Below is a list of all available options in the obfuscator.
+JS-Confuser provides a wide range of options to customize the obfuscation process. Below is a list of all available options in the obfuscator.
 
-  - Remember, [presets](/docs/presets) can be used to quickly apply a set of options to the obfuscator.
+- Remember, [presets](/docs/presets) can be used to quickly apply a set of options to the obfuscator.
 
 
-  ${Object.keys(groups)
-    .map((groupName) => {
-      return `
+${Object.keys(groups)
+  .map((groupName) => {
+    return `
 ---
 
 #### ${toTitleCase(groupName)}
 
 | Option | Description |
+| --- | --- |
 ${groups[groupName]
   .map((item) => {
     return `| [${camelCaseToTitleCase(item.name)}](/docs/options/${item.name}) | ${item.description.split("\n")[0]} `;
   })
   .join("\n")}
 `;
-    })
-    .join("\n")}
+  })
+  .join("\n")}
   `;
 
   addDoc("options", "Options", "All Options", {
@@ -355,23 +358,23 @@ function createContentDocs(addDoc) {
             unsafeEvalExpressions: {
               title: "Requires Eval",
               description:
-                "> The obfuscated code will contain unsafe eval expressions.\n> The code will not work properly in [environments that have disabled eval](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/script-src#unsafe_eval_expressions)",
+                "The obfuscated code will contain unsafe eval expressions.\nThe code will not work properly in [environments that have disabled eval](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/script-src#unsafe_eval_expressions)",
             },
             nonStrictMode: {
               title: "Requires Non-Strict Mode",
               description:
-                "> The obfuscated code will not work properly in Strict Mode.\n> You can use the [Pack](./Pack) option to bypass Strict Mode constraints.",
+                "The obfuscated code will not work properly in Strict Mode.\nYou can use the [Pack](./Pack) option to bypass Strict Mode constraints.",
             },
           }[tagName];
 
           warnings.push(`
-> [!WARNING]
-> ${tagInfo.title}
+<Card title=${JSON.stringify(tagInfo.title)} type="warning">
 ${tagInfo.description}
+</Card>
 `);
         }
 
-        docVariables.warnings = "<br>" + warnings.join("\n");
+        docVariables.warnings = "\n" + warnings.join("\n");
       }
 
       const usageExampleCode = `import JSConfuser from "js-confuser";
@@ -394,9 +397,9 @@ JSConfuser.obfuscate(sourceCode, options).then((result)=>{
 
 The provided code example will obfuscate the file \`input.js\` and write the output to a file named \`output.js\`.
 
----{header: "Usage Example", language: "javascript"}
+\`\`\`js title="Usage Example" lines
 ${usageExampleCode}
----
+\`\`\`
 
 ---
 
@@ -463,14 +466,15 @@ ${custom.description}
 ${
   custom.parameters.length
     ? `| Parameter | Type | Description |
+| --- | --- | --- |
 ${custom.parameters.map((x) => `| \`${x.parameter}\` | \`${x.type}\` | ${x.description} |`).join("\n")}`
     : ""
 }
 ${
   custom.exampleConfig
-    ? `---{header: "Options.js"}
+    ? `\`\`\`js title="Options.js" lines
 ${custom.exampleConfig}
----`
+\`\`\``
     : ""
 }
 
@@ -478,50 +482,44 @@ ${custom.exampleConfig}
       }
 
       docVariables.header = `
-### ${titleCase}
+- Option name: \`"${optionName}"\`
 
-${item.description}
-
--> Option name: \`"${optionName}"\`
--> Option value${optionValues.includes("/") ? "s" : ""}: \`${optionValues}\`
+- Option value${optionValues.includes("/") ? "s" : ""}: \`${optionValues}\`
 ${docVariables.warnings}
 ---
 
-      `;
+`;
 
       docVariables.inputOutput = item.exampleCode
-        ? `
-#### Input / Output
+        ? `#### Input / Output
 
 This example showcases how \`${titleCase}\` transforms the code. Try it out by changing the input code and see changes apply in real-time.
 
----{ header: "Input.js", language: "javascript", live: true, options: true }
+\`\`\`js title="Input.js" lines
 ${convertOptionsToJS(liveExampleOptions)}
 ===END OPTIONS===
 ${item.exampleCode}
----
+\`\`\`
 
 ---
+
 `
         : "";
 
-      var content = `
-      ${docVariables.header}
+      var content = `---
+title: ${JSON.stringify(titleCase)}
+description: ${JSON.stringify(item.description)}
+---
+${docVariables.header}
+${item.startDocContent ? item.startDocContent + "\n---\n" : ""}
+${docVariables.inputOutput}
+${item.docContent ? item.docContent + "\n---\n" : ""}
+${docVariables.customImplementation}
+${docVariables.usageExample}
+${item.endDocContent ? "---\n" + item.endDocContent : ""}
+${docVariables.seeAlso}
+`;
 
-    ${item.startDocContent ? item.startDocContent + "\n---" : ""}
-
-    ${docVariables.inputOutput}
-
-    ${item.docContent ? item.docContent + "\n---" : ""}
-
-    ${docVariables.customImplementation}
-    
-    ${docVariables.usageExample}
-
-    ${item.endDocContent ? "---\n" + item.endDocContent : ""}
-
-    ${docVariables.seeAlso}
-    `;
       addDoc("options/" + item.name, "Options", titleCase, {
         content,
         subGroup: Object.keys(groups).find((x) => groups[x].includes(item)),
@@ -531,16 +529,19 @@ ${item.exampleCode}
   // Add Preset Docs
   Object.keys(presets).forEach((presetName) => {
     var content = `
-    ### ${toTitleCase(presetName)} Preset
+---
+title: "${toTitleCase(presetName)} Preset"
+description: ""
+slug: "presets/${presetName}"
+---
 
-    -> Option name: \`"preset"\`
+- Option name: \`"preset"\`
 
-    -> Option value: \`"${presetName}"\`
+- Option value: \`"${presetName}"\`
 
-    ---{ header: "Preset.json", language: "json" }
-    ${JSON.stringify(presets[presetName], null, 2)}
-    ---
-
+\`\`\`json title="Preset.json" lines
+${JSON.stringify(presets[presetName], null, 2)}
+\`\`\`
     `;
 
     addDoc("presets/" + presetName, "Presets", toTitleCase(presetName), {
@@ -553,14 +554,35 @@ ${item.exampleCode}
 window.exportDocs = async function () {
   await ensureAllDocsLoaded();
 
-  var { docsByPath } = getDocs();
-  var docs = Object.values(docsByPath);
+  const { docsByPath } = getDocs();
+  const docs = Object.values(docsByPath);
+
+  const root = await window.showDirectoryPicker({ mode: "readwrite" });
+
+  for (const doc of docs) {
+    const parts = doc.urlPath.split("/").filter(Boolean);
+    const fileName = parts.pop() + ".mdx";
+
+    let dir = root;
+    for (const part of parts) {
+      console.log("Getting folder", part);
+      dir = await dir.getDirectoryHandle(part, { create: true });
+    }
+
+    console.log("Writing", fileName);
+
+    const handle = await dir.getFileHandle(fileName, { create: true });
+    const writable = await handle.createWritable();
+    await writable.write(doc.content.replace(/\/docs\//g, "/"));
+    await writable.close();
+  }
+
   var exportDocs = docs.map((doc) => {
     return {
       title: doc.title,
       content: doc.content,
       metadata: {
-        url: "https://js-confuser.com/docs/" + doc.urlPath,
+        url: "https://docs.js-confuser.com/" + doc.urlPath,
         group: doc.group,
       },
     };

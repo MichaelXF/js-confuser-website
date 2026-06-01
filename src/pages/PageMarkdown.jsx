@@ -40,7 +40,7 @@ This is a live markdown editor. You can write markdown on the left and see the p
 
 ### Code Block
 
----{language: "javascript", header: "Live.js", live: true, options: true}
+\`\`\`js title="Live.js" lines
 module.exports = {
   target: "browser",
   renameVariables: true,
@@ -50,25 +50,25 @@ module.exports = {
 ===END OPTIONS===
 var myVar = "Hello World";
 console.log(myVar);
----
+\`\`\`
 
 ### Alerts
 
-> [!INFO]
-> This is an info alert.
-> You can put any markdown here.
+<Card title="Note card" type="note">
+  Use \`note\` to highlight supporting information.
+</Card>
 
-> [!SUCCESS]
-> This is a success alert.
-> The user has successfully completed the task.
+<Card title="Warning card" type="warning">
+  Use \`warning\` to flag potential issues.
+</Card>
 
-> [!WARNING]
-> This is a warning alert.
-> The user should be careful.
+<Card title="Tip card" type="tip">
+  Use tip to share helpful suggestions.
+</Card>
 
-> [!ERROR]
-> This is an error alert.
-> Something went wrong.
+<Card title="Danger card" type="danger">
+  Use danger for destructive or risky actions.
+</Card>
 `;
 
 export default function PageMarkdown() {

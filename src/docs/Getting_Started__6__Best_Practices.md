@@ -1,3 +1,8 @@
+---
+title: "Best Practices"
+description: ""
+---
+
 ### Best Practices
 
 **Avoid undeclared variables**

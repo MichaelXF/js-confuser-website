@@ -1,3 +1,7 @@
+---
+title: "All Presets"
+---
+
 ### All Presets
 
 JS-Confuser comes with three presets built into the obfuscator. The easiest way to configure JS-Confuser is by using presets.

@@ -22,15 +22,14 @@ eval((/* @js-confuser-var */ "myVar") + ' = "Modified Value"');
 console.log(myVar); // "Modified Value"
       `,
       docContent: `
-      #### Bypass Strict Mode
+#### Bypass Strict Mode
 
-      The \`Pack\` option is designed to bypass strict mode constraints. This is achieved by wrapping the output code in a \`Function()\` call. This allows the code to be executed in a different context, where strict mode is not enforced.
-     
+The \`Pack\` option is designed to bypass strict mode constraints. This is achieved by wrapping the output code in a \`Function()\` call. This allows the code to be executed in a different context, where strict mode is not enforced.
 
-      Several obfuscation techniques require non-strict mode JavaScript. These include:
-      
-      - With Statement (Control Flow Flattening)
-      - Eval scope access (Tamper Protection)
+Several obfuscation techniques require non-strict mode JavaScript. These include:
+
+- Control Flow Flattening (With Statement)
+- Tamper Protection (Eval scope access)
       `,
     },
   ],
@@ -117,7 +116,7 @@ test();`,
 
 The comment syntax \`/* @js-confuser-var */ "varName"\` provides a method to access variable mappings. This is especially useful for \`eval()\` scenarios where you want preserve the mapping.
 
----js
+\`\`\`js
 // Input
 var message = "Hello world!";
 eval(\`console.log(\${ /* @js-confuser-var */ "message"  })\`);
@@ -128,7 +127,7 @@ console.log("message was renamed to", /* @js-confuser-var */ "message");
 var nSgZyJf = "Hello world!";
 eval(\`console.log(${"nSgZyJf"})\`) // "Hello world!"
 console["log"]("message was renamed to", "nSgZyJf") // message was renamed to nSgZyJf
----
+\`\`\`
 
 Even if \`Rename Variables\` is disabled, the comment \`/* @js-confuser-var */\` will still be removed. (The original name will be returned as a string)
 
@@ -136,7 +135,7 @@ Even if \`Rename Variables\` is disabled, the comment \`/* @js-confuser-var */\`
 
 The prefix \`__NO_JS_CONFUSER_RENAME__\` disables renaming a certain variable. This can be useful for debugging the obfuscator.
 
----js
+\`\`\`js
 // Input
 var __NO_JS_CONFUSER_RENAME__message1 = "My first message"
 var message2 = "My other message"
@@ -150,7 +149,7 @@ var jRLf713 = "My other message";
 
 console.log(__NO_JS_CONFUSER_RENAME__message1),
 console.log(jRLf713)
----
+\`\`\`
       `,
     },
     {
@@ -316,7 +315,7 @@ module.exports = {
 
       The Custom String Encoding API allows you to define your own string encoding/decoding functions. These encodings will be randomly inserted throughout the code.
       
-      ---{ header: "Options.js" }
+      \`\`\`js title="Options.js"
       module.exports = {
         target: "node",
 
@@ -337,7 +336,7 @@ module.exports = {
           },
         ],
       };
-      ---
+      \`\`\`
 
       ---
 
@@ -362,8 +361,8 @@ module.exports = {
       The following example implements a custom Base64 encoding that uses a shuffled charset to encode and decode strings.
 
       - This encoding algorithm is instantiated multiple times, each with a different shuffled charset. This makes it difficult to reverse-engineer the encoding algorithm. 
-
-      ---{ header: "Options.js" }
+      
+      \`\`\`js title="Options.js"
       const { Template } = require("js-confuser");
       const { stringLiteral } = require("@babel/types");
 
@@ -464,7 +463,7 @@ module.exports = {
         stringConcealing: true,
         customStringEncodings: [createCustomStringEncoding],
       };
-      ---
+      \`\`\`
       `,
     },
     {

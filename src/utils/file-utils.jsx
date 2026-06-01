@@ -85,7 +85,7 @@ function openDatabase() {
 export async function saveFileToIndexedDB(
   fileName,
   fileContent,
-  fileType = "application/javascript"
+  fileType = "application/javascript",
 ) {
   const db = await openDatabase();
   const transaction = db.transaction("files", "readwrite");
@@ -288,12 +288,18 @@ export function openNewTabWithText(content) {
   // Open a new tab with about:blank
   let newTab = window.open("about:blank", "_blank");
 
+  // Important: Escape the content for HTML syntax
+  const escaped = String(content)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
   // Write content into the new tab's document
   newTab.document.write(`
       <html>
           <head><title>New Tab</title></head>
           <body>
-              <pre>${content}</pre>
+              <pre>${escaped}</pre>
           </body>
       </html>
   `);

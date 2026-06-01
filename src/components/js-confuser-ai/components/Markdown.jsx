@@ -23,7 +23,7 @@ import AITool from "./AITool";
 export const parseLine = (
   line,
   inheritFontSize = false,
-  maxCharacters = -1
+  maxCharacters = -1,
 ) => {
   const elements = [];
   const regex =
@@ -46,7 +46,7 @@ export const parseLine = (
       elements.push(
         <strong key={"strong_" + match.index} className="MarkdownBold">
           {match[2]}
-        </strong>
+        </strong>,
       );
     } else if (match[1].startsWith("*")) {
       elements.push(<i key={"italic_" + match.index}>{match[3]}</i>);
@@ -62,7 +62,7 @@ export const parseLine = (
           fontSize={inheritFontSize ? "inherit" : undefined}
         >
           {match[4]}
-        </Typography>
+        </Typography>,
       );
     } else if (
       match[1].startsWith("[") ||
@@ -96,7 +96,7 @@ export const parseLine = (
           {textDisplay}
 
           <OpenInNew sx={{ mx: "2px", transform: "translateY(3px)" }} />
-        </Link>
+        </Link>,
       );
     }
 
@@ -212,7 +212,7 @@ export default function Markdown({
       const aiToolInfo = parseAIToolLine(
         trimmed,
         showIncompleteTools,
-        index === lines.length - 1
+        index === lines.length - 1,
       );
       if (aiToolInfo) {
         return (
@@ -271,11 +271,7 @@ export default function Markdown({
         );
       }
 
-      if (
-        trimmed.startsWith("---{") ||
-        trimmed.startsWith("---js") ||
-        trimmed.startsWith("```")
-      ) {
+      if (trimmed.startsWith("---js") || trimmed.startsWith("```")) {
         let endLineIndex = -1;
         const endToken = trimmed.slice(0, 3);
         const valueLines = [];
@@ -388,7 +384,8 @@ export default function Markdown({
               const aiToolInfo = parseAIToolLine(
                 line.trim(),
                 showIncompleteTools,
-                endLineIndex >= lines.length - 1 && i === bulletLines.length - 1
+                endLineIndex >= lines.length - 1 &&
+                  i === bulletLines.length - 1,
               );
               if (aiToolInfo) {
                 return (
@@ -403,7 +400,7 @@ export default function Markdown({
 
               let bulletPoint = line.slice(initialIndentation);
               let bulletLevel = Math.floor(
-                (bulletPoint.length - bulletPoint.trimStart().length) / 4
+                (bulletPoint.length - bulletPoint.trimStart().length) / 4,
               );
 
               let kind = isUnordered ? "initial" : "decimal";

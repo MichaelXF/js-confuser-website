@@ -50,11 +50,7 @@ export function splitMarkdownIntoHeadingSections(doc) {
       continue;
     }
 
-    if (
-      trimmed.startsWith("---{") ||
-      trimmed.startsWith("---js") ||
-      trimmed.startsWith("```")
-    ) {
+    if (trimmed.startsWith("---js") || trimmed.startsWith("```")) {
       endCodeBlockToken = trimmed.slice(0, 3);
       inCodeBlock = true;
       continue;
@@ -89,4 +85,56 @@ export function splitMarkdownIntoHeadingSections(doc) {
 
   doc[SECTIONS_CACHE] = sections;
   return sections;
+}
+
+/**
+ * Mintlify-like parsing markdown codeblock metadata line syntax.
+ *
+ * @param {string} text - The meta string after the language key.
+ * @returns {Object<string, string|boolean>} Parsed key-value pairs.
+ *
+ * @example
+ * parseCodeMeta('title="Hello World" lines');
+ * // => { title: "Hello World", lines: true }
+ */
+export function parseCodeMeta(text) {
+  const result = {};
+  const re = /(\w+)(?:=(?:"([^"]*)"|'([^']*)'|(\S+)))?/g;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    const key = m[1];
+    const val = m[2] ?? m[3] ?? m[4];
+    result[key] = val === undefined ? true : val;
+  }
+  return result;
+}
+
+/**
+ * Mintlify-like parsing header document metadata syntax.
+ *
+ * @param {string} text - The frontmatter body (without the --- fences).
+ * @returns {Object<string, string>} Parsed key-value pairs.
+ *
+ * @example
+ * parseHeaderMeta('title: "Usage"\ndescription: "Learn how to use the API"');
+ * // => { title: "Usage", description: "Learn how to use the API" }
+ */
+export function parseHeaderMeta(text) {
+  const result = {};
+  const re =
+    /^\s*([\w-]+)\s*:\s*(?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)'|(.*?))\s*$/gm;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    const key = m[1];
+    let value;
+    if (m[2] !== undefined) {
+      value = JSON.parse(`"${m[2]}"`);
+    } else if (m[3] !== undefined) {
+      value = JSON.parse(`"${m[3].replace(/\\'/g, "'").replace(/"/g, '\\"')}"`);
+    } else {
+      value = m[4];
+    }
+    result[key] = value;
+  }
+  return result;
 }

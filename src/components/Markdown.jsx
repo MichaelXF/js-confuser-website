@@ -20,14 +20,18 @@ import json5 from "json5";
 import useJSConfuser from "../hooks/useJSConfuser";
 import { textEllipsis, toUrlCase } from "../utils/format-utils";
 import { KeyboardArrowRight, OpenInNew } from "@mui/icons-material";
-import { trimRemovePrefix } from "../utils/md-utils";
+import {
+  parseCodeMeta,
+  parseHeaderMeta,
+  trimRemovePrefix,
+} from "../utils/md-utils";
 import { useNavigate } from "react-router-dom";
 import { animateIconSx } from "../pages/PageHome";
 
 export const parseLine = (
   line,
   inheritFontSize = false,
-  maxCharacters = -1
+  maxCharacters = -1,
 ) => {
   const elements = [];
   const regex =
@@ -48,7 +52,7 @@ export const parseLine = (
       elements.push(
         <strong key={match.index} className="MarkdownBold">
           {match[2]}
-        </strong>
+        </strong>,
       );
     } else if (match[1].startsWith("*")) {
       elements.push(<i key={match.index}>{match[3]}</i>);
@@ -64,7 +68,7 @@ export const parseLine = (
           fontSize={inheritFontSize ? "inherit" : undefined}
         >
           {match[4]}
-        </Typography>
+        </Typography>,
       );
     } else if (match[1].startsWith("[")) {
       elements.push(
@@ -82,7 +86,7 @@ export const parseLine = (
           {match[5]}
 
           <OpenInNew sx={{ mx: "2px", transform: "translateY(3px)" }} />
-        </Link>
+        </Link>,
       );
     }
 
@@ -218,60 +222,40 @@ export default function Markdown({
         );
       }
 
-      if (
-        trimmed.startsWith("---{") ||
-        trimmed.startsWith("---js") ||
-        trimmed.startsWith("```")
-      ) {
+      if (trimmed.startsWith("```")) {
         let endLineIndex = -1;
-        const endToken = trimmed.slice(0, 3);
-        const valueLines = [];
-        const optionsLines = [];
+        const endToken = "```";
 
-        const metadataString = trimmed.slice(3).trim();
+        let metadataString = trimmed.slice(3).trim();
+        let language = metadataString.split(" ")[0];
+        metadataString = metadataString.slice(metadataString);
         let metadata = {};
 
         try {
-          if (metadataString === "js") {
-            metadata = {
-              language: "javascript",
-              live: false,
-              header: "Code",
-            };
-          } else {
-            metadata = json5.parse(metadataString);
-          }
-        } catch (e) {
-          console.error(metadataString);
-          throw new Error(e);
+          metadata = parseCodeMeta(metadataString);
+        } catch (err) {
+          throw new Error("Code Markdown Block Parsing Failed", { cause: err });
         }
 
-        var collectOptions = metadata.options;
-        if (metadata.options && typeof metadata.options !== "boolean") {
-          throw new Error(metadata.options);
-        }
+        var codeBlockLines = [];
 
         for (let i = index + 1; i < lines.length; i++) {
-          let currentLine = lines[i].trim();
-          if (currentLine.startsWith("===END OPTIONS===")) {
-            if (collectOptions) {
-              collectOptions = false;
-              continue;
-            } else {
-              throw new Error("Not allowed");
-            }
-          }
-
-          if (currentLine.startsWith(endToken)) {
+          if (lines[i].startsWith(endToken)) {
             endLineIndex = i;
             break;
-          } else {
-            if (collectOptions) {
-              optionsLines.push(lines[i]);
-            } else {
-              valueLines.push(lines[i]);
-            }
           }
+          codeBlockLines.push(lines[i]);
+        }
+
+        let optionsLines = [];
+        let valueLines = codeBlockLines;
+
+        let optionsIndex = codeBlockLines.findIndex((line) =>
+          line.endsWith("===END OPTIONS==="),
+        );
+        if (optionsIndex !== -1) {
+          optionsLines = codeBlockLines.slice(0, optionsIndex);
+          valueLines = codeBlockLines.slice(optionsIndex + 1);
         }
 
         function fixIndentation(lines) {
@@ -287,7 +271,7 @@ export default function Markdown({
             .map((line) =>
               line.slice(0, firstIndention).trim().length === 0
                 ? line.slice(firstIndention)
-                : ((firstIndention = 0), line)
+                : ((firstIndention = 0), line),
             )
             .join("\n")
             .trim();
@@ -310,8 +294,10 @@ export default function Markdown({
             optionsRef.current = options;
           }
 
+          const metadataTitle = metadata.title;
+
           const isOptionsFile = ["Options.js", "JSConfuser.ts"].includes(
-            metadata.header
+            metadataTitle,
           );
 
           const showTryItButton = metadata.live || isOptionsFile;
@@ -320,7 +306,7 @@ export default function Markdown({
             <Box key={index} mt={2} mb={4}>
               <CodeViewerTabbed
                 defaultValue={value}
-                header={metadata.header}
+                header={metadataTitle}
                 language={metadata.language || "javascript"}
                 readOnly={!metadata.live}
                 setValue={(value) => {
@@ -457,11 +443,52 @@ export default function Markdown({
         );
       }
 
+      if (trimmed.startsWith("<Card")) {
+        let cardLines = [];
+        let startIndex = index;
+
+        do {
+          skipLines.add(index);
+          cardLines.push(lines[index].trim());
+          index++;
+        } while (index < lines.length && !lines[index]?.includes("</Card>"));
+
+        skipLines.add(index);
+
+        let metadataLine = cardLines
+          .shift()
+          .split("<Card")[1]
+          ?.trim()
+          .slice(0, -1);
+        let cardMetadata = parseCodeMeta(metadataLine);
+        let cardTitle = cardMetadata.title;
+
+        let type = cardMetadata.type;
+
+        return (
+          <Alert
+            key={startIndex}
+            severity={type}
+            sx={{ borderRadius: "4px", mb: 4 }}
+          >
+            {cardTitle && (
+              <AlertTitle color="white">{parseLine(cardTitle)}</AlertTitle>
+            )}
+            {cardLines.map((line, i) => (
+              <Typography key={i} sx={sx}>
+                {parseLine(line)}
+              </Typography>
+            ))}
+          </Alert>
+        );
+      }
+
       function isBlockQuote(trimmed) {
         return trimmed.startsWith("> ");
       }
 
       if (isBlockQuote(trimmed)) {
+        let startIndex = index;
         const blockQuoteLines = [];
         do {
           blockQuoteLines.push(lines[index].trim().slice("> ".length).trim());
@@ -484,7 +511,7 @@ export default function Markdown({
 
         return (
           <Alert
-            key={index}
+            key={startIndex}
             severity={type}
             sx={{ borderRadius: "4px", mb: 4 }}
           >
@@ -630,17 +657,52 @@ export default function Markdown({
     });
   };
 
-  const strValue = "" + value;
+  // Remove the MDX Header, example:
+  // ---
+  // title: "Usage"
+  // description: "Learn how to use JS-Confuser's API"
+  // ---
+  // <Actual Markdown Content Here>
+  //
+  // This gets transformed to:
+  // ### Usage
+  // Learn how to use JS-Confuser's API
+  //
+  // <Actual Markdown Content Here>
+
+  var removeMDXHeader = (value) => {
+    if (typeof value !== "string") return value;
+
+    if (value.trim().startsWith("---\ntitle: ")) {
+      var endHeaderIndex = value.substring(3).indexOf("---") + 3;
+
+      var headerValue = value.slice(3, endHeaderIndex);
+      var headerMetadata = parseHeaderMeta(headerValue);
+
+      value = value.slice(endHeaderIndex + 3);
+
+      value = `
+${headerMetadata.title ? `### ${headerMetadata.title}` : ""}  
+
+${headerMetadata.description || ""}
+${value}`;
+    }
+
+    return value;
+  };
+
+  const strValue = "" + removeMDXHeader(value);
 
   let component;
   try {
     component = parseMarkdown(strValue);
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      component = <p>{error.toString()}</p>;
-    } else {
-      component = <p>There was an error parsing the markdown.</p>;
-    }
+    component = (
+      <div>
+        <p>There was an error parsing the markdown.</p>
+        <pre>{(error?.stack || error).toString()}</pre>{" "}
+      </div>
+    );
   }
 
   useEffect(() => {

@@ -1,3 +1,8 @@
+---
+title: "Roadmap"
+description: ""
+---
+
 ### Roadmap
 
 The following features are planned for JS-Confuser:

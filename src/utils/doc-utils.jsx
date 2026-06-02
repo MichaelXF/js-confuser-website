@@ -8,6 +8,8 @@ import {
 import { groups } from "../groups";
 import { trimRemovePrefix } from "./md-utils";
 import { convertOptionsToJS } from "./option-utils";
+import useJSConfuser, { jsConfuserObfuscate } from "../hooks/useJSConfuser.jsx";
+import { formatCodePrettier } from "../hooks/useCodeWorker.jsx";
 
 export const DOC_PATH_SEPARATOR = " --- ";
 
@@ -255,8 +257,6 @@ JS-Confuser provides a wide range of options to customize the obfuscation proces
 ${Object.keys(groups)
   .map((groupName) => {
     return `
----
-
 #### ${toTitleCase(groupName)}
 
 | Option | Description |
@@ -299,6 +299,8 @@ function createContentDocs(addDoc) {
         optionValues = "true/false";
       } else if (item.type === "regex[]") {
         optionValues = "RegExp[]/string[]";
+      } else if (item.type === "object") {
+        optionValues = "true/false/Object";
       }
 
       if (item.customImplementation) {
@@ -358,12 +360,12 @@ function createContentDocs(addDoc) {
             unsafeEvalExpressions: {
               title: "Requires Eval",
               description:
-                "The obfuscated code will contain unsafe eval expressions.\nThe code will not work properly in [environments that have disabled eval](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/script-src#unsafe_eval_expressions)",
+                "The obfuscated code will contain unsafe eval expressions.\nThe code will not work properly in [environments that have disabled eval](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/script-src#unsafe_eval_expressions).",
             },
             nonStrictMode: {
               title: "Requires Non-Strict Mode",
               description:
-                "The obfuscated code will not work properly in Strict Mode.\nYou can use the [Pack](./Pack) option to bypass Strict Mode constraints.",
+                "The obfuscated code will not work properly in Strict Mode.\nYou can use the [Pack](./pack) option to bypass Strict Mode constraints.",
             },
           }[tagName];
 
@@ -393,7 +395,7 @@ JSConfuser.obfuscate(sourceCode, options).then((result)=>{
 });`;
 
       docVariables.usageExample = `
-#### Usage Example
+### Usage Example
 
 The provided code example will obfuscate the file \`input.js\` and write the output to a file named \`output.js\`.
 
@@ -403,7 +405,7 @@ ${usageExampleCode}
 
 ---
 
-##### Enabled In
+#### Enabled In
 
 ${Object.keys(presets)
   .map((presetName) => {
@@ -459,8 +461,8 @@ ${seeAlso.map((x) => `- [${x.label}](${x.to})`).join("\n")}`
         }
 
         docVariables.customImplementation += `
-#### Custom Implementation
-###### \`${optionNamePrefix}(${custom.parameters.map((x) => x.parameter).join(", ")})\`
+### Custom Implementation
+##### \`${optionNamePrefix}(${custom.parameters.map((x) => x.parameter).join(", ")})\`
 
 ${custom.description}
 ${
@@ -491,11 +493,11 @@ ${docVariables.warnings}
 `;
 
       docVariables.inputOutput = item.exampleCode
-        ? `#### Input / Output
+        ? `### Input / Output
 
 This example showcases how \`${titleCase}\` transforms the code. Try it out by changing the input code and see changes apply in real-time.
 
-\`\`\`js title="Input.js" lines
+\`\`\`js title="Input.js" lines interactive-mode="obfuscate"
 ${convertOptionsToJS(liveExampleOptions)}
 ===END OPTIONS===
 ${item.exampleCode}
@@ -506,9 +508,17 @@ ${item.exampleCode}
 `
         : "";
 
+      // Allow replacing usage example
+      if (item.usageExample) {
+        docVariables.usageExample = item.usageExample;
+      }
+
+      var subgroup = Object.keys(groups).find((x) => groups[x].includes(item));
+
       var content = `---
 title: ${JSON.stringify(titleCase)}
 description: ${JSON.stringify(item.description)}
+slug: "options/${optionName}"
 ---
 ${docVariables.header}
 ${item.startDocContent ? item.startDocContent + "\n---\n" : ""}
@@ -522,14 +532,13 @@ ${docVariables.seeAlso}
 
       addDoc("options/" + item.name, "Options", titleCase, {
         content,
-        subGroup: Object.keys(groups).find((x) => groups[x].includes(item)),
+        subGroup: subgroup,
       });
     });
 
   // Add Preset Docs
   Object.keys(presets).forEach((presetName) => {
-    var content = `
----
+    var content = `---
 title: "${toTitleCase(presetName)} Preset"
 description: ""
 slug: "presets/${presetName}"
@@ -569,11 +578,18 @@ window.exportDocs = async function () {
       dir = await dir.getDirectoryHandle(part, { create: true });
     }
 
+    // We must first replace all hyperlinks "docs/options/renameVariables" -> "options/renameVariables"
+    // as this is hosted on "docs.js-confuser.com/..." not "js-confuser.com/docs/..."
+    var writtenContent = doc.content.replace(/\/docs\//g, "/");
+
+    // Pre-compute "live" obfuscation codeblocks (full iframe solution not started)
+    writtenContent = await precomputeLiveCodeblocks(writtenContent);
+
     console.log("Writing", fileName);
 
     const handle = await dir.getFileHandle(fileName, { create: true });
     const writable = await handle.createWritable();
-    await writable.write(doc.content.replace(/\/docs\//g, "/"));
+    await writable.write(writtenContent);
     await writable.close();
   }
 
@@ -587,5 +603,104 @@ window.exportDocs = async function () {
       },
     };
   });
-  return exportDocs;
+
+  function toTitleCase(str) {
+    return str
+      .split(/[-_\s]+/)
+      .filter(Boolean)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+  }
+
+  function buildNavigation() {
+    const groups = [];
+    const groupMap = new Map();
+
+    for (const doc of docs) {
+      const segments = doc.urlPath.split("/").filter(Boolean);
+      const groupName =
+        segments.length > 1 ? toTitleCase(segments[0]) : doc.group;
+
+      let group = groupMap.get(groupName);
+      if (!group) {
+        group = { group: groupName, pages: [], _subs: new Map() };
+        groupMap.set(groupName, group);
+        groups.push(group);
+      }
+
+      if (doc.subGroup) {
+        let sub = group._subs.get(doc.subGroup);
+        if (!sub) {
+          sub = { group: doc.subGroup, pages: [] };
+          group._subs.set(doc.subGroup, sub);
+          group.pages.push(sub);
+        }
+        sub.pages.push(doc.urlPath);
+      } else {
+        group.pages.push(doc.urlPath);
+      }
+    }
+
+    return {
+      groups: groups.map(({ group, pages }) => ({ group, pages })),
+    };
+  }
+
+  return {
+    navigation: buildNavigation(),
+  };
+
+  // return exportDocs;
 };
+
+export async function precomputeLiveCodeblocks(writtenContent) {
+  const outputLines = [];
+  const lines = writtenContent.split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+
+    let isLiveCodeBlock =
+      line.startsWith("```") && line.includes('interactive-mode="obfuscate"');
+
+    if (!isLiveCodeBlock) {
+      outputLines.push(line);
+    } else {
+      let startLine = line;
+      let codeLines = [];
+      i++;
+      while (!lines[i].includes("```")) {
+        codeLines.push(lines[i]);
+        i++;
+      }
+
+      let optionsIndex = codeLines.findIndex((line) =>
+        line.includes("===END OPTIONS==="),
+      );
+      let optionsLines = codeLines.slice(0, optionsIndex);
+      let inputLines = codeLines.slice(optionsIndex + 1);
+
+      let code = inputLines.join("\n");
+      let options = optionsLines.join("\n");
+
+      console.log("input", code, options);
+
+      let { code: outputCode } = await jsConfuserObfuscate(code, options);
+
+      let inputCodePretty = await formatCodePrettier(code, "javascript");
+      let outputCodePretty = await formatCodePrettier(outputCode, "javascript");
+
+      console.log("output", outputCode);
+
+      outputLines.push(startLine);
+      outputLines.push("// Input.js");
+      outputLines.push(inputCodePretty.trim());
+      outputLines.push("\n// Output.js");
+      outputLines.push(outputCodePretty.trim());
+
+      outputLines.push("```");
+    }
+  }
+
+  return outputLines.join("\n");
+}
+window.precomputeLiveCodeblocks = precomputeLiveCodeblocks;

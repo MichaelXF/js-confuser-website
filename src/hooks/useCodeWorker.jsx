@@ -89,3 +89,39 @@ export default function useCodeWorker() {
     formatCode,
   };
 }
+
+export function formatCodePrettier(code, language) {
+  const worker = createWorker();
+  const requestID = getRandomString(10);
+
+  return new Promise((resolve, reject) => {
+    var callback = (message) => {
+      const { event, data } = message.data;
+      if (data?.requestID !== requestID) return;
+
+      if (event === "success") {
+        resolve(data.code);
+        dispose();
+      } else if (event === "error") {
+        reject(data.error);
+        dispose();
+      }
+    };
+
+    var dispose = () => {
+      if (callback) {
+        worker.removeEventListener("message", callback);
+        callback = null;
+      }
+    };
+
+    worker.addEventListener("message", callback);
+
+    worker.postMessage({
+      type: "formatCode",
+      requestID,
+      code,
+      language,
+    });
+  });
+}

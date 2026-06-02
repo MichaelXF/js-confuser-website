@@ -99,7 +99,8 @@ export function splitMarkdownIntoHeadingSections(doc) {
  */
 export function parseCodeMeta(text) {
   const result = {};
-  const re = /(\w+)(?:=(?:"([^"]*)"|'([^']*)'|(\S+)))?/g;
+  const re = /([\w-]+)(?:=(?:"([^"]*)"|'([^']*)'|(\S+)))?/g;
+
   let m;
   while ((m = re.exec(text)) !== null) {
     const key = m[1];

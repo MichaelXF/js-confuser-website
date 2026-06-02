@@ -1,6 +1,7 @@
 ---
 title: "Installation"
 description: "Learn how to install JS-Confuser from NPM"
+slug: "getting-started/installation"
 ---
 
 JS-Confuser is available on NPM under the package name `js-confuser`.

@@ -86,7 +86,7 @@ export default function useJSConfuser({ onError } = {}) {
       onError: () => {},
       onProgress: () => {},
     },
-    advancedOptions = {}
+    advancedOptions = {},
   ) {
     var requestID = getRandomString(10);
 
@@ -165,4 +165,55 @@ export default function useJSConfuser({ onError } = {}) {
     getTransformations,
     cancel,
   };
+}
+
+// Bare bones JS-Confuser obfuscate through worker without full progress callbacks
+let _worker;
+export function jsConfuserObfuscate(code, options) {
+  return new Promise((resolve, reject) => {
+    // Create worker instance if needed
+    if (!_worker) {
+      _worker = new JSConfuserWorker();
+    }
+
+    var requestID = getRandomString(10);
+
+    var callback = (message) => {
+      const { event, data } = message.data;
+      if (data?.requestID !== requestID) return;
+
+      if (event === "success") {
+        resolve(data);
+        dispose();
+      } else if (event === "error") {
+        reject(data);
+        dispose();
+      } else if (event === "progress") {
+        // callbacksIn.onProgress?.(data);
+      }
+    };
+
+    var dispose = () => {
+      if (callback) {
+        _worker.removeEventListener("message", callback);
+        callback = null;
+      }
+    };
+
+    // Check if worker is ready
+    if (!_worker || typeof _worker.postMessage !== "function") {
+      reject(new Error("Worker not available."));
+    }
+
+    let advancedOptions = {};
+
+    _worker.addEventListener("message", callback);
+
+    // Post message to worker with correct parameter order
+    _worker.postMessage({
+      method: "obfuscateCode",
+      requestID,
+      args: [code, options, advancedOptions],
+    });
+  });
 }

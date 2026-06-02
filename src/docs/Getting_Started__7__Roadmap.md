@@ -1,9 +1,8 @@
 ---
 title: "Roadmap"
 description: ""
+slug: "getting-started/roadmap"
 ---
-
-### Roadmap
 
 The following features are planned for JS-Confuser:
 

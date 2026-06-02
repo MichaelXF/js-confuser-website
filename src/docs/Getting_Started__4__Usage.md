@@ -1,11 +1,12 @@
 ---
 title: "Usage"
 description: "Learn how to use JS-Confuser's API"
+slug: "getting-started/usage"
 ---
 
 JS-Confuser exposes a simple API that allows you to obfuscate your code with just a few lines of code. The provided code example will obfuscate the file `input.js` and write the output to a file named `output.js`.
 
-```js
+```js title="Example Usage"
 import JSConfuser from "js-confuser";
 import { readFileSync, writeFileSync } from "fs";
 

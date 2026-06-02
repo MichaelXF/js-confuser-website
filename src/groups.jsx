@@ -8,6 +8,92 @@ export const groups = {
       exampleConfig: { target: "node" },
     },
     {
+      type: "object",
+      name: "sourceMap",
+      description: "Source Map options",
+      removeUsageExample: true,
+      startDocContent: `
+### What Source Maps Are For
+
+Source maps let you map obfuscated output back to your original source code. This is useful during development so stack traces and debuggers reference meaningful line numbers and variable names instead of the obfuscated output.
+Obfuscation can break stack traces. Transformations like control flow flattening, variable renaming, and string concealing shift code locations significantly. Without a source map, a thrown error may point to a line in the obfuscated file that has no clear relationship to the original code.
+
+### Security Warning
+**A source map contains your entire original source code.** Never ship source maps to production or expose them publicly; this would completely defeat the purpose of obfuscation. Keep source map files server-side, away from any reverse engineers.
+
+### External Source Maps
+The source map is written to a separate .map file. The obfuscated file references it via a comment at the bottom. This is the recommended approach for source maps.
+
+\`\`\`js title="External Source Map" lines
+//# sourceMappingURL=dev.output.js.map
+\`\`\`
+
+### Inline Source Maps
+The source map is base64-encoded and embedded directly in the output file. Convenient for quick testing, but the source is exposed to anyone with the file.
+
+\`\`\`js title="Inline Source Map" lines
+//# sourceMappingURL=data:application/json;base64,...
+\`\`\`
+
+For most projects, external maps with restricted access to the .map file is the recommended approach.
+
+### Testing Source Maps in Chrome DevTools
+
+1. Open Chrome DevTools (\`F12\`) and go to the Sources tab.
+2. Load your obfuscated file in the browser.
+3. If the source map is detected, DevTools will show your original source file in the file tree under the Sources panel.
+4. Set breakpoints, step through code, and inspect variables as if the obfuscation never happened.
+5. If the original source is not appearing, check that the sourceMappingURL comment at the bottom of your output file points to the correct .map file path, and that the .map file is being served.
+
+For Node.js, use \`--enable-source-maps\` when running your script:
+
+\`\`\`bash title="Node.js Source Maps" lines
+node --enable-source-maps dev.output.js
+\`\`\`
+
+This makes Node resolve source map locations in stack traces automatically.
+
+### Source Map Options
+
+You may provide \`true\` or an \`Object\` of type \`SourceMapOptions\` for the option \`"sourceMap"\` in your obfuscator settings. The field \`"fileName"\` will be set to \`"script.js"\` if not provided.
+
+| Property | Type | Description |
+| --- | --- | --- |
+| \`"fileName"\` | \`string\` | The filename found in the 'sources' array |
+`,
+
+      usageExample: `
+### Usage Example
+
+The provided code example will obfuscate the file \`dev.input.js\` and write the output to a file named \`dev.output.js\` with a source map file named \`dev.output.js.map\`.
+
+\`\`\`js title="Example Usage" lines
+import { readFile, writeFile } from "fs/promises";
+import JsConfuser from "js-confuser";
+
+const sourceCode = await readFile("./dev.input.js", "utf-8");
+
+var result = await JsConfuser.obfuscate(sourceCode, {
+  target: "node",
+  preset: "medium",
+  sourceMap: {
+    fileName: "dev.input.js"
+  },
+});
+
+// External source map, to be added to the bottom of the file
+result.code += \`\\n//# sourceMappingURL=dev.output.js.map\`;
+
+// Save files
+await writeFile("dev.output.js", result.code, { encoding: "utf-8" });
+await writeFile("dev.output.js.map", JSON.stringify(result.map), {
+  encoding: "utf-8",
+});
+\`\`\`
+      `,
+      seeAlso: [{ label: "Target", to: "./target" }],
+    },
+    {
       type: "boolean",
       name: "pack",
       tags: ["unsafeEvalExpressions"],
@@ -22,7 +108,7 @@ eval((/* @js-confuser-var */ "myVar") + ' = "Modified Value"');
 console.log(myVar); // "Modified Value"
       `,
       docContent: `
-#### Bypass Strict Mode
+### Bypass Strict Mode
 
 The \`Pack\` option is designed to bypass strict mode constraints. This is achieved by wrapping the output code in a \`Function()\` call. This allows the code to be executed in a different context, where strict mode is not enforced.
 
@@ -56,15 +142,16 @@ Several obfuscation techniques require non-strict mode JavaScript. These include
 };`,
       },
       startDocContent: `
-      ##### Modes
+#### Modes
 
-      | Mode | Description | Example |
-      | \`"hexadecimal"\` | Random hex strings | _0xa8db5 |
-      | \`"randomized"\` | Random characters | w$Tsu4G |
-      | \`"zeroWidth"\` | Invisible characters | U+200D |
-      | \`"mangled"\` | Alphabet sequence | a, b, c |
-      | \`"number"\` | Numbered sequence | var_1, var_2 |
-      | \`<function>\` | Write a custom name generator | See Below |
+| Mode | Description | Example |
+| --- | --- | --- |
+| \`"hexadecimal"\` | Random hex strings | _0xa8db5 |
+| \`"randomized"\` | Random characters | w$Tsu4G |
+| \`"zeroWidth"\` | Invisible characters | U+200D |
+| \`"mangled"\` | Alphabet sequence | a, b, c |
+| \`"number"\` | Numbered sequence | var_1, var_2 |
+| \`<function>\` | Write a custom name generator | See Below |
       `,
       seeAlso: [{ label: "Rename Variables", to: "./renameVariables" }],
     },
@@ -116,7 +203,7 @@ test();`,
 
 The comment syntax \`/* @js-confuser-var */ "varName"\` provides a method to access variable mappings. This is especially useful for \`eval()\` scenarios where you want preserve the mapping.
 
-\`\`\`js
+\`\`\`js lines
 // Input
 var message = "Hello world!";
 eval(\`console.log(\${ /* @js-confuser-var */ "message"  })\`);
@@ -135,7 +222,7 @@ Even if \`Rename Variables\` is disabled, the comment \`/* @js-confuser-var */\`
 
 The prefix \`__NO_JS_CONFUSER_RENAME__\` disables renaming a certain variable. This can be useful for debugging the obfuscator.
 
-\`\`\`js
+\`\`\`js lines
 // Input
 var __NO_JS_CONFUSER_RENAME__message1 = "My first message"
 var message2 = "My other message"
@@ -286,11 +373,10 @@ module.exports = {
       name: "customStringEncodings",
       description:
         "Custom String Encodings allows you to define your own string encoding/decoding functions.",
-      exampleCode: `
-      // Base64 Encoding Demo
+      exampleCode: `// Base64 Encoding Demo
 
-      var str = "Hello, World!";
-      console.log(str); // "Hello, World!"
+var str = "Hello, World!";
+console.log(str); // "Hello, World!"
       `,
       exampleConfig: {
         stringConcealing: true,
@@ -315,7 +401,7 @@ module.exports = {
 
       The Custom String Encoding API allows you to define your own string encoding/decoding functions. These encodings will be randomly inserted throughout the code.
       
-      \`\`\`js title="Options.js"
+      \`\`\`js title="Options.js" lines
       module.exports = {
         target: "node",
 
@@ -343,6 +429,7 @@ module.exports = {
       The properties of the type \`Custom String Encoding\` are:
 
       | Property | Type | Description |
+      | --- | --- | --- |
       | \`code\` | \`string\` | Template decoder code that must contain '{fnName}'. |
       | \`encode\` | \`Function\` | Encoding algorithm. |
       | \`decode?\` | \`Function\` | Decoding algorithm. (Optional) |
@@ -362,7 +449,7 @@ module.exports = {
 
       - This encoding algorithm is instantiated multiple times, each with a different shuffled charset. This makes it difficult to reverse-engineer the encoding algorithm. 
       
-      \`\`\`js title="Options.js"
+      \`\`\`js title="Options.js" lines
       const { Template } = require("js-confuser");
       const { stringLiteral } = require("@babel/types");
 
@@ -593,27 +680,29 @@ countTo(number); // 1,2,3,4,5,6,7,8,9,10
 `,
 
       docContent: `
-#### Requires Non-Strict Mode
+### Requires Non-Strict Mode
 
 Control Flow Flattening requires non-strict mode to work. This is because the \`with\` statement is used to conceal local scope variables.
 
-- It is recommended to enable the [Pack](./Pack) option when using Control Flow Flattening.
+- It is recommended to enable the [Pack](./pack) option when using Control Flow Flattening.
 
-#### Control Flow Flattening Process
+### Control Flow Flattening Process
 
 Control Flow Flattening transforms the code into a large, convoluted switch statement. This switch statement is intended to replicate the functionality of the 'goto' statement seen in other languages.
 
 The switch statement is designed to be difficult to follow, making it harder for reverse engineers to understand the program's flow.
 
-- Control Flow Flattening introduces dead code:
+- Control Flow Flattening introduces dead code through these methods:
 
-- - Add fake chunks that are never reached
-- - Add fake jumps to really mess with deobfuscators ("irreducible control flow")
-- - Clone chunks but these chunks are never ran
+- - Adds fake chunks that are never reached
+- - Adds fake jumps to really mess with deobfuscators ("irreducible control flow")
+- - Clones chunks but these chunks are never executed
 
-- Control Flow Flattening introduces opaque predicates:
+- Control Flow Flattening introduces opaque predicates through these methods:
 
-- - Add fake conditions that are always true or false
+- - Adds fake conditions that are always true or false
+- - XOR String encrypts strings found within the basic blocks
+- - Entangles number literals found within the basic blocks against the current state values
 
 - Control Flow Flattening mangles the scoped variables through the use of the \`with\` statement.
 
@@ -625,11 +714,11 @@ The switch statement is designed to be difficult to follow, making it harder for
       `,
 
       endDocContent: `
-##### Performance reduction
+### Performance reduction
 
 Control Flow Flattening reduces the performance of your program. You should adjust the option \`controlFlowFlattening\` to be a percentage that is appropriate for your app.
 
-##### Other notes
+### Other notes
 
 Control Flow Flattening only applies to:
 
@@ -771,15 +860,14 @@ printToConsole("Hello World"); // "Hello World"`,
           "Control which functions are changed. Returns a `boolean`.",
       },
       docContent: `
-      #### Independent Functions
+      ### Independent Functions
 
       RGF will only transform functions that are independent of their scope. A function referencing a variable outside of its scope disqualifies it from being transformed.
 
-      
       If you enable [Flatten](./flatten), you can isolate functions from their original scope so then RGF can then apply on them. This is the recommended way to use RGF.
       `,
 
-      endDocContent: `##### Other notes
+      endDocContent: `### Other notes
       
       RGF only applies to:
 
@@ -861,47 +949,46 @@ printToConsole("Hello World"); // "Hello World"`,
         lock: { tamperProtection: true, countermeasures: "onTamperDetected" },
       },
       docContent: `
-#### Improves Global Concealing
+### Improves Global Concealing
 
 Tamper Protection with \`Global Concealing\` can detect at runtime if certain global functions have been monkey-patched. The following code exemplifies this:
 
-##### Native function check
+### Native function check
 
----js
+\`\`\`js lines
 var _fetch = fetch;
 fetch = (...args)=>{
   console.log("Fetch request intercepted!", ...args)
   return _fetch(...args)
 }
----
+\`\`\`
 
 This monkey-patch can be detected by inspecting the \`fetch.toString()\` value:
 
----js
+\`\`\`js lines
 // Untampered
 fetch.toString() // "function fetch() { [native code] }"
 
-
 // Tampered
 fetch.toString()  // "(...args)=>{\\n  console.log("Fetch request intercepted!", ...args)\\n  return _fetch(...args)\\n}"
----
+\`\`\`
 
 Certain global functions are checked before each invocation to ensure that (1) the arguments cannot be intercepted and (2) their behavior cannot be altered.
 
-##### Stealthy global
+#### Stealthy global
 
 A direct \`eval\` invocation can access the local scope, only if it has not been redefined.
 
----js
+\`\`\`js lines
 let root = {};
 eval("root=this"); // Window {window: ...}
----
+\`\`\`
 
 This method securely obtains the real global object for both the browser and NodeJS. Properties on the global object can still be changed however.
 
 ---
 
-#### Disallows Strict Mode
+### Disallows Strict Mode
 
 Tamper Protection requires the script to run in non-strict mode. Detection of the script in Strict Mode will be considered tampering. You can control the tampering response using the \`lock.countermeasures\` option.
       `,
@@ -946,14 +1033,14 @@ Tamper Protection requires the script to run in non-strict mode. Detection of th
         },
       },
       docContent: `
-      #### Custom Locks API
+      ### Custom Locks API
 
       Custom Locks allow you to define your own lock algorithm. These locks will be randomly sprinkled throughout the code. 
-      
       
       The properties of the type \`Custom Lock\` are:
 
       | Property | Type | Description |
+      | --- | --- | --- |
       | \`code\` | \`string\` | Template lock code that must contain '{countermeasures}'. |
       | \`percentagePerBlock\` | \`number\` | The percentage of blocks that will contain the lock. |
       | \`maxCount\` | \`number\` | The maximum number of times the lock can be used. (Default = 25) |
@@ -984,7 +1071,7 @@ Tamper Protection requires the script to run in non-strict mode. Detection of th
           "Control which functions are changed. Returns a `boolean`.",
       },
       docContent: `
-      #### How is this possible?
+      ### How is this possible?
 
 JavaScript has a sneaky method to view the source code any function. Calling \`Function.toString()\` on any function reveals the raw source code.
 
@@ -994,15 +1081,14 @@ Integrity uses a hashing algorithm on the obfuscated code during the obfuscation
 
 An additional RegEx is utilized to remove spaces, newlines, braces, and commas. This ensures the hash isn't too sensitive.
 
-#### Tamper Detection
+### Tamper Detection
 
 If tampering is detected, the \`lock.countermeasures\` function will be invoked. If you don't provide a \`lock.countermeasures\` function, the default behavior is to crash the program.
-
 
 [Learn more about the countermeasures function](Countermeasures.md)
       `,
       endDocContent: `
-      #### Potential Issues
+      ### Potential Issues
 
 If you decide to use Integrity, consider the following:
 
@@ -1029,17 +1115,17 @@ If you decide to use Integrity, consider the following:
       `,
       exampleConfig: { lock: { countermeasures: "onTamperDetected" } },
       docContent: `
-#### Crash Process
+### Crash Process
 
 The default behavior is to crash the process This is done by an infinite loop to ensure the process becomes useless.
 
-\`\`\`js
+\`\`\`js lines
 while(true) {
   // ...
 }
 \`\`\`
 
-#### Custom Callback
+### Custom Callback
 
 By setting countermeasures to a string, it can point to a callback to invoke when a lock is triggered. The countermeasures callback function can either be a local name or an external name.
 
@@ -1050,7 +1136,7 @@ Examples:
 
 If the function is defined within the locked code, it must follow the local name rules.
 
-#### Local Name rules
+### Local Name rules
 
 1. The function must be defined at the top-level of your program.
 2. The function must not rely on any scoped variables.
@@ -1058,17 +1144,17 @@ If the function is defined within the locked code, it must follow the local name
 
 These rules are necessary to prevent an infinite loop from occurring.
 
-#### Test your countermeasure
+### Test your countermeasure
 
-##### Domain Lock:
+#### Domain Lock:
 
 Try your code within DevTools while on another website.
 
-##### Time Lock:
+#### Time Lock:
 
 Try setting your machine time to before or past the allowed range.
 
-##### Integrity:
+#### Integrity:
 
 Try changing a string within your code.
       `,
@@ -1135,7 +1221,7 @@ for (var i = 1; i <= 25; i++) {
       console.log(fullName); // "John Doe"
       `,
       docContent: `
-      #### Minification Techniques
+      ### Minification Techniques
 
       - Dead code elimination
       - Variable grouping
@@ -1156,22 +1242,21 @@ for (var i = 1; i <= 25; i++) {
       type: "boolean",
       name: "preserveFunctionLength",
       description: "Preserves the original `function.length` property.",
-      exampleCode: `
-      function add(a, b){
-        return a + b;
-      }
-      
-      console.log(add.length); // 2
+      exampleCode: `function add(a, b){
+  return a + b;
+}
+
+console.log(add.length); // 2
       `,
       exampleConfig: { preset: "medium" },
       docContent: `
-      #### Preserving Function Length
+      ### Preserving Function Length
 
       The property \`function.length\` returns the number of arguments expected by the function. This property is read-only and cannot be changed.
 
       The obfuscator will most likely change the function length property. This option preserves the original function length property by adding a subsequent assignment to mock the original length.
       
-      #### Why This Matters
+      ### Why This Matters
 
       Some libraries and frameworks rely on the \`function.length\` property. If the property is changed, it can break the functionality of the library or framework. 
       `,

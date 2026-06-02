@@ -1,12 +1,12 @@
 ---
 title: "Playground"
 description: "Try out JS-Confuser in your browser"
+slug: "getting-started/playground"
 ---
 
-### Playground
-
 The JS-Confuser Playground is a rich code editor for obfuscating your JavaScript code.
-[Try It Out](/editor)
+
+[Try It Out](https://js-confuser.com/editor)
 
 #### How to use
 

@@ -1,9 +1,8 @@
 ---
 title: "Best Practices"
 description: ""
+slug: "getting-started/best-practices"
 ---
-
-### Best Practices
 
 **Avoid undeclared variables**
 - JS-Confuser only renames variables you explicitly define, but undeclared variables can still cause issues.

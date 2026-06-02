@@ -186,6 +186,7 @@ export default function Markdown({
       }
 
       if (headingLevel >= 1) {
+        headingLevel++; // Important: Decrease heading sizes due to doc changes
         var headingText = trimmed.trim();
 
         var headingTextNoMarkdown = trimRemovePrefix(headingText);
@@ -289,7 +290,12 @@ export default function Markdown({
           allowBreak = false;
           allowActualBreak = false;
 
-          if (metadata.live) {
+          let metadataLive = metadata.live;
+          if (metadata["interactive-mode"] == "obfuscate") {
+            metadataLive = true;
+          }
+
+          if (metadataLive) {
             const options = fixIndentation(optionsLines);
             optionsRef.current = options;
           }
@@ -300,7 +306,7 @@ export default function Markdown({
             metadataTitle,
           );
 
-          const showTryItButton = metadata.live || isOptionsFile;
+          const showTryItButton = metadataLive || isOptionsFile;
 
           return (
             <Box key={index} mt={2} mb={4}>
@@ -308,14 +314,14 @@ export default function Markdown({
                 defaultValue={value}
                 header={metadataTitle}
                 language={metadata.language || "javascript"}
-                readOnly={!metadata.live}
+                readOnly={!metadataLive}
                 setValue={(value) => {
                   obfuscate(value);
                 }}
                 height="auto"
               />
 
-              {metadata.live ? (
+              {metadataLive ? (
                 <>
                   <CodeViewerTabbed
                     defaultValue={""}
@@ -339,13 +345,13 @@ export default function Markdown({
                       const searchParams = new URLSearchParams();
 
                       // module.exports = {...}
-                      const optionsString = metadata.live
+                      const optionsString = metadataLive
                         ? optionsRef.current
                         : value;
 
                       searchParams.set("config", optionsString);
 
-                      if (metadata.live) {
+                      if (metadataLive) {
                         searchParams.set("code", value);
                       }
 
@@ -673,7 +679,7 @@ export default function Markdown({
   var removeMDXHeader = (value) => {
     if (typeof value !== "string") return value;
 
-    if (value.trim().startsWith("---\ntitle: ")) {
+    if (value.trim().match(/^\s*---\s+title:\s/)) {
       var endHeaderIndex = value.substring(3).indexOf("---") + 3;
 
       var headerValue = value.slice(3, endHeaderIndex);
@@ -682,7 +688,7 @@ export default function Markdown({
       value = value.slice(endHeaderIndex + 3);
 
       value = `
-${headerMetadata.title ? `### ${headerMetadata.title}` : ""}  
+${headerMetadata.title ? `## ${headerMetadata.title}` : ""}  
 
 ${headerMetadata.description || ""}
 ${value}`;

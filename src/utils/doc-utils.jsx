@@ -446,7 +446,7 @@ ${Object.keys(presets)
       docVariables.seeAlso = seeAlso.length
         ? `\n---
 
-##### See Also
+#### See Also
 
 ${seeAlso.map((x) => `- [${x.label}](${x.to})`).join("\n")}`
         : "";
@@ -462,7 +462,7 @@ ${seeAlso.map((x) => `- [${x.label}](${x.to})`).join("\n")}`
 
         docVariables.customImplementation += `
 ### Custom Implementation
-##### \`${optionNamePrefix}(${custom.parameters.map((x) => x.parameter).join(", ")})\`
+#### \`${optionNamePrefix}(${custom.parameters.map((x) => x.parameter).join(", ")})\`
 
 ${custom.description}
 ${

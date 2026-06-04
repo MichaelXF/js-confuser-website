@@ -37,6 +37,16 @@ The source map is base64-encoded and embedded directly in the output file. Conve
 
 For most projects, external maps with restricted access to the .map file is the recommended approach.
 
+### Source Map Options
+
+You may provide \`true\` or an \`Object\` of type \`SourceMapOptions\` for the option \`"sourceMap"\` in your obfuscator settings. The field \`"fileName"\` will be set to \`"script.js"\` if not provided.
+
+| Property | Type | Description |
+| --- | --- | --- |
+| \`"fileName"\` | \`string\` | The filename found in the 'sources' array |
+`,
+
+      endDocContent: `
 ### Testing Source Maps in Chrome DevTools
 
 1. Open Chrome DevTools (\`F12\`) and go to the Sources tab.
@@ -52,14 +62,6 @@ node --enable-source-maps dev.output.js
 \`\`\`
 
 This makes Node resolve source map locations in stack traces automatically.
-
-### Source Map Options
-
-You may provide \`true\` or an \`Object\` of type \`SourceMapOptions\` for the option \`"sourceMap"\` in your obfuscator settings. The field \`"fileName"\` will be set to \`"script.js"\` if not provided.
-
-| Property | Type | Description |
-| --- | --- | --- |
-| \`"fileName"\` | \`string\` | The filename found in the 'sources' array |
 `,
 
       usageExample: `
@@ -305,29 +307,6 @@ console.log(jRLf713)
     },
   ],
   Strings: [
-    {
-      type: "probability",
-      name: "stringCompression",
-      description:
-        "String Compression uses zlib compression algorithm to compress strings.",
-
-      exampleCode: `var str = "Hello, World!";
-console.log(str);
-
-var str2 = "Hello, World!";
-console.log(str2);
-      `,
-      customImplementation: {
-        parameters: [
-          {
-            parameter: "strValue",
-            type: "string",
-            description: "The string proposed to be compressed.",
-          },
-        ],
-        description: "Control which strings are changed. Returns a `boolean`.",
-      },
-    },
     {
       type: "probability",
       name: "stringConcealing",
@@ -643,13 +622,6 @@ if ( utils.isString("Hello") ) {
     },
     {
       type: "probability",
-      name: "shuffle",
-      description:
-        "Shuffles the initial order of arrays. The order is brought back to the original during runtime.",
-      exampleCode: `console.log([1,2,3,4,5,6,7,8,9,10]);`,
-    },
-    {
-      type: "probability",
       name: "duplicateLiteralsRemoval",
       description:
         "Duplicate Literals Removal replaces duplicate literals with a single variable name.",
@@ -701,7 +673,7 @@ The switch statement is designed to be difficult to follow, making it harder for
 - Control Flow Flattening introduces opaque predicates through these methods:
 
 - - Adds fake conditions that are always true or false
-- - XOR String encrypts strings found within the basic blocks
+- - XOR encrypts strings found within the basic blocks
 - - Entangles number literals found within the basic blocks against the current state values
 
 - Control Flow Flattening mangles the scoped variables through the use of the \`with\` statement.
@@ -1182,7 +1154,7 @@ Try changing a string within your code.
       type: "boolean",
       defaultValue: true,
       name: "compact",
-      description: "Remove's whitespace from the final output.",
+      description: "Removes whitespace from the final output.",
       exampleCode: `/**
  * Computes the nth Fibonacci number iteratively
  * @param {number} num

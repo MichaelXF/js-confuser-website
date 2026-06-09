@@ -1,0 +1,133 @@
+/* eslint-disable no-restricted-globals */
+const workerScope = self;
+
+function evaluateCodeSandbox(
+  requestID,
+  code,
+  { strictModeEval, allowNetworkRequests }
+) {
+  if (!allowNetworkRequests) {
+    workerScope.fetch = function () {
+      throw new Error("Network requests are disabled in this worker.");
+    };
+
+    workerScope.XMLHttpRequest = function () {
+      throw new Error("Network requests are disabled in this worker.");
+    };
+
+    workerScope.WebSocket = function () {
+      throw new Error("WebSocket connections are disabled in this worker.");
+    };
+  }
+
+  var RealConsoleLog = console.log;
+
+  function StringFn(item) {
+    if (item && typeof item === "object") {
+      return JSON.stringify(item);
+    }
+
+    return String(item);
+  }
+
+  var Write = (writeType) => {
+    return (...messages) => {
+      RealConsoleLog(...messages);
+
+      postMessage({
+        event: "write",
+        data: { requestID, type: writeType, messages: messages.map(StringFn) },
+      });
+    };
+  };
+
+  (() => {
+    // Override default console
+    var console = {
+      log: Write("console.log"),
+      error: Write("console.error"),
+      warn: Write("console.warn"),
+      debug: Write("console.debug"),
+      info: Write("console.info"),
+    };
+
+    // Redefine the 'global' variables
+    var window = self;
+    var globalThis = self;
+    var global = self;
+
+    window.console = console;
+    window.window = window;
+
+    try {
+      if (strictModeEval) {
+        eval(code);
+      } else {
+        new Function(code)();
+      }
+    } catch (e) {
+      // Each browser has a different way of handling the error object
+      const { stack, message } = e || {};
+      let output = stack || message || e;
+
+      // Safari does not include the message in the stack trace
+      if (typeof stack === "string" && typeof message === "string") {
+        if (!stack.includes(message)) {
+          output = `${message}\n${stack}`;
+        }
+      }
+
+      Write("error")(String(output));
+    }
+  })();
+
+  postMessage({ event: "done", data: { requestID } });
+}
+
+function evaluateOptions(
+  requestID,
+  code,
+  { strictModeEval, allowNetworkRequests }
+) {
+  // Must be on same line due to new Function("return ")
+  const prepareModule = `(function (module, exports, require) {
+  ${code}
+  })
+  `;
+
+  const exports = {};
+  const module = { exports: exports };
+  // Mock require function
+  const require = () => ({});
+
+  try {
+    if (strictModeEval) {
+      eval(prepareModule)(module, exports, require);
+    } else {
+      new Function("return " + prepareModule)()(module, exports, require);
+    }
+  } catch (err) {
+    console.error(err);
+    postMessage({
+      event: "error",
+      data: { requestID, error: err.toString(), errorStack: err.stack },
+    });
+    return;
+  }
+
+  postMessage({
+    event: "success",
+    data: { requestID, options: module.exports },
+  });
+}
+
+// Listen for messages from the main thread
+workerScope.addEventListener("message", (event) => {
+  const { type, requestID, code, evalOptions } = event.data;
+
+  if (type === "evaluateCodeSandbox") {
+    evaluateCodeSandbox(requestID, code, evalOptions);
+  } else if (type === "evaluateOptions") {
+    evaluateOptions(requestID, code, evalOptions);
+  }
+});

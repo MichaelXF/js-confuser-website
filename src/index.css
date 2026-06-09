@@ -13,10 +13,10 @@ a {
 }
 
 .LandingBackground {
-  --grid-color: hsla(210, 100%, 45%, 0.175);
+  --grid-color: hsla(210, 100%, 30%, 0.125);
   --grid-size: 39px;
 
-  background: linear-gradient(180deg, hsla(210, 100%, 50%, 0.0175), #0f1214 65%),
+  background: linear-gradient(180deg, hsla(210, 100%, 50%, 0.0175), #0f1214 85%),
     repeating-linear-gradient(
       180deg,
       transparent 0px,
@@ -104,4 +104,139 @@ a {
 
 .hidden {
   display: none !important;
+}
+
+.blinking {
+  opacity: 1;
+  animation: blinkOpacity 0.8s infinite;
+}
+
+@keyframes blinkOpacity {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.loading-text {
+  display: inline-block;
+  background: rgb(152, 164, 179)
+    linear-gradient(
+      90deg,
+      rgb(152, 164, 179) 0%,
+      rgb(255, 255, 255) 50%,
+      rgb(152, 164, 179) 100%
+    );
+  background-size: 50% 200%;
+  background-position: -100% top;
+  background-repeat: no-repeat;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: loading-shimmer 3s infinite;
+  animation-delay: 0.5s;
+}
+
+.loading-text:hover {
+  color: rgb(255, 255, 255);
+  animation: none;
+  background: transparent;
+}
+
+@keyframes loading-shimmer {
+  0% {
+    background-position: -100% top;
+  }
+  100% {
+    background-position: 250% top;
+  }
+}
+
+.GradientShineTextPrimary {
+  display: inline-block;
+  background: hsl(210, 100%, 60%)
+    linear-gradient(
+      90deg,
+      hsl(210, 100%, 60%) 0%,
+      hsl(210, 100%, 80%) 50%,
+      hsl(210, 100%, 60%) 100%
+    );
+  background-size: 50% 200%;
+  background-position: -100% top;
+  background-repeat: no-repeat;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: loading-shine-primary 3s infinite;
+  animation-delay: 1s;
+}
+
+.GradientShineTextPrimary:hover {
+  color: hsl(210, 100%, 60%);
+  animation: none;
+  background: transparent;
+}
+
+.GradientShineTextPrimary svg {
+  fill: hsl(210, 100%, 60%);
+  background: inherit;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+@keyframes loading-shine-primary {
+  0% {
+    background-position: -100% top;
+  }
+  100% {
+    background-position: 250% top;
+  }
+}
+
+.fade-in-landing-animation {
+  animation: fadeInLandingAnimation 1s ease;
+}
+
+@keyframes fadeInLandingAnimation {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-quick-animation {
+  animation: fadeInQuickAnimation 0.5s ease;
+}
+
+@keyframes fadeInQuickAnimation {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.landing-hero-section-animation {
+  animation: landingHeroSectionAnimation 1.25s ease;
+}
+
+@keyframes landingHeroSectionAnimation {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

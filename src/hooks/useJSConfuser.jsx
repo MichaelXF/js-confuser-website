@@ -1,0 +1,219 @@
+import { useEffect, useRef } from "react";
+import JSConfuserWorker from "../workers/jsConfuserWorker?worker";
+import { getRandomString } from "../utils/random-utils";
+
+export default function useJSConfuser({ onError } = {}) {
+  /**
+   * @type {React.Ref<Worker|null>}
+   */
+  var workerRef = useRef(null);
+  var isObfuscatingRef = useRef(false);
+
+  function createWrapper(methodName) {
+    return (...args) => {
+      return new Promise((resolve, reject) => {
+        var requestID = getRandomString(10);
+
+        // Create worker instance if needed
+        if (!workerRef.current) {
+          workerRef.current = new JSConfuserWorker();
+        }
+
+        var worker = workerRef.current;
+
+        var callback = (message) => {
+          const { event, data } = message.data;
+          if (data?.requestID !== requestID) return;
+
+          isObfuscatingRef.current = false;
+          dispose();
+
+          if (event === "success") {
+            resolve(data);
+          } else if (event === "error") {
+            reject(data);
+          }
+        };
+
+        var dispose = () => {
+          if (callback) {
+            worker.removeEventListener("message", callback);
+            callback = null;
+          }
+        };
+
+        // Check if worker methods are available
+        const isWorkerReady = () => {
+          return worker && typeof worker.postMessage === "function";
+        };
+
+        if (!isWorkerReady()) {
+          setTimeout(() => {
+            onError?.({
+              errorString: "Worker not available or not ready.",
+            });
+          });
+          return;
+        }
+
+        worker.addEventListener("message", callback);
+
+        isObfuscatingRef.current = true;
+
+        // Post message to worker with method name and args
+        worker.postMessage({
+          method: methodName,
+          requestID,
+          args,
+        });
+      });
+    };
+  }
+
+  const preObfuscationAnalysis = createWrapper("preObfuscationAnalysis");
+  const applyTransformations = createWrapper("applyTransformations");
+
+  const getTransformations = async (optionsJS) => {
+    var result = await applyTransformations(null, optionsJS, []);
+    return result.transformationNames;
+  };
+
+  function obfuscate(
+    code,
+    options,
+    callbacksIn = {
+      onComplete: () => {},
+      onError: () => {},
+      onProgress: () => {},
+    },
+    advancedOptions = {},
+  ) {
+    var requestID = getRandomString(10);
+
+    // Cancel pending obfuscation, create new worker
+    if (!workerRef.current || isObfuscatingRef.current) {
+      cancel();
+      workerRef.current = new JSConfuserWorker();
+    }
+
+    var worker = workerRef.current;
+
+    var callback = (message) => {
+      const { event, data } = message.data;
+      if (data?.requestID !== requestID) return;
+
+      if (event === "success") {
+        isObfuscatingRef.current = false;
+        callbacksIn.onComplete?.(data);
+        dispose();
+      } else if (event === "error") {
+        isObfuscatingRef.current = false;
+        callbacksIn.onError?.(data);
+        dispose();
+      } else if (event === "progress") {
+        callbacksIn.onProgress?.(data);
+      }
+    };
+
+    var dispose = () => {
+      if (callback) {
+        worker.removeEventListener("message", callback);
+        callback = null;
+      }
+    };
+
+    // Check if worker is ready
+    if (!worker || typeof worker.postMessage !== "function") {
+      setTimeout(() => {
+        callbacksIn.onError?.({
+          errorString: "Worker not available.",
+        });
+      });
+      return;
+    }
+
+    worker.addEventListener("message", callback);
+    isObfuscatingRef.current = true;
+
+    // Post message to worker with correct parameter order
+    worker.postMessage({
+      method: "obfuscateCode",
+      requestID,
+      args: [code, options, advancedOptions],
+    });
+  }
+
+  function cancel() {
+    if (workerRef.current) {
+      workerRef.current.terminate();
+      workerRef.current = null;
+    }
+    isObfuscatingRef.current = false;
+  }
+
+  // Stop the worker when the component unmounts
+  useEffect(() => {
+    return () => {
+      cancel();
+    };
+  }, []);
+
+  return {
+    obfuscate,
+    preObfuscationAnalysis,
+    applyTransformations,
+    getTransformations,
+    cancel,
+  };
+}
+
+// Bare bones JS-Confuser obfuscate through worker without full progress callbacks
+let _worker;
+export function jsConfuserObfuscate(code, options) {
+  return new Promise((resolve, reject) => {
+    // Create worker instance if needed
+    if (!_worker) {
+      _worker = new JSConfuserWorker();
+    }
+
+    var requestID = getRandomString(10);
+
+    var callback = (message) => {
+      const { event, data } = message.data;
+      if (data?.requestID !== requestID) return;
+
+      if (event === "success") {
+        resolve(data);
+        dispose();
+      } else if (event === "error") {
+        reject(data);
+        dispose();
+      } else if (event === "progress") {
+        // callbacksIn.onProgress?.(data);
+      }
+    };
+
+    var dispose = () => {
+      if (callback) {
+        _worker.removeEventListener("message", callback);
+        callback = null;
+      }
+    };
+
+    // Check if worker is ready
+    if (!_worker || typeof _worker.postMessage !== "function") {
+      reject(new Error("Worker not available."));
+    }
+
+    let advancedOptions = {};
+
+    _worker.addEventListener("message", callback);
+
+    // Post message to worker with correct parameter order
+    _worker.postMessage({
+      method: "obfuscateCode",
+      requestID,
+      args: [code, options, advancedOptions],
+    });
+  });
+}

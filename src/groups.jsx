@@ -114,9 +114,8 @@ console.log(myVar); // "Modified Value"
 
 The \`Pack\` option is designed to bypass strict mode constraints. This is achieved by wrapping the output code in a \`Function()\` call. This allows the code to be executed in a different context, where strict mode is not enforced.
 
-Several obfuscation techniques require non-strict mode JavaScript. These include:
+Some obfuscation techniques require non-strict mode JavaScript. Currently, these include:
 
-- Control Flow Flattening (With Statement)
 - Tamper Protection (Eval scope access)
       `,
     },
@@ -638,7 +637,6 @@ if ( utils.isString("Hello") ) {
     {
       type: "probability",
       name: "controlFlowFlattening",
-      tags: ["nonStrictMode"],
       description:
         "Control-flow Flattening hinders program comprehension by creating convoluted switch statements.\n\n**⚠️ Significantly impacts performance, use sparingly!**",
       exampleCode: `function countTo(num){
@@ -652,12 +650,6 @@ countTo(number); // 1,2,3,4,5,6,7,8,9,10
 `,
 
       docContent: `
-### Requires Non-Strict Mode
-
-Control Flow Flattening requires non-strict mode to work. This is because the \`with\` statement is used to conceal local scope variables.
-
-- It is recommended to enable the [Pack](./pack) option when using Control Flow Flattening.
-
 ### Control Flow Flattening Process
 
 Control Flow Flattening transforms the code into a large, convoluted switch statement. This switch statement is intended to replicate the functionality of the 'goto' statement seen in other languages.

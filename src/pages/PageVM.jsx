@@ -1,4 +1,4 @@
-import { Box, Button, Typography, useTheme } from "@mui/material";
+import { Box, Button, Fade, Typography, useTheme } from "@mui/material";
 import { useRef, useState } from "react";
 import { rgbToHex } from "../utils/color-utils";
 import Editor from "@monaco-editor/react";
@@ -10,12 +10,14 @@ import useJSConfuser from "../hooks/useJSConfuser.jsx";
 import useJSConfuserVM from "../hooks/useJSConfuserVM.jsx";
 import {
   BugReport,
+  DataObject,
   KeyboardArrowRight,
   Lock,
   SkipNext,
 } from "@mui/icons-material";
 import useVMDebugger from "../hooks/useVMDebugger.jsx";
 import { useLocalStorage } from "usehooks-ts";
+import VMOptionsMenu from "../components/vm/VMOptionsMenu.jsx";
 
 const defaultCode = `/**
  * GitHub: https://github.com/MichaelXF/js-confuser-vm
@@ -59,7 +61,7 @@ export default function PageVM() {
   });
 
   var [debugState, setDebugState] = useState();
-  var [logs, setLogs] = useState();
+  var [logs, setLogs] = useState([]);
 
   var stateRef = useRef();
   stateRef.current = debugState;
@@ -142,7 +144,9 @@ export default function PageVM() {
 
   const vmDebugger = useVMDebugger({
     onEvent: (event) => {
-      setDebugState(event);
+      if (event.isDebugger ?? true) {
+        setDebugState(event);
+      }
       console.log("VM Debugger Event:", event);
 
       if (event.event === "done") {
@@ -229,9 +233,6 @@ export default function PageVM() {
       description:
         "Combines multiple opcodes commonly used from your bytecode.",
     },
-    microOpcodes: {
-      description: "Breaks opcodes into mulitple sub-opcodes.",
-    },
     specializedOpcodes: {
       description:
         "Creates specialized opcodes for commonly used opcode+operand pairs.",
@@ -240,8 +241,15 @@ export default function PageVM() {
       description:
         "Function bodies are replaced upon runtime entry to the real bytecode.",
     },
+    controlFlowFlattening: {
+      description:
+        "Flattens the control flow of your program into a convoluted state machine.",
+    },
     dispatcher: {
       description: "Creates a middleman block to process jumps.",
+    },
+    stringConcealing: {
+      description: "Encodes strings to conceal plain-text values.",
     },
     timingChecks: {
       description:
@@ -254,7 +262,8 @@ export default function PageVM() {
   };
 
   const defaultOptions = Object.keys(optionsSchema).reduce((opts, key) => {
-    opts[key] = true;
+    // By default, everything is off
+    opts[key] = false;
     return opts;
   }, {});
 
@@ -262,6 +271,8 @@ export default function PageVM() {
     LocalStorageKeys.JsConfuserVMOptions,
     defaultOptions,
   );
+
+  var [showButtonNav, setShowButtonNav] = useState(true);
 
   const theme = useTheme();
   const bodyBackgroundColor = theme.palette.background.default;
@@ -298,6 +309,14 @@ export default function PageVM() {
         if (stateRef.current) return;
 
         highlightLineFromOutput(e.position.lineNumber);
+      });
+
+      editor.onDidFocusEditorText(() => {
+        setShowButtonNav(false);
+      });
+
+      editor.onDidBlurEditorText(() => {
+        setShowButtonNav(true);
       });
     }
   };
@@ -395,6 +414,24 @@ export default function PageVM() {
   const [showOptionsDialog, setShowOptionsDialog] = useState(false);
   const [showConsoleDialog, setShowConsoleDialog] = useState(false);
 
+  const toggleDebugger = () => {
+    if (debugState) {
+      setDebugState(null);
+    } else {
+      var enabledOptions = Object.keys(options).filter(
+        (optName) => options[optName],
+      );
+      if (enabledOptions.length) {
+        alert(
+          "Warning: You have option(s) enabled (" +
+            enabledOptions.join(", ") +
+            ") which will most likely break the debugger. Disable all options for the best results.",
+        );
+      }
+      handleStartDebugger();
+    }
+  };
+
   const handleStartDebugger = async () => {
     const { editor: outputEditor } = ref.current.output;
     if (!outputEditor) return;
@@ -463,139 +500,144 @@ export default function PageVM() {
         setOptions={setOptions}
       />
 
-      <Box
-        sx={{
-          position: "fixed",
-          top: 16,
-          right: 16,
-          zIndex: 1300,
-        }}
-        display="flex"
-        alignItems="center"
-        gap={2}
-      >
-        {debugState ? null : (
-          <>
-            <Button
-              sx={{
-                fontWeight: "bold",
-                width: "160px",
-                minHeight: "42px",
-                flexShrink: 0,
-              }}
-              startIcon={<Lock sx={{ transform: "scale(0.9)" }} />}
-              variant="contained"
-              onClick={handleObfuscateClick}
-              disabled={loading}
-            >
-              Obfuscate
-            </Button>
-
-            <Button
-              sx={{
-                fontWeight: "bold",
-                width: "160px",
-                minHeight: "42px",
-                bgcolor: "divider",
-                color: "primary.main",
-                flexShrink: 0,
-              }}
-              color="inherit"
-              onClick={() => setShowOptionsDialog(true)}
-            >
-              Options
-            </Button>
-
-            <Button
-              sx={{
-                fontWeight: "bold",
-                width: "160px",
-                minHeight: "42px",
-                bgcolor: "divider",
-                color: "primary.main",
-                flexShrink: 0,
-              }}
-              startIcon={
-                <KeyboardArrowRight sx={{ transform: "scale(1.1)" }} />
-              }
-              color="inherit"
-              onClick={() => setShowConsoleDialog(true)}
-            >
-              Evaluate Code
-            </Button>
-          </>
-        )}
-
-        {/* Debugger controls - only show once a program is loaded (state !== undefined) */}
-        {debugState ? (
-          <>
-            <Button
-              sx={{
-                fontWeight: "bold",
-                width: "160px",
-                minHeight: "42px",
-                bgcolor: "divider",
-                color: "success.main",
-                flexShrink: 0,
-              }}
-              startIcon={<SkipNext />}
-              color="inherit"
-              onClick={() => vmDebugger.next("instruction")}
-              disabled={debugState?.event === "done"}
-            >
-              Step
-            </Button>
-            <Button
-              sx={{
-                fontWeight: "bold",
-                width: "160px",
-                minHeight: "42px",
-                bgcolor: "divider",
-                color: "warning.main",
-                flexShrink: 0,
-              }}
-              startIcon={<SkipNext />}
-              color="inherit"
-              onClick={() => vmDebugger.next("jump")}
-              disabled={debugState?.event === "done"}
-            >
-              Step Jump
-            </Button>
-          </>
-        ) : null}
-
-        <Button
+      <Fade in={showButtonNav} unmountOnExit={true}>
+        <Box
           sx={{
-            fontWeight: "bold",
-            width: "160px",
-            minHeight: "42px",
-            bgcolor: "divider",
-            color: "info.main",
-            flexShrink: 0,
+            position: "fixed",
+            top: 16,
+            right: 16,
+            zIndex: 1300,
           }}
-          startIcon={<BugReport />}
-          color="inherit"
-          onClick={() => {
-            if (debugState) {
-              setDebugState(null);
-            } else {
-              var enabledOptions = Object.keys(options).filter(
-                (optName) => options[optName],
-              );
-              if (enabledOptions.length) {
-                alert(
-                  "Warning: You have option(s) enabled (" +
-                    enabledOptions.join(", ") +
-                    ") which will most likely break the debugger. Disable all options for the best results.",
-                );
-              }
-              handleStartDebugger();
-            }
-          }}
+          display="flex"
+          alignItems="center"
+          gap={2}
         >
-          {debugState ? "Stop" : "Debugger"}
-        </Button>
-      </Box>
+          {debugState ? null : (
+            <>
+              <Button
+                sx={{
+                  fontWeight: "bold",
+                  width: "160px",
+                  minHeight: "42px",
+                  flexShrink: 0,
+                }}
+                startIcon={<Lock sx={{ transform: "scale(0.9)" }} />}
+                variant="contained"
+                onClick={handleObfuscateClick}
+                disabled={loading}
+              >
+                Obfuscate
+              </Button>
+
+              <VMOptionsMenu
+                sx={{
+                  fontWeight: "bold",
+                  width: "160px",
+                  minHeight: "42px",
+                  bgcolor: "divider",
+                  color: "primary.main",
+                  flexShrink: 0,
+                }}
+                options={[
+                  {
+                    label: "Obfuscator Options",
+                    onClick: () => setShowOptionsDialog(true),
+                  },
+                  {
+                    icon: (
+                      <KeyboardArrowRight sx={{ transform: "scale(1.1)" }} />
+                    ),
+
+                    label: "Evaluate Code",
+                    onClick: () => setShowConsoleDialog(true),
+                  },
+                  {
+                    icon: <DataObject sx={{ transform: "scale(1.1)" }} />,
+                    label: "Disassemble Program",
+                    onClick: async () => {
+                      const { editor: outputEditor } = ref.current.output;
+                      if (!outputEditor) return;
+
+                      const code = outputEditor.getValue();
+                      if (!code.trim()) return;
+
+                      var disassembleResult =
+                        await vmDebugger.disassemble(code);
+
+                      var bytecodeCommentCode =
+                        code.split("\nvar CONSTANTS =")[0];
+
+                      outputEditor.setValue(
+                        bytecodeCommentCode + "\n\n" + disassembleResult.code,
+                      );
+                    },
+                  },
+                  {
+                    icon: <BugReport />,
+                    label: "Debug Program",
+                    onClick: () => {
+                      toggleDebugger();
+                    },
+                  },
+                ]}
+              />
+            </>
+          )}
+
+          {/* Debugger controls - only show once a program is loaded (state !== undefined) */}
+          {debugState ? (
+            <>
+              <Button
+                sx={{
+                  fontWeight: "bold",
+                  width: "160px",
+                  minHeight: "42px",
+                  bgcolor: "divider",
+                  color: "success.main",
+                  flexShrink: 0,
+                }}
+                startIcon={<SkipNext />}
+                color="inherit"
+                onClick={() => vmDebugger.next("instruction")}
+                disabled={debugState?.event === "done"}
+              >
+                Step
+              </Button>
+              <Button
+                sx={{
+                  fontWeight: "bold",
+                  width: "160px",
+                  minHeight: "42px",
+                  bgcolor: "divider",
+                  color: "warning.main",
+                  flexShrink: 0,
+                }}
+                startIcon={<SkipNext />}
+                color="inherit"
+                onClick={() => vmDebugger.next("jump")}
+                disabled={debugState?.event === "done"}
+              >
+                Step Jump
+              </Button>
+              <Button
+                sx={{
+                  fontWeight: "bold",
+                  width: "160px",
+                  minHeight: "42px",
+                  bgcolor: "divider",
+                  color: "primary.main",
+                  flexShrink: 0,
+                }}
+                startIcon={<BugReport />}
+                color="inherit"
+                onClick={() => toggleDebugger()}
+              >
+                Stop
+              </Button>
+            </>
+          ) : null}
+        </Box>
+      </Fade>
 
       {/* Debugger state panel */}
       {debugState && (

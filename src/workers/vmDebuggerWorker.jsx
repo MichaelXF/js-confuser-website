@@ -3,6 +3,7 @@ import traverseImport from "@babel/traverse";
 import { generate } from "@babel/generator";
 import * as t from "@babel/types";
 import { Compiler } from "js-confuser-vm/dist/compiler.js";
+import JSConfuserVm from "js-confuser-vm";
 
 var currentVM;
 var currentIterator;
@@ -193,11 +194,17 @@ function next(runMode) {
   return {
     event: "step",
     data: getData(),
+    isDebugger: true,
   };
 }
 
+async function disassemble(outputCode) {
+  var code = await JSConfuserVm.disassemble(outputCode);
+  return { event: "disassemble", code, isDebugger: false };
+}
+
 // Handle incoming messages
-self.onmessage = function (event) {
+self.onmessage = async function (event) {
   const { method, requestID, args } = event.data;
   let response;
 
@@ -209,6 +216,11 @@ self.onmessage = function (event) {
       case "next":
         response = next(...args);
         break;
+
+      case "disassemble":
+        response = await disassemble(...args);
+        break;
+
       default:
         throw new Error("Unknown method: " + method);
     }

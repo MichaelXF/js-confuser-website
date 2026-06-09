@@ -39,11 +39,11 @@ For most projects, external maps with restricted access to the .map file is the 
 
 ### Source Map Options
 
-You may provide \`true\` or an \`Object\` of type \`SourceMapOptions\` for the option \`"sourceMap"\` in your obfuscator settings. The field \`"fileName"\` will be set to \`"script.js"\` if not provided.
+You may provide \`true\` or an \`Object\` of type \`SourceMapOptions\` for the option \`sourceMap\` in your obfuscator settings. The field \`fileName\` will be set to \`"script.js"\` if not provided.
 
 | Property | Type | Description |
 | --- | --- | --- |
-| \`"fileName"\` | \`string\` | The filename found in the 'sources' array |
+| \`fileName\` | \`string\` | The file name found in the 'sources' array |
 `,
 
       endDocContent: `

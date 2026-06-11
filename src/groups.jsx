@@ -10,13 +10,13 @@ export const groups = {
     {
       type: "object",
       name: "sourceMap",
-      description: "Source Map options",
+      description: "Source Map options.",
       removeUsageExample: true,
       startDocContent: `
 ### What Source Maps Are For
 
 Source maps let you map obfuscated output back to your original source code. This is useful during development so stack traces and debuggers reference meaningful line numbers and variable names instead of the obfuscated output.
-Obfuscation can break stack traces. Transformations like control flow flattening, variable renaming, and string concealing shift code locations significantly. Without a source map, a thrown error may point to a line in the obfuscated file that has no clear relationship to the original code.
+Obfuscation can still break stack traces as transformations like Control Flow Flattening, and others shift locations significantly. Without a source map, a thrown error may point to a line in the obfuscated file that has no clear relationship to the original code.
 
 ### Security Warning
 **A source map contains your entire original source code.** Never ship source maps to production or expose them publicly; this would completely defeat the purpose of obfuscation. Keep source map files server-side, away from any reverse engineers.
@@ -53,11 +53,11 @@ You may provide \`true\` or an \`Object\` of type \`SourceMapOptions\` for the o
 2. Load your obfuscated file in the browser.
 3. If the source map is detected, DevTools will show your original source file in the file tree under the Sources panel.
 4. Set breakpoints, step through code, and inspect variables as if the obfuscation never happened.
-5. If the original source is not appearing, check that the sourceMappingURL comment at the bottom of your output file points to the correct .map file path, and that the .map file is being served.
+5. If the original source is not showing, check that the sourceMappingURL comment at the bottom of your output file points to the correct .map file path, and that the .map file is being served.
 
 For Node.js, use \`--enable-source-maps\` when running your script:
 
-\`\`\`bash title="Node.js Source Maps" lines
+\`\`\`bash title="Node Source Maps" lines
 node --enable-source-maps dev.output.js
 \`\`\`
 

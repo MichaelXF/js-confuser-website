@@ -54,6 +54,23 @@ export default function VMOptionsDialog({
     onClose();
   };
 
+  // Set all options to the given value
+  const setAll = (toggleState) => {
+    setProposedOptions((currentState) => {
+      var allKeys = [
+        ...Object.keys(optionsSchema),
+        ...Object.keys(currentState),
+      ];
+      var newState = { ...currentState };
+
+      allKeys.forEach((key) => {
+        newState[key] = toggleState;
+      });
+
+      return newState;
+    });
+  };
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle sx={{ fontWeight: "bold" }}>Options</DialogTitle>
@@ -80,6 +97,47 @@ export default function VMOptionsDialog({
             />
           );
         })}
+
+        <Box pt={2} display="flex" alignItems="center" gap={1}>
+          <Button
+            onClick={() => {
+              setAll(true);
+            }}
+          >
+            Enable All
+          </Button>
+          <Button
+            onClick={() => {
+              setAll(false);
+            }}
+          >
+            Disable All
+          </Button>
+          <Button
+            onClick={() => {
+              window.navigator.clipboard.writeText(
+                JSON.stringify(proposedOptions),
+              );
+            }}
+          >
+            Copy Options
+          </Button>
+          <Button
+            onClick={async () => {
+              var text = await window.navigator.clipboard.readText();
+              try {
+                var object = JSON.parse(text);
+                if (typeof object === "object" && object !== null) {
+                  setProposedOptions(object);
+                }
+              } catch (err) {
+                alert("Paste failed.");
+              }
+            }}
+          >
+            Paste Options
+          </Button>
+        </Box>
       </DialogContent>
 
       <DialogActions>

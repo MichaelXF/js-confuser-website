@@ -18,6 +18,7 @@ import {
 import useVMDebugger from "../hooks/useVMDebugger.jsx";
 import { useLocalStorage } from "usehooks-ts";
 import VMOptionsMenu from "../components/vm/VMOptionsMenu.jsx";
+import { useNavigate } from "react-router-dom";
 
 const defaultCode = `/**
  * GitHub: https://github.com/MichaelXF/js-confuser-vm
@@ -48,6 +49,8 @@ export default function PageVM() {
     "Obfuscate your JavaScript code with JS-Confuser VM.",
   );
 
+  let navigate = useNavigate();
+
   const JsConfuser = useJSConfuser({
     onError: (message) => {
       alert(message);
@@ -63,6 +66,13 @@ export default function PageVM() {
   var [debugState, setDebugState] = useState();
   var [logs, setLogs] = useState([]);
 
+  var [liveObfuscation, setLiveObfuscation] = useLocalStorage(
+    "jsconfuservm_live_obfuscation",
+    false,
+  );
+  var liveObfuscationRef = useRef();
+  liveObfuscationRef.current = liveObfuscation;
+
   var stateRef = useRef();
   stateRef.current = debugState;
 
@@ -76,7 +86,12 @@ export default function PageVM() {
     const lineContent = model.getLineContent(lineNumber);
     // Match new bytecode comment source location: "LINE:COL-LINE:COL" at end of line
     // e.g., "// [14],        POP                                     22:0-22:23"
-    const match = lineContent.match(/(\d+):(\d+)-(\d+):(\d+)\s*$/);
+    let match = lineContent.match(/(\d+):(\d+)-(\d+):(\d+)\s*$/); // For JS-Confuser-VM's "bytecode comment"
+    if (!match) {
+      // Disassembled code format: find location as last whitespace-separated token after "//"
+      // e.g., "  r1 = console                                        // 1:0-1:7"
+      match = lineContent.match(/\/\/.*\s(\d+):(\d+)-(\d+):(\d+)\s*$/);
+    }
 
     const inputEditor = ref.current.input.editor;
     if (!inputEditor) return;
@@ -271,6 +286,8 @@ export default function PageVM() {
     LocalStorageKeys.JsConfuserVMOptions,
     defaultOptions,
   );
+  var optionsRef = useRef();
+  optionsRef.current = options;
 
   var [showButtonNav, setShowButtonNav] = useState(true);
 
@@ -319,6 +336,37 @@ export default function PageVM() {
         setShowButtonNav(true);
       });
     }
+
+    if (key === "input") {
+      // Live Obfuscation Mode
+      editor.onDidChangeModelContent(async (event) => {
+        if (!liveObfuscationRef.current) return;
+        let outputEditor = ref.current.output.editor;
+
+        // Get the updated code
+        const newCode = editor.getValue();
+
+        try {
+          let { code } = await obfuscate(newCode);
+
+          var disassembleResult = await vmDebugger.disassemble(code);
+
+          var bytecodeCommentCode = code.split("\nvar CONSTANTS =")[0];
+
+          outputEditor.setValue(
+            bytecodeCommentCode + "\n\n" + disassembleResult.code,
+          );
+        } catch (err) {
+          console.log(err);
+          outputEditor.setValue(
+            ("" + (err?.stack || err?.errorStack || err?.message || err))
+              .split("\n")
+              .map((line) => "// " + line)
+              .join("\n"),
+          );
+        }
+      });
+    }
   };
 
   const obfuscate = (sourceCode) => {
@@ -327,7 +375,7 @@ export default function PageVM() {
         sourceCode,
         {
           target: "browser",
-          ...options,
+          ...optionsRef.current,
           minify: false, // The Google Closure Compiler isn't available for browsers :(
         },
         {
@@ -577,6 +625,24 @@ export default function PageVM() {
                     label: "Debug Program",
                     onClick: () => {
                       toggleDebugger();
+                    },
+                  },
+                  {
+                    label: "Go to JS-Confuser Editor",
+                    onClick: () => {
+                      const { editor: outputEditor } = ref.current.output;
+                      if (!outputEditor) return;
+
+                      const code = outputEditor.getValue();
+                      navigate("/editor?code=" + encodeURIComponent(code));
+                    },
+                  },
+                  {
+                    label: !liveObfuscation
+                      ? "Enable Live Obfuscation"
+                      : "Disable Live Obfuscation",
+                    onClick: () => {
+                      setLiveObfuscation(!liveObfuscation);
                     },
                   },
                 ]}

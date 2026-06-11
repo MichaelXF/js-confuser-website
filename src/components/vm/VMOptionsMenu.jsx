@@ -52,6 +52,9 @@ export default function VMOptionsMenu({ sx, options }) {
                 entry.onClick?.();
                 handleClose();
               }}
+              sx={{
+                minWidth: "200px",
+              }}
             >
               {entry.label}
             </MenuItem>

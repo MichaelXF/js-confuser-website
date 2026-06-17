@@ -1,6 +1,6 @@
 // Import with proper Vite syntax
 import traverse from "@babel/traverse";
-import JsConfuser from "js-confuser/src/index.ts";
+import JsConfuser from "js-confuser/dist/index";
 import * as t from "@babel/types";
 
 import { Buffer } from "buffer";

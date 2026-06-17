@@ -20,7 +20,7 @@ import ErrorDialog from "../components/dialogs/ErrorDialog";
 
 // Obfuscator Options
 import { convertOptionsToJS } from "../utils/option-utils";
-import presets from "js-confuser/src/presets";
+import presets from "js-confuser/dist/presets";
 import useEditorComponent from "../hooks/useEditorComponent";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import useEvalWorker from "../hooks/useEvalWorker";
@@ -28,7 +28,7 @@ import useEvalWorker from "../hooks/useEvalWorker";
 export default function PageEditor() {
   useSEO(
     "JS-Confuser Editor",
-    "A JavaScript obfuscator that runs in your browser."
+    "A JavaScript obfuscator that runs in your browser.",
   );
 
   const codeWorker = useCodeWorker();
@@ -37,7 +37,7 @@ export default function PageEditor() {
 
   const [optionsJS, setOptionsLocalStorageJS] = useLocalStorage(
     LocalStorageKeys.JsConfuserOptionsJS,
-    defaultOptionsJS
+    defaultOptionsJS,
   );
 
   const optionsJSRef = useRef();
@@ -53,7 +53,7 @@ export default function PageEditor() {
       performanceIterations: 10,
       liveObfuscation: false,
       showSideEditor: false,
-    }
+    },
   );
   const editorOptionsRef = useRef();
   editorOptionsRef.current = editorOptions;
@@ -64,7 +64,7 @@ export default function PageEditor() {
     setOptionsLocalStorageJS(value);
 
     const foundTab = editorComponent.tabs.find(
-      (t) => t.identity === "internal_options"
+      (t) => t.identity === "internal_options",
     );
     if (foundTab) {
       foundTab.setNonDirtyValue(value);

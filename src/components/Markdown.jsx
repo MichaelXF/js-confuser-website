@@ -241,7 +241,7 @@ export default function Markdown({
         var codeBlockLines = [];
 
         for (let i = index + 1; i < lines.length; i++) {
-          if (lines[i].startsWith(endToken)) {
+          if (lines[i].trimStart().startsWith(endToken)) {
             endLineIndex = i;
             break;
           }

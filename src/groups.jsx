@@ -375,160 +375,160 @@ console.log(str); // "Hello, World!"
         ],
       },
       docContent: `
-      #### Custom String Encoding API
+#### Custom String Encoding API
 
-      The Custom String Encoding API allows you to define your own string encoding/decoding functions. These encodings will be randomly inserted throughout the code.
-      
-      \`\`\`js title="Options.js" lines
-      module.exports = {
-        target: "node",
+The Custom String Encoding API allows you to define your own string encoding/decoding functions. These encodings will be randomly inserted throughout the code.
 
-        // Should be enabled
-        stringConcealing: true,
+\`\`\`js title="Options.js" lines
+module.exports = {
+  target: "node",
 
-        // Simple Base64 Encoding
-        customStringEncodings: [
-          {
-            // This template decoder function will be inserted into the code
-            code: \`
-                  function {fnName}(str){
-                    return atob(str);
-                  }\`,
+  // Should be enabled
+  stringConcealing: true,
 
-            // Tells the obfuscator how to encode the string
-            encode: (str) => btoa(str),
-          },
-        ],
-      };
-      \`\`\`
+  // Simple Base64 Encoding
+  customStringEncodings: [
+    {
+      // This template decoder function will be inserted into the code
+      code: \`
+            function {fnName}(str){
+              return atob(str);
+            }\`,
 
-      ---
+      // Tells the obfuscator how to encode the string
+      encode: (str) => btoa(str),
+    },
+  ],
+};
+\`\`\`
 
-      The properties of the type \`Custom String Encoding\` are:
+---
 
-      | Property | Type | Description |
-      | --- | --- | --- |
-      | \`code\` | \`string\` | Template decoder code that must contain '{fnName}'. |
-      | \`encode\` | \`Function\` | Encoding algorithm. |
-      | \`decode?\` | \`Function\` | Decoding algorithm. (Optional) |
-      | \`identity?\` | \`string\` | Distinguishes multiple encodings. (Optional) |
+The properties of the type \`Custom String Encoding\` are:
 
-      - The template \`code\` should contain the string \`{fnName}\`, which the obfuscator can interpolate with the function name.
+| Property | Type | Description |
+| --- | --- | --- |
+| \`code\` | \`string\` | Template decoder code that must contain '{fnName}'. |
+| \`encode\` | \`Function\` | Encoding algorithm. |
+| \`decode?\` | \`Function\` | Decoding algorithm. (Optional) |
+| \`identity?\` | \`string\` | Distinguishes multiple encodings. (Optional) |
 
-      - The functions \`encode\` and \`decode\` have the type: \`(strValue: string) => string\`.
+- The template \`code\` should contain the string \`{fnName}\`, which the obfuscator can interpolate with the function name.
 
-      - The function \`decode\` is optional. If provided, the obfuscator will validate each string to ensure it can be decoded. If the string cannot be decoded, the obfuscator will ignore the string.
+- The functions \`encode\` and \`decode\` have the type: \`(strValue: string) => string\`.
 
-      ---
-     
-      #### Advanced Randomized Encoding
+- The function \`decode\` is optional. If provided, the obfuscator will validate each string to ensure it can be decoded. If the string cannot be decoded, the obfuscator will ignore the string.
 
-      The following example implements a custom Base64 encoding that uses a shuffled charset to encode and decode strings.
+---
 
-      - This encoding algorithm is instantiated multiple times, each with a different shuffled charset. This makes it difficult to reverse-engineer the encoding algorithm. 
-      
-      \`\`\`js title="Options.js" lines
-      const { Template } = require("js-confuser");
-      const { stringLiteral } = require("@babel/types");
+#### Advanced Randomized Encoding
 
-      function shuffle(array) {
-        // Fisher-Yates shuffle
-        let currentIndex = array.length,
-          randomIndex;
-        while (currentIndex !== 0) {
-          randomIndex = Math.floor(Math.random() * currentIndex);
-          currentIndex--;
+The following example implements a custom Base64 encoding that uses a shuffled charset to encode and decode strings.
 
-          [array[currentIndex], array[randomIndex]] = [
-            array[randomIndex],
-            array[currentIndex],
-          ];
+- This encoding algorithm is instantiated multiple times, each with a different shuffled charset. This makes it difficult to reverse-engineer the encoding algorithm. 
+
+\`\`\`js title="Options.js" lines
+const { Template } = require("js-confuser");
+const { stringLiteral } = require("@babel/types");
+
+function shuffle(array) {
+  // Fisher-Yates shuffle
+  let currentIndex = array.length,
+    randomIndex;
+  while (currentIndex !== 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex],
+      array[currentIndex],
+    ];
+  }
+  return array;
+}
+
+function createCustomStringEncoding() {
+  function encode(input, charset) {
+    const inputBuffer = new TextEncoder().encode(input);
+    let output = "";
+
+    for (let i = 0; i < inputBuffer.length; i += 3) {
+      const chunk = [inputBuffer[i], inputBuffer[i + 1], inputBuffer[i + 2]];
+
+      const binary = (chunk[0] << 16) | (chunk[1] << 8) | (chunk[2] || 0);
+
+      output += charset[(binary >> 18) & 0x3f];
+      output += charset[(binary >> 12) & 0x3f];
+      output +=
+        typeof chunk[1] !== "undefined" ? charset[(binary >> 6) & 0x3f] : "=";
+      output += typeof chunk[2] !== "undefined" ? charset[binary & 0x3f] : "=";
+    }
+
+    return output;
+  }
+
+  const customCharset =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  const shuffledCharset = shuffle(customCharset.split("")).join("");
+
+  return {
+    code: new Template(\`
+      // Creates a reverse lookup table from the given charset
+      function createReverseCharset(charset) {
+        if (charset.length !== 64) {
+          throw new Error("Charset must be exactly 64 characters long.");
         }
-        return array;
+        const reverseCharset = {};
+        for (let i = 0; i < charset.length; i++) {
+          reverseCharset[charset[i]] = i;
+        }
+        return reverseCharset;
       }
 
-      function createCustomStringEncoding() {
-        function encode(input, charset) {
-          const inputBuffer = new TextEncoder().encode(input);
-          let output = "";
+      // Base64 decode using the shuffled charset
+      function decode(input, charset) {
+        const reverseCharset = createReverseCharset(charset);
+        const cleanedInput = input.replace(/=+$/, '');  // Remove padding
 
-          for (let i = 0; i < inputBuffer.length; i += 3) {
-            const chunk = [inputBuffer[i], inputBuffer[i + 1], inputBuffer[i + 2]];
+        const byteArray = [];
+        let buffer = 0;
+        let bitsCollected = 0;
 
-            const binary = (chunk[0] << 16) | (chunk[1] << 8) | (chunk[2] || 0);
+        for (let i = 0; i < cleanedInput.length; i++) {
+          buffer = (buffer << 6) | reverseCharset[cleanedInput[i]];
+          bitsCollected += 6;
 
-            output += charset[(binary >> 18) & 0x3f];
-            output += charset[(binary >> 12) & 0x3f];
-            output +=
-              typeof chunk[1] !== "undefined" ? charset[(binary >> 6) & 0x3f] : "=";
-            output += typeof chunk[2] !== "undefined" ? charset[binary & 0x3f] : "=";
+          if (bitsCollected >= 8) {
+            bitsCollected -= 8;
+            byteArray.push((buffer >> bitsCollected) & 0xFF);
           }
-
-          return output;
         }
 
-        const customCharset =
-          "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-        const shuffledCharset = shuffle(customCharset.split("")).join("");
-
-        return {
-          code: new Template(\`
-            // Creates a reverse lookup table from the given charset
-            function createReverseCharset(charset) {
-              if (charset.length !== 64) {
-                throw new Error("Charset must be exactly 64 characters long.");
-              }
-              const reverseCharset = {};
-              for (let i = 0; i < charset.length; i++) {
-                reverseCharset[charset[i]] = i;
-              }
-              return reverseCharset;
-            }
-
-            // Base64 decode using the shuffled charset
-            function decode(input, charset) {
-              const reverseCharset = createReverseCharset(charset);
-              const cleanedInput = input.replace(/=+$/, '');  // Remove padding
-
-              const byteArray = [];
-              let buffer = 0;
-              let bitsCollected = 0;
-
-              for (let i = 0; i < cleanedInput.length; i++) {
-                buffer = (buffer << 6) | reverseCharset[cleanedInput[i]];
-                bitsCollected += 6;
-
-                if (bitsCollected >= 8) {
-                  bitsCollected -= 8;
-                  byteArray.push((buffer >> bitsCollected) & 0xFF);
-                }
-              }
-
-              // Convert to string, ensuring no extra characters
-              return new TextDecoder().decode(Uint8Array.from(byteArray));
-            }
-
-            var {fnName} = (str) => decode(str, {shuffledCharset});
-            \`).setDefaultVariables({
-            // This simply inserts 'shuffledCharset' (with proper escaping)
-            shuffledCharset: stringLiteral(shuffledCharset),
-          }),
-          encode: (input) => {
-            // Encode the string
-            return encode(input, shuffledCharset);
-          },
-
-          // Identity key to help distinguish between different variants
-          identity: shuffledCharset,
-        };
+        // Convert to string, ensuring no extra characters
+        return new TextDecoder().decode(Uint8Array.from(byteArray));
       }
 
-      module.exports = {
-        target: "node",
-        stringConcealing: true,
-        customStringEncodings: [createCustomStringEncoding],
-      };
-      \`\`\`
+      var {fnName} = (str) => decode(str, {shuffledCharset});
+      \`).setDefaultVariables({
+      // This simply inserts 'shuffledCharset' (with proper escaping)
+      shuffledCharset: stringLiteral(shuffledCharset),
+    }),
+    encode: (input) => {
+      // Encode the string
+      return encode(input, shuffledCharset);
+    },
+
+    // Identity key to help distinguish between different variants
+    identity: shuffledCharset,
+  };
+}
+
+module.exports = {
+  target: "node",
+  stringConcealing: true,
+  customStringEncodings: [createCustomStringEncoding],
+};
+\`\`\`
       `,
     },
     {

@@ -228,53 +228,38 @@ export default function PageVM() {
 
   const [loading, setLoading] = useState(false);
 
+  const optionsType = `
+  randomizeOpcodes?: boolean; // randomize the opcode numbers?
+  shuffleOpcodes?: boolean; // shuffle order of opcode handlers in the runtime?
+  encodeBytecode?: boolean; // encode bytecode? when off, comments for instructions are added
+  selfModifying?: boolean; // do self-modifying bytecode for function bodies?
+  dispatcher?: boolean; // create middleman blocks to process jumps?
+  controlFlowFlattening?: boolean; // flatten the control flow of your program into a convoluted state machine?
+  stringConcealing?: boolean; // encode strings to conceal plain-text values?
+  macroOpcodes?: boolean; // create combined opcodes for repeated instruction sequences?
+  specializedOpcodes?: boolean; // create specialized opcodes for commonly used opcode+operand pairs?
+  aliasedOpcodes?: boolean; // create duplicate opcodes for commonly used opcodes?
+  antiInstrumentation?: boolean; // add fake opcode effects to hinder opcode instrumentation?
+  timingChecks?: boolean; // add timing checks to detect debuggers?
+  concealConstants?: boolean; // conceal strings and integers in the constant pool?
+  classObfuscation?: boolean; // obfuscate the VM runtime classes?
+  handlerTable?: boolean; // Converts the switch-case dispatch into a handler table
+  `;
+
   const optionsSchema = {
     // target: {
     //   description: "Currently has no effect.",
     // },
-    randomizeOpcodes: {
-      description: "Randomizes the opcode numbers.",
-    },
-    shuffleOpcodes: {
-      description: "Shuffles the order of opcode handlers in the VM runtime.",
-    },
-    encodeBytecode: {
-      description: "Encodes the bytecode array.",
-    },
-    concealConstants: {
-      description: "Conceals strings and integers in the constant pool.",
-    },
-    macroOpcodes: {
-      description:
-        "Combines multiple opcodes commonly used from your bytecode.",
-    },
-    specializedOpcodes: {
-      description:
-        "Creates specialized opcodes for commonly used opcode+operand pairs.",
-    },
-    selfModifying: {
-      description:
-        "Function bodies are replaced upon runtime entry to the real bytecode.",
-    },
-    controlFlowFlattening: {
-      description:
-        "Flattens the control flow of your program into a convoluted state machine.",
-    },
-    dispatcher: {
-      description: "Creates a middleman block to process jumps.",
-    },
-    stringConcealing: {
-      description: "Encodes strings to conceal plain-text values.",
-    },
-    timingChecks: {
-      description:
-        "Detects the use of debuggers by checking for >1second pauses. May break code with slow sync tasks.",
-    },
-    // minify: {
-    //   description:
-    //     "Minifies the final code with Google Closure Compiler. Renames the VM class properties.",
-    // },
   };
+
+  optionsType.split("\n").forEach((line) => {
+    const comment = line.split("//")[1]?.trim();
+    const optionName = line.split("?")[0].trim();
+    if (!optionName) return;
+
+    if (optionName === "minify") return; // Not supported in web browser
+    optionsSchema[optionName] = { description: comment };
+  });
 
   const defaultOptions = Object.keys(optionsSchema).reduce((opts, key) => {
     // By default, everything is off

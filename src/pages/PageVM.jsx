@@ -362,6 +362,7 @@ export default function PageVM() {
           target: "browser",
           ...optionsRef.current,
           minify: false, // The Google Closure Compiler isn't available for browsers :(
+          profile: true, // capture more detailed 'profileData' object
         },
         {
           onComplete: (data) => {
@@ -387,7 +388,7 @@ export default function PageVM() {
     try {
       let result = await obfuscate(sourceCode);
       console.log(result);
-      let { code } = result;
+      let { code, profileData } = result;
 
       if (options.minify) {
         // Use API for Google Closure API
@@ -398,8 +399,7 @@ export default function PageVM() {
           minifiedCode;
       }
 
-      console.log(code);
-
+      console.log(profileData);
       outputEditor.setValue(code);
     } catch (error) {
       outputEditor.setValue(
@@ -745,6 +745,32 @@ export default function PageVM() {
                 </strong>
               </Typography>
             )}
+            {debugState?.data?.frame && (
+              <Typography
+                variant="caption"
+                fontFamily="inherit"
+                fontSize="medium"
+                color="text.secondary"
+              >
+                Frame:{" "}
+                <strong style={{ color: "white" }}>
+                  {debugState.data.frame.name}(
+                  {debugState.data.frame.params
+                    .map((param, i) =>
+                      debugState.data.frame.hasRest &&
+                      i === debugState.data.frame.params.length - 1
+                        ? "..." + param
+                        : param,
+                    )
+                    .join(", ")}
+                  )
+                </strong>{" "}
+                this=
+                <strong style={{ color: "white" }}>
+                  {debugState.data.frame.thisValue}
+                </strong>
+              </Typography>
+            )}
           </Box>
           <Box>
             {Object.entries(debugState?.data?.regs || {}).map(
@@ -763,6 +789,37 @@ export default function PageVM() {
               },
             )}
           </Box>
+          {debugState?.data?.stack?.length > 1 && (
+            <Box>
+              <Typography
+                fontFamily="inherit"
+                fontSize="medium"
+                color="text.secondary"
+              >
+                Stack:
+              </Typography>
+              {debugState.data.stack.map((frame, i) => {
+                return (
+                  <Typography
+                    key={i}
+                    fontFamily="inherit"
+                    fontSize="medium"
+                    color="text.secondary"
+                  >
+                    <strong style={{ color: "white" }}>
+                      {i}. {frame.isNew ? "new " : ""}
+                      {frame.name}
+                    </strong>{" "}
+                    pc={frame.pc}
+                    {frame.returnPc != null
+                      ? ` -> retPc=${frame.returnPc} retReg=regs[${frame.returnReg}]`
+                      : ""}
+                    {frame.handlerCount ? ` try(${frame.handlerCount})` : ""}
+                  </Typography>
+                );
+              })}
+            </Box>
+          )}
           <Box>
             <Typography
               fontFamily="inherit"

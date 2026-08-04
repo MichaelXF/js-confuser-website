@@ -83,22 +83,19 @@ ${schema?.description}
               language="javascript"
             />
 
-            <Box display="flex" alignItems="stretch" mt={1}>
-              <Box width="50%">
-                <MarkdownCodeBlock
-                  header="Before"
-                  code={output?.before || "// Loading"}
-                  language="js"
-                />
-              </Box>
-              <Box pr={1} />
-              <Box width="50%">
-                <MarkdownCodeBlock
-                  header="After"
-                  code={output?.after || "// Loading"}
-                  language="js"
-                />
-              </Box>
+            <Box mt={1}>
+              <MarkdownCodeBlock
+                header="Before"
+                code={output?.before || "// Loading"}
+                language="js"
+              />
+            </Box>
+            <Box mt={1}>
+              <MarkdownCodeBlock
+                header="After"
+                code={output?.after || "// Loading"}
+                language="js"
+              />
             </Box>
           </>
         ) : null}

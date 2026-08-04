@@ -231,26 +231,37 @@ export default function PageVM() {
   const optionsSchema = {
     randomizeOpcodes: {
       description: "Randomizes the opcode numbers.",
+      inputCode: `console.log("Hello World!");`,
+      outputBytecode: true,
     },
     shuffleOpcodes: {
       description: "Shuffles the order of opcode handlers in the VM runtime.",
+      inputCode: `console.log("Hello World!");`,
+      outputFormatter: (code) => {
+        return (
+          code
+            .split("/* @SWITCH */")[1]
+            .trim()
+            .split("\n")
+            .slice(0, 10)
+            .join("\n") + "\n//...\n}"
+        );
+      },
     },
     encodeBytecode: {
       description: "Encodes the bytecode array.",
-      inputCode: `console.log("Hello world!");`,
+      inputCode: `console.log("Hello World!");`,
       outputFormatter: (code) => {
         // Returns the line var BYTECODE = ...
-        // (use regex so that it includes the full line here)
-        return code.split("var BYTECODE =")[1].split("\n")[0];
+        return code.match(/^.*\bvar BYTECODE\s*=.*$/m)?.[0];
       },
     },
     concealConstants: {
       description: "Conceals strings and integers in the constant pool.",
-      inputCode: `console.log("Hello world!");`,
+      inputCode: `console.log("Hello World!");`,
       outputFormatter: (code) => {
         // Returns the line var CONSTANTS = []
-        // (use regex so that is includes the full line here)
-        return code.split("var CONSTANTS =")[1].split("\n")[0];
+        return code.match(/^.*\bvar CONSTANTS\s*=.*$/m)?.[0];
       },
     },
     controlFlowFlattening: {
@@ -266,200 +277,130 @@ if (true) {
       description: "Creates a middleman block to process jumps.",
       inputCode: `
 if (true) {
-  console.log("Hello world!");
+  console.log("Hello World!");
 }
 `,
       outputDisassembled: true,
     },
     stringConcealing: {
       description: "Encodes strings to conceal plain-text values.",
-      inputCode: `console.log("Hello world!");`,
+      inputCode: `console.log("Hello World!");`,
       outputDisassembled: true,
     },
     macroOpcodes: {
       description:
         "Combines multiple opcodes commonly used from your bytecode.",
       inputCode: `
-console.log("Hello world!");
-console.log("Hello world!");
+console.log("Hello World!");
+console.log("Hello World!");
       `,
-      outputFormatter: (code) => {
-        // find the switch case with comment:
-        // // LOAD_GLOBAL,LOAD_CONST,GET_PROP,LOAD_CONST,CALL_METHOD (macro)
-        // start is:
-        // case 61:
-        //  {
-        // ending is
-        //    break;
-        //  }
+      outputFormatter: (code, isBefore) => {
+        if (isBefore) {
+          return code.match(
+            /^ *case OP\.LOAD_GLOBAL:\s*\n( *)\{[\s\S]*?\n\1\}/m,
+          )?.[0];
+        }
+
+        return code.match(
+          /^ *case\s+[^\n:]*:\s*\n( *)\{\s*\n *\/\/[^\n]*\(macro\)[\s\S]*?\n\1\}/m,
+        )?.[0];
       },
     },
     specializedOpcodes: {
       description:
         "Creates specialized opcodes for commonly used opcode+operand pairs.",
-      inputCode: `console.log("Hello world!");`,
-      outputFormatter: (code) => {
-        // find the switch case based on the comment:
-        /* 
-        case 62:
-          {
-            // LOAD_GLOBAL_2_0_0 (specialized)
-            var dst = 2;
-            var globalName = this._constant(0, 0);
-            if (!(globalName in this.globals)) {
-              throw new ReferenceError(`${globalName} is not defined`);
-            }
-            regs[base + dst] = this.globals[globalName];
-            break;
-          }
-        */
+      inputCode: `console.log("Hello World!");`,
+      outputFormatter: (code, isBefore) => {
+        if (isBefore) {
+          return code.match(
+            /^ *case OP\.LOAD_THIS:\s*\n( *)\{[\s\S]*?\n\1\}/m,
+          )?.[0];
+        }
+
+        return code.match(
+          /^ *case\s+[^\n:]*:\s*\n( *)\{\s*\n *\/\/[^\n]*\(specialized\)[\s\S]*?\n\1\}/m,
+        )?.[0];
       },
     },
     aliasedOpcodes: {
       description:
         "Creates duplicate opcodes, including variants with shuffled operand order.",
-      inputCode: `console.log("Hello, world!");`,
-      outputFormatter: (code) => {
-        // find the switch case based on the comment:
-        /**
-         * case 63:
-          {
-            // ALIAS_LOAD_GLOBAL_0_2_1 (order: [0,2,1])
-            let _unsortedOperands = [this._operand(), this._operand(), this._operand()];
-            let _operands = [_unsortedOperands[0], _unsortedOperands[2], _unsortedOperands[1]];
-            var dst = _operands[0];
-            var globalName = this._constant(_operands[1], _operands[2]);
-            if (!(globalName in this.globals)) {
-              throw new ReferenceError(`${globalName} is not defined`);
-            }
-            regs[base + dst] = this.globals[globalName];
-            break;
-          }
-         */
+      inputCode: `console.log("Hello World!");`,
+      outputFormatter: (code, isBefore) => {
+        if (isBefore) {
+          return code.match(
+            /^ *case OP\.LOAD_GLOBAL:\s*\n( *)\{[\s\S]*?\n\1\}/m,
+          )?.[0];
+        }
+
+        return code.match(
+          /^ *case\s+[^\n:]*:\s*\n( *)\{\s*\n *\/\/\s*ALIAS_[^\n]*\(order:[^\n]*\)[\s\S]*?\n\1\}/m,
+        )?.[0];
       },
     },
     antiInstrumentation: {
       description:
         "Adds fake opcode effects to hinder opcode analysis and instrumentation.",
       inputCode: `console.log(10 + 15 * 2);`,
-      outputFormatter: (code) => {
-        // find the switch cased based on 'ANTI_MUL_' (rest of numbers are randomized each time)
-        /**
-         * case 61:
-          {
-            // ANTI_MUL_10_12_2_1_8_6_7_0_5_3_4_11_9 (order: [10,12,2,1,8,6,7,0,5,3,4,11,9])
-            let _unsortedOperands = [this._operand(), this._operand(), this._operand(), this._operand(), this._operand(), this._operand(), this._operand(), this._operand(), this._operand(), this._operand(), this._operand(), this._operand(), this._operand()];
-            let _operands = [_unsortedOperands[7], _unsortedOperands[3], _unsortedOperands[2], _unsortedOperands[9], _unsortedOperands[10], _unsortedOperands[8], _unsortedOperands[5], _unsortedOperands[6], _unsortedOperands[4], _unsortedOperands[12], _unsortedOperands[0], _unsortedOperands[11], _unsortedOperands[1]];
-            // UNARY_POS
-            ...
-            break;
-          }
-         */
+      outputFormatter: (code, isBefore) => {
+        if (isBefore) {
+          return code.match(/^ *case OP\.MUL:\s*\n( *)\{[\s\S]*?\n\1\}/m)?.[0];
+        }
+
+        return code.match(
+          /^ *case\s+[^\n:]*:\s*\n( *)\{\s*\n *\/\/\s*ANTI_[A-Z]+_[^\n]*[\s\S]*?\n\1\}/m,
+        )?.[0];
       },
     },
     selfModifying: {
       description:
         "Function bodies are replaced upon runtime entry to the real bytecode.",
-      inputCode: `console.log("Hello, world!");`,
+      inputCode: `console.log("Hello World!");`,
       outputBytecode: true,
     },
     timingChecks: {
       description:
         "Detects the use of debuggers by checking for >1second pauses. May break code with slow sync tasks.",
+      inputCode: `console.log("Hello World!");`,
+      outputFormatter: (code) => {
+        return [
+          code.match(/^.*\bvar TIMING_CHECKS\s*=.*$/m)?.[0],
+          code.match(/^( *)if \(TIMING_CHECKS\)\s*\{[\s\S]*?\n\1\}/m)?.[0],
+        ]
+          .filter(Boolean)
+          .join("\n// ...\n");
+      },
     },
     classObfuscation: {
       description:
         "Obfuscates the VM runtime classes by shuffling the order of declarations and methods.",
-      inputCode: `console.log("Hello, world!");`,
+      inputCode: `console.log("Hello World!");`,
       outputFormatter: (code, isBefore) => {
-        // for this one find the function body based on this:
-        // function VM
-        // would capture ideally:
-        /**
-         * function VM(constants, globals, fake_19, fake_20, fake_18, bytecode) {
-  this.W = bytecode;
-  this.ad = fake_19;
-  this.M = [fake_18, fake_20];
-  this.E = constants;
-  this.ai = globals;
-  // Open upvalues, keyed by absolute slot; created on the first capture so a
-  // closure-free program never allocates it. See captureUpvalue().
-  this.R = null;
-
-  // Flat slot array (Lua-style register file, with the frame headers folded in).
-  // _regsTop is the next free slot (= base of the hypothetical next frame).
-  // On CALL:   newBase = _regsTop; _regsTop += HEADER_SIZE + fn.regCount
-  // On RETURN: _regsTop = <returning frame's base>   (pop the whole block)
-  // Slot 0 is never part of a frame: it holds the value run() hands back, and
-  // doubles as the "no frame" sentinel for _f / CALLER.
-  this.f = [];
-  this.H = 1;
-  this.A = 0;
-}
-  When off it would capture: function VM(bytecode, constants, globals) { ... }
-         */
-        // Also capture the function Closure(fn) {...} and join them like:
-        // to better show it's obfuscation
-        // "function VM(...){...}\n\n// ...\n\nfunction Closure(...){...}"
+        return [
+          code.match(/^function Upvalue\s*\([\s\S]*?\n\}/m)?.[0],
+          code.match(/^function Closure\s*\([\s\S]*?\n\}/m)?.[0],
+        ]
+          .filter(Boolean)
+          .join("\n// ...\n");
       },
     },
     handlerTable: {
       description:
         "Converts the switch-case dispatch into a handler table for performance reasons.",
-      inputCode: `console.log("Hello, world!");`,
+      inputCode: `console.log("Hello World!");`,
       outputFormatter: (code, isBefore) => {
-        /* handler table turned on (after) find VMPrototype[OP.LOAD_CONST] and stop at VMPrototype[OP.LOAD_GLOBAL]
-VMPrototype[OP.LOAD_CONST] = function () {
-  var regs = this._regs;
-  var base = regs[this._f + SLOTS.REG_BASE];
-  var dst = this._operand();
-  regs[base + dst] = this._constant();
-};
-VMPrototype[OP.LOAD_INT] = function () {
-  var regs = this._regs;
-  var base = regs[this._f + SLOTS.REG_BASE];
-  var dst = this._operand();
-  regs[base + dst] = this._operand();
-};
-VMPrototype[OP.LOAD_GLOBAL] = function () {
-  var regs = this._regs;
-  var base = regs[this._f + SLOTS.REG_BASE];
-  var dst = this._operand();
-  var globalName = this._constant();
-  if (!(globalName in this.globals)) {
-    throw new ReferenceError(`${globalName} is not defined`);
-  }
-  regs[base + dst] = this.globals[globalName];
-};
-        */
-        // use isBefore flag as each one has different regex to use
-        /**
- * handler table turned off (before) start at switch (op) { and finish at case OP.LOAD_GLOBAL:
- * /\* @SWITCH *\/
-      switch (op) {
-        case OP.LOAD_CONST:
-          {
-            var dst = this._operand();
-            regs[base + dst] = this._constant();
-            break;
-          }
-        case OP.LOAD_INT:
-          {
-            var dst = this._operand();
-            regs[base + dst] = this._operand();
-            break;
-          }
-        case OP.LOAD_GLOBAL:
-          {
-            var dst = this._operand();
-            var globalName = this._constant();
-            if (!(globalName in this.globals)) {
-              throw new ReferenceError(`${globalName} is not defined`);
-            }
-            regs[base + dst] = this.globals[globalName];
-            break;
-          }
- */
+        if (isBefore) {
+          const match = code.match(
+            /^( *)switch\s*\(op\)\s*\{[\s\S]*?case OP\.LOAD_GLOBAL:\s*\n( *)\{[\s\S]*?\n\2\}/m,
+          );
+          if (!match) return;
+
+          return match[0] + "\n" + match[1] + "  // ...\n" + match[1] + "}";
+        }
+
+        return code.match(
+          /^VMPrototype\[OP\.LOAD_CONST\][\s\S]*?^VMPrototype\[OP\.LOAD_GLOBAL\][\s\S]*?\n\};/m,
+        )?.[0];
       },
     },
     // minify: {

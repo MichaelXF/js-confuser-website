@@ -30,8 +30,13 @@ function obfuscateCode(requestID, code, options, editorOptions = {}) {
     { ...options, verbose: true },
     { callback: reportProgress, performance },
   )
-    .then((resultObject) => {
+    .then(async (resultObject) => {
       console.log("Successfully obfuscated code");
+
+      // Optional disassembled output
+      let disassembled = options.disassemble
+        ? await JsConfuserVM.disassemble(resultObject.code)
+        : null;
 
       postMessage({
         event: "success",
@@ -43,6 +48,7 @@ function obfuscateCode(requestID, code, options, editorOptions = {}) {
             originalSize: getByteSize(code),
             newSize: getByteSize(resultObject.code),
           },
+          disassembled: disassembled,
         },
       });
     })

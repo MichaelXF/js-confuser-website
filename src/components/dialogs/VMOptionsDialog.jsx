@@ -5,16 +5,10 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Divider,
-  Stack,
-  Typography,
 } from "@mui/material";
-import { groups } from "../../groups";
 import OptionComponent from "../OptionComponent";
 import { useRef, useState } from "react";
-import presets from "js-confuser/dist/presets";
-import { getOptionSchemasWithDefaultValues } from "../../utils/option-utils";
-import { camelCaseToTitleCase, toTitleCase } from "../../utils/format-utils";
+import VMDocsDialog from "./VMDocsDialog.jsx";
 
 export default function VMOptionsDialog({
   open,
@@ -22,6 +16,7 @@ export default function VMOptionsDialog({
   options,
   optionsSchema,
   setOptions,
+  obfuscate,
 }) {
   var [proposedOptions, setProposedOptions] = useState(null);
 
@@ -71,79 +66,98 @@ export default function VMOptionsDialog({
     });
   };
 
+  const [showDocsDialog, setShowDocsDialog] = useState(false);
+  const [docsDialogOption, setDocsDialogOption] = useState(null);
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle sx={{ fontWeight: "bold" }}>Options</DialogTitle>
+    <>
+      <VMDocsDialog
+        open={showDocsDialog}
+        onClose={() => {
+          setShowDocsDialog(false);
+        }}
+        optionsSchema={optionsSchema}
+        selectedOption={docsDialogOption}
+        obfuscate={obfuscate}
+      />
 
-      <DialogContent>
-        {Object.keys(optionsSchema).map((optionName) => {
-          const schema = optionsSchema[optionName];
+      <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ fontWeight: "bold" }}>Options</DialogTitle>
 
-          return (
-            <OptionComponent
-              key={optionName}
-              option={{
-                name: optionName,
-                type: "boolean",
-                description: schema?.description || "No description",
+        <DialogContent>
+          {Object.keys(optionsSchema).map((optionName) => {
+            const schema = optionsSchema[optionName];
+
+            return (
+              <OptionComponent
+                key={optionName}
+                option={{
+                  name: optionName,
+                  type: "boolean",
+                  description: schema?.description || "No description",
+                  onDocsClick: () => {
+                    setDocsDialogOption(optionName);
+                    setShowDocsDialog(true);
+                  },
+                }}
+                valueObject={proposedOptions?.[optionName]}
+                setValueObject={(newValue) => {
+                  setProposedOptions((prev) => ({
+                    ...prev,
+                    [optionName]: newValue,
+                  }));
+                }}
+              />
+            );
+          })}
+
+          <Box pt={2} display="flex" alignItems="center" gap={1}>
+            <Button
+              onClick={() => {
+                setAll(true);
               }}
-              valueObject={proposedOptions?.[optionName]}
-              setValueObject={(newValue) => {
-                setProposedOptions((prev) => ({
-                  ...prev,
-                  [optionName]: newValue,
-                }));
+            >
+              Enable All
+            </Button>
+            <Button
+              onClick={() => {
+                setAll(false);
               }}
-            />
-          );
-        })}
-
-        <Box pt={2} display="flex" alignItems="center" gap={1}>
-          <Button
-            onClick={() => {
-              setAll(true);
-            }}
-          >
-            Enable All
-          </Button>
-          <Button
-            onClick={() => {
-              setAll(false);
-            }}
-          >
-            Disable All
-          </Button>
-          <Button
-            onClick={() => {
-              window.navigator.clipboard.writeText(
-                JSON.stringify(proposedOptions),
-              );
-            }}
-          >
-            Copy Options
-          </Button>
-          <Button
-            onClick={async () => {
-              var text = await window.navigator.clipboard.readText();
-              try {
-                var object = JSON.parse(text);
-                if (typeof object === "object" && object !== null) {
-                  setProposedOptions(object);
+            >
+              Disable All
+            </Button>
+            <Button
+              onClick={() => {
+                window.navigator.clipboard.writeText(
+                  JSON.stringify(proposedOptions),
+                );
+              }}
+            >
+              Copy Options
+            </Button>
+            <Button
+              onClick={async () => {
+                var text = await window.navigator.clipboard.readText();
+                try {
+                  var object = JSON.parse(text);
+                  if (typeof object === "object" && object !== null) {
+                    setProposedOptions(object);
+                  }
+                } catch (err) {
+                  alert("Paste failed.");
                 }
-              } catch (err) {
-                alert("Paste failed.");
-              }
-            }}
-          >
-            Paste Options
-          </Button>
-        </Box>
-      </DialogContent>
+              }}
+            >
+              Paste Options
+            </Button>
+          </Box>
+        </DialogContent>
 
-      <DialogActions>
-        <Button onClick={onClose}>Close</Button>
-        <Button onClick={saveChanges}>Save Changes</Button>
-      </DialogActions>
-    </Dialog>
+        <DialogActions>
+          <Button onClick={onClose}>Close</Button>
+          <Button onClick={saveChanges}>Save Changes</Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }

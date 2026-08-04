@@ -2,7 +2,7 @@ import { Box, Button, Typography } from "@mui/material";
 import { Highlight, themes } from "prism-react-renderer";
 import { useState } from "react";
 
-export default function MarkdownCodeBlock({ code, language }) {
+export default function MarkdownCodeBlock({ code, language, header }) {
   const [copied, setCopied] = useState(false);
 
   return (
@@ -23,19 +23,21 @@ export default function MarkdownCodeBlock({ code, language }) {
         }}
       >
         <Typography fontSize="0.875rem" color="text.secondary_darker">
-          {{
-            javascript: "JavaScript",
-            typescript: "TypeScript",
-            json: "JSON",
-            html: "HTML",
-            css: "CSS",
-            shell: "Shell",
-            bash: "Bash",
-            markdown: "Markdown",
-            text: "Text",
-            plaintext: "Plain Text",
-            code: "Code",
-          }[language?.toLowerCase()] || "Code"}
+          {header ||
+            {
+              javascript: "JavaScript",
+              typescript: "TypeScript",
+              json: "JSON",
+              html: "HTML",
+              css: "CSS",
+              shell: "Shell",
+              bash: "Bash",
+              markdown: "Markdown",
+              text: "Text",
+              plaintext: "Plain Text",
+              code: "Code",
+            }[language?.toLowerCase()] ||
+            "Code"}
         </Typography>
         <Button
           size="small"

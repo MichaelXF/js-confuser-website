@@ -82,8 +82,8 @@ export default function useJSConfuserVM({ onError } = {}) {
   ) {
     var requestID = getRandomString(10);
 
-    // Cancel pending obfuscation, create new worker
-    if (!workerRef.current || isObfuscatingRef.current) {
+    // create new worker
+    if (!workerRef.current) {
       cancel();
       workerRef.current = new JSConfuserVMWorker();
     }

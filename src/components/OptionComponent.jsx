@@ -111,11 +111,11 @@ export default function OptionComponent({
   };
 
   const [showPercentEditor, setShowPercentEditor] = useState(
-    typeof value === "number" && value !== 0 && value !== 1
+    typeof value === "number" && value !== 0 && value !== 1,
   );
 
   const [showLimitEditor, setShowLimitEditor] = useState(
-    typeof limit === "number"
+    typeof limit === "number",
   );
   const [performAutoFocus, setPerformAutoFocus] = useState(false);
 
@@ -146,9 +146,10 @@ export default function OptionComponent({
         }}
         onClick={(e) => {
           e.stopPropagation();
+          option?.onDocsClick();
         }}
-        component={Link}
-        to={"/docs/options/" + option.name}
+        component={option.onDocsClick ? null : Link}
+        to={option.onDocsClick ? null : "/docs/options/" + option.name}
         target="_blank"
       >
         <Info sx={{ fontSize: "inherit" }} />
@@ -208,8 +209,10 @@ export default function OptionComponent({
       .map(
         (key) =>
           `${toTitleCase(key)}: ${toTitleCase(
-            typeof obj[key] === "number" ? formatPercentage(obj[key]) : obj[key]
-          )}`
+            typeof obj[key] === "number"
+              ? formatPercentage(obj[key])
+              : obj[key],
+          )}`,
       )
       .join(", ");
   }
@@ -336,7 +339,7 @@ export default function OptionComponent({
                     ? objectToTitleCase(value)
                     : value
                       ? toTitleCase(value)
-                      : "False"
+                      : "False",
               )}
             </Button>
             {option.allowMixingModes && percentButton}
@@ -448,7 +451,7 @@ export default function OptionComponent({
                         ? 0
                         : typeof value === "number"
                           ? value * 100
-                          : value
+                          : value,
               )}
               onBlur={(e) => {
                 if (e.target.value === "") {

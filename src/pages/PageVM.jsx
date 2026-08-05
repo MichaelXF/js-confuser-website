@@ -1,4 +1,17 @@
-import { Box, Button, Fade, Typography, useTheme } from "@mui/material";
+import {
+  Box,
+  Button,
+  Fade,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import { useRef, useState } from "react";
 import { rgbToHex } from "../utils/color-utils";
 import Editor from "@monaco-editor/react";
@@ -65,6 +78,25 @@ export default function PageVM() {
 
   var [debugState, setDebugState] = useState();
   var [logs, setLogs] = useState([]);
+
+  var [activeFrame, setActiveFrame] = useState();
+
+  var activeFrameRegisters;
+  if (typeof activeFrame === "number") {
+    var frame = debugState?.data?.stack[activeFrame];
+    if (frame) {
+      var end = frame?.fp + frame?.size || 0;
+
+      var frameRegisters = {};
+      if (frame) {
+        for (var i = frame.base; i < end; i++) {
+          frameRegisters[i - frame.base] = debugState?.data?.registers[i];
+        }
+      }
+
+      activeFrameRegisters = frameRegisters;
+    }
+  }
 
   var [liveObfuscation, setLiveObfuscation] = useLocalStorage(
     "jsconfuservm_live_obfuscation",
@@ -857,139 +889,197 @@ console.log("Hello World!");
             bgcolor: "background.paper",
             borderTop: "1px solid",
             borderColor: "divider",
-            px: 3,
-            py: 1,
           }}
           fontFamily="monospace"
         >
-          <Box display="flex" alignItems="center" gap={4}>
-            <Typography
-              variant="caption"
-              fontFamily="inherit"
-              fontSize="medium"
-              color="text.secondary"
+          <Box display="flex" gap={1}>
+            <Box
+              flex={1}
+              minWidth={0}
+              maxHeight="300px"
+              sx={{ overflowY: "auto" }}
             >
-              Event:{" "}
-              <strong style={{ color: "white" }}>
-                {debugState?.event ?? "—"}
-              </strong>
-            </Typography>
-            {debugState?.data?.pc != null && (
-              <Typography
-                variant="caption"
-                fontFamily="inherit"
-                fontSize="medium"
-                color="text.secondary"
-              >
-                PC:{" "}
-                <strong style={{ color: "white" }}>
-                  {debugState?.data?.pc}
-                </strong>
-              </Typography>
-            )}
-            {debugState?.data?.op != null && (
-              <Typography
-                variant="caption"
-                fontFamily="inherit"
-                fontSize="medium"
-                color="text.secondary"
-              >
-                OP:{" "}
-                <strong style={{ color: "white" }}>
-                  {debugState?.data?.opName || ""} {debugState?.data?.op}
-                </strong>
-              </Typography>
-            )}
-            {debugState?.data?.frame && (
-              <Typography
-                variant="caption"
-                fontFamily="inherit"
-                fontSize="medium"
-                color="text.secondary"
-              >
-                Frame:{" "}
-                <strong style={{ color: "white" }}>
-                  {debugState.data.frame.name}(
-                  {debugState.data.frame.params
-                    .map((param, i) =>
-                      debugState.data.frame.hasRest &&
-                      i === debugState.data.frame.params.length - 1
-                        ? "..." + param
-                        : param,
-                    )
-                    .join(", ")}
-                  )
-                </strong>{" "}
-                this=
-                <strong style={{ color: "white" }}>
-                  {debugState.data.frame.thisValue}
-                </strong>
-              </Typography>
-            )}
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Register</TableCell>
+                      <TableCell>Type</TableCell>
+                      <TableCell width="100%">Value</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {Object.entries(
+                      activeFrameRegisters || debugState?.data?.registers || {},
+                    ).map(([key, regItem], i) => {
+                      return (
+                        <TableRow
+                          key={key}
+                          sx={{
+                            "&:last-child td, &:last-child th": { border: 0 },
+                          }}
+                        >
+                          <TableCell>regs[{key}]: </TableCell>
+                          <TableCell>{"" + regItem.type}</TableCell>
+                          <TableCell>{"" + regItem.value}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+            <Box
+              flex={1}
+              minWidth={0}
+              maxHeight="300px"
+              sx={{ overflowY: "auto" }}
+            >
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Frame</TableCell>
+                      <TableCell>PC</TableCell>
+                      <TableCell>Return PC</TableCell>
+                      <TableCell>Return Register</TableCell>
+                      <TableCell>Frame Size</TableCell>
+                      <TableCell>Handler Count</TableCell>
+                      <TableCell align="right" sx={{ minWidth: "140px" }}>
+                        Actions
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {debugState.data.stack.map((frame, i) => {
+                      var isActiveFrame = activeFrame === i;
+
+                      var start = frame?.base;
+                      var end = frame?.fp + frame?.size || 0;
+
+                      return (
+                        <TableRow
+                          key={i}
+                          sx={{
+                            "&:last-child td, &:last-child th": { border: 0 },
+                            bgcolor: isActiveFrame
+                              ? "hsla(210, 100%, 60%, 0.08)"
+                              : "transparent",
+                          }}
+                        >
+                          <TableCell>
+                            <strong>#{i}</strong> {frame.isNew ? "new " : ""}
+                            {frame.name}
+                          </TableCell>
+                          <TableCell>{frame.pc ?? ""}</TableCell>
+                          <TableCell>{frame.returnPc ?? ""}</TableCell>
+                          <TableCell>
+                            {frame.returnReg ? (
+                              <>regs[{frame.returnReg ?? ""}]</>
+                            ) : (
+                              ""
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {end - start} registers ({start} - {end})
+                          </TableCell>
+                          <TableCell>{frame.handlerCount ?? ""}</TableCell>
+                          <TableCell align="right">
+                            <Button
+                              onClick={() => {
+                                if (isActiveFrame) {
+                                  setActiveFrame(null);
+                                } else {
+                                  setActiveFrame(i);
+                                }
+                              }}
+                            >
+                              {isActiveFrame ? "Stop Viewing" : "View"}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
           </Box>
-          <Box>
-            {Object.entries(debugState?.data?.regs || {}).map(
-              ([key, regItem], i) => {
-                return (
-                  <Typography
-                    key={i}
-                    fontFamily="inherit"
-                    fontSize="medium"
-                    color="text.secondary"
-                  >
-                    regs[{key}]:{" "}
-                    <strong style={{ color: "white" }}>{"" + regItem}</strong>
-                  </Typography>
-                );
-              },
-            )}
-          </Box>
-          {debugState?.data?.stack?.length > 1 && (
+
+          <Box px={2} py={1}>
+            <Box display="flex" alignItems="center" gap={4}>
+              <Typography
+                variant="caption"
+                fontFamily="inherit"
+                fontSize="medium"
+                color="text.secondary"
+              >
+                Event:{" "}
+                <strong style={{ color: "white" }}>
+                  {debugState?.event ?? "—"}
+                </strong>
+              </Typography>
+              {debugState?.data?.pc != null && (
+                <Typography
+                  variant="caption"
+                  fontFamily="inherit"
+                  fontSize="medium"
+                  color="text.secondary"
+                >
+                  PC:{" "}
+                  <strong style={{ color: "white" }}>
+                    {debugState?.data?.pc}
+                  </strong>
+                </Typography>
+              )}
+              {debugState?.data?.op != null && (
+                <Typography
+                  variant="caption"
+                  fontFamily="inherit"
+                  fontSize="medium"
+                  color="text.secondary"
+                >
+                  OP:{" "}
+                  <strong style={{ color: "white" }}>
+                    {debugState?.data?.opName || ""} {debugState?.data?.op}
+                  </strong>
+                </Typography>
+              )}
+              {debugState?.data?.frame && (
+                <Typography
+                  variant="caption"
+                  fontFamily="inherit"
+                  fontSize="medium"
+                  color="text.secondary"
+                >
+                  Frame:{" "}
+                  <strong style={{ color: "white" }}>
+                    {debugState.data.frame.name}(
+                    {debugState.data.frame.params.length + " params"})
+                  </strong>{" "}
+                  this=
+                  <strong style={{ color: "white" }}>
+                    {debugState.data.frame.thisValue?.value}
+                  </strong>
+                </Typography>
+              )}
+            </Box>
             <Box>
               <Typography
                 fontFamily="inherit"
                 fontSize="medium"
                 color="text.secondary"
               >
-                Stack:
+                Logs:
               </Typography>
-              {debugState.data.stack.map((frame, i) => {
+              {logs.map((log, i) => {
                 return (
-                  <Typography
-                    key={i}
-                    fontFamily="inherit"
-                    fontSize="medium"
-                    color="text.secondary"
-                  >
-                    <strong style={{ color: "white" }}>
-                      {i}. {frame.isNew ? "new " : ""}
-                      {frame.name}
-                    </strong>{" "}
-                    pc={frame.pc}
-                    {frame.returnPc != null
-                      ? ` -> retPc=${frame.returnPc} retReg=regs[${frame.returnReg}]`
-                      : ""}
-                    {frame.handlerCount ? ` try(${frame.handlerCount})` : ""}
+                  <Typography key={i} fontFamily="monospace" fontSize="medium">
+                    {(log || []).join(" ")}
                   </Typography>
                 );
               })}
             </Box>
-          )}
-          <Box>
-            <Typography
-              fontFamily="inherit"
-              fontSize="medium"
-              color="text.secondary"
-            >
-              Logs:
-            </Typography>
-            {logs.map((log, i) => {
-              return (
-                <Typography key={i} fontFamily="monospace" fontSize="medium">
-                  {(log || []).join(" ")}
-                </Typography>
-              );
-            })}
           </Box>
         </Box>
       )}

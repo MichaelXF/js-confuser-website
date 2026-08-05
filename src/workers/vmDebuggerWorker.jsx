@@ -127,6 +127,14 @@ function loadProgram(program) {
   return {
     event: "ready",
     data: getData(),
+    isDebugger: true,
+  };
+}
+
+function serializeRegister(reg) {
+  return {
+    type: typeof reg,
+    value: String(reg),
   };
 }
 
@@ -143,7 +151,7 @@ function getFrame(runtime, fp) {
   var params = [];
   if (fn) {
     for (var i = 0; i < fn.paramCount; i++) {
-      params.push(String(regs[base + i]));
+      params.push(serializeRegister(regs[base + i]));
     }
   }
 
@@ -161,7 +169,7 @@ function getFrame(runtime, fp) {
 
     params,
     hasRest: fn ? !!fn.hasRest : false,
-    thisValue: String(regs[fp + SLOTS.THIS]),
+    thisValue: serializeRegister(regs[fp + SLOTS.THIS]),
     isNew: !!(retDst & 1),
 
     // return address and where to store return value
@@ -192,32 +200,21 @@ function getData() {
   var stack = getStack(runtime);
   var frame = stack[0];
 
-  if (!frame) {
-    return {
-      pc: null,
-      op: null,
-      opName: null,
-      regs: {},
-      frame: null,
-      stack: [],
-    };
-  }
-
-  var pc = frame.pc;
+  var pc = frame?.pc;
   var op = runtime.bytecode[pc];
 
-  var end = frame.fp + frame.size;
+  var end = frame?.fp + frame?.size || 0;
 
-  var regStringed = {};
-  for (var i = frame.base; i < end; i++) {
-    regStringed[i - frame.base] = String(regs[i]);
+  var registers = {};
+  for (var i = 0; i < end; i++) {
+    registers[i] = serializeRegister(regs[i]);
   }
 
   var data = {
     pc,
     op,
     opName: compiler.OP_NAME[op],
-    regs: regStringed,
+    registers: registers,
     frame,
     stack,
   };
@@ -233,7 +230,7 @@ function next(runMode) {
   try {
     stepResult = currentIterator.next();
   } catch (err) {
-    console.log("VM Debugger Step error", err);
+    console.error("VM Debugger Step error", err);
     return {
       event: "error",
       error: "" + (err?.stack || err),
@@ -241,7 +238,7 @@ function next(runMode) {
     };
   }
   if (stepResult.done) {
-    return { event: "done", data: getData() };
+    return { event: "done", data: getData(), isDebugger: true };
   }
 
   var runtime = stepResult.value;
@@ -251,7 +248,7 @@ function next(runMode) {
     while (!stepResult.done) {
       stepResult = currentIterator.next();
     }
-    return { event: "done", data: getData() };
+    return { event: "done", data: getData(), isDebugger: true };
   }
 
   if (runMode === "jump") {
@@ -263,7 +260,8 @@ function next(runMode) {
       if (allJumpOpCodes.has(op)) break;
       stepResult = currentIterator.next();
     }
-    if (stepResult.done) return { event: "done", data: getData() };
+    if (stepResult.done)
+      return { event: "done", data: getData(), isDebugger: true };
     runtime = stepResult.value;
   }
 

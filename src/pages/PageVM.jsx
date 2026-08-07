@@ -223,6 +223,7 @@ function InsightsDialog({ open, onClose, profileData }) {
       <DialogContent>
         {chartOptions ? (
           <ReactECharts
+            key={tab}
             option={chartOptions}
             style={{ height: "440px", width: "100%" }}
           />
@@ -518,7 +519,8 @@ export default function PageVM() {
     const model = editor.getModel();
     if (!model) return;
 
-    const lineContent = model.getLineContent(lineNumber);
+    const lineContent =
+      lineNumber === -1 ? "" : model.getLineContent(lineNumber);
     // Match new bytecode comment source location: "LINE:COL-LINE:COL" at end of line
     // e.g., "// [14],        POP                                     22:0-22:23"
     let match = lineContent.match(/(\d+):(\d+)-(\d+):(\d+)\s*$/); // For JS-Confuser-VM's "bytecode comment"

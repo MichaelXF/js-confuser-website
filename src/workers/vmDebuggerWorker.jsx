@@ -30,8 +30,6 @@ const allJumpOpCodes = new Set([
   compiler.OP.CALL_METHOD,
 ]);
 
-console.log(compiler);
-
 function loadProgram(program) {
   // Parse the program and transform VM.prototype.run into a generator
   var ast = babelParser.parse(program, { sourceType: "script" });
@@ -173,15 +171,22 @@ function getFrame(runtime, fp) {
 
   var handlers = regs[fp + SLOTS.HANDLERS];
 
-  return {
-    fp,
-    pc: regs[fp + SLOTS.PC],
-    base,
-    size: regs[fp + SLOTS.FRAME_SIZE],
-    caller,
+  const num = (x) => {
+    let converted = Number(x);
+    if (Number.isNaN(converted)) return null;
 
-    startPc: fn?.startPc,
-    name: fn?.startPc !== 0 ? "fn@" + fn.startPc : "main", // 0 is main
+    return converted;
+  };
+
+  return {
+    fp: num(fp),
+    pc: num(regs[fp + SLOTS.PC]),
+    base: num(base),
+    size: num(regs[fp + SLOTS.FRAME_SIZE]),
+    caller: num(caller),
+
+    startPc: num(fn?.startPc),
+    name: fn?.startPc !== 0 ? "fn@" + fn?.startPc : "main", // 0 is main
 
     params,
     hasRest: fn ? !!fn.hasRest : false,
@@ -189,7 +194,7 @@ function getFrame(runtime, fp) {
     isNew: !!(retDst & 1),
 
     // return address and where to store return value
-    returnPc: caller ? regs[caller + SLOTS.PC] : null,
+    returnPc: caller ? num(regs[caller + SLOTS.PC]) : null,
     returnReg: caller ? retDst >> 1 : null,
 
     // try/finally handlers (from TRY_SETUP)
@@ -201,10 +206,14 @@ function getStack(runtime) {
   var stack = [];
   var fp = runtime._f;
 
-  while (fp && stack.length < 256) {
+  while (typeof fp === "number" && stack.length < 256) {
     var frame = getFrame(runtime, fp);
-    stack.push(frame);
-    fp = frame.caller;
+    if (frame) {
+      stack.push(frame);
+      fp = frame.caller;
+    } else {
+      break;
+    }
   }
 
   return stack;
@@ -242,7 +251,11 @@ function frameDepth(runtime) {
   var regs = runtime._regs;
   var depth = 0;
 
-  for (var fp = runtime._f; fp && depth < 256; fp = regs[fp + SLOTS.CALLER]) {
+  for (
+    var fp = runtime._f;
+    fp && depth < 256;
+    fp = Number(regs[fp + SLOTS.CALLER])
+  ) {
     depth++;
   }
 
@@ -384,7 +397,7 @@ self.onmessage = async function (event) {
         throw new Error("Unknown method: " + method);
     }
   } catch (error) {
-    console.log("Error in worker message handler:", error);
+    console.error("Error in worker message handler:", error);
     postMessage({
       event: "error",
       data: {

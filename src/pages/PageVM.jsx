@@ -1,11 +1,13 @@
 import {
   Box,
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Fade,
+  FormControlLabel,
   IconButton,
   Menu,
   MenuItem,
@@ -81,6 +83,54 @@ function greet(name) {
 }
 
 greet('Internet User');`;
+
+function DebugWarningDialog({
+  open,
+  onClose,
+  onNeverShowAgainChange,
+  options,
+}) {
+  var enabledOptions = Object.keys(options).filter(
+    (optName) => options[optName],
+  );
+
+  return (
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle>Debug Warning</DialogTitle>
+
+      <DialogContent>
+        <Typography>
+          <strong>Warning:</strong> You have option(s) enabled (
+          {enabledOptions.join(", ")}){" "}
+          <strong>which will most likely break the debugger.</strong> For the
+          best results with the debugger, disable all options.
+        </Typography>
+
+        <FormControlLabel
+          sx={{ mt: 2 }}
+          control={
+            <Checkbox
+              onChange={(e) => {
+                onNeverShowAgainChange(e.target.checked);
+              }}
+            />
+          }
+          label="Never show again"
+        />
+      </DialogContent>
+
+      <DialogActions>
+        <Button
+          onClick={() => {
+            onClose();
+          }}
+        >
+          Continue
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
 
 function DisassembledDialog({ open, onClose, pc, code }) {
   var ref = useRef({});
@@ -1141,6 +1191,11 @@ console.log("Hello World!");
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  var [neverShowDebugWarning, setNeverShowDebugWarning] = useLocalStorage(
+    "JSConfuserVM_NeverShowDebugWarning",
+  );
+  var [showDebugWarning, setShowDebugWarning] = useState(false);
+
   const toggleDebugger = () => {
     if (debugState) {
       setDebugState(null);
@@ -1149,12 +1204,9 @@ console.log("Hello World!");
         (optName) => options[optName],
       );
       if (enabledOptions.length) {
-        // TODO: Figure out better warning for this
-        // alert(
-        //   "Warning: You have option(s) enabled (" +
-        //     enabledOptions.join(", ") +
-        //     ") which will most likely break the debugger. Disable all options for the best results.",
-        // );
+        if (!neverShowDebugWarning) {
+          setShowDebugWarning(true);
+        }
       }
       handleStartDebugger();
     }
@@ -1223,6 +1275,15 @@ console.log("Hello World!");
           setShowDisassembledDialog(false);
         }}
         code={obfuscationResult?.disassembled}
+      />
+
+      <DebugWarningDialog
+        open={showDebugWarning}
+        onClose={() => setShowDebugWarning(false)}
+        onNeverShowAgainChange={(v) => {
+          setNeverShowDebugWarning(!!v);
+        }}
+        options={options}
       />
 
       <ConsoleDialog
@@ -1487,7 +1548,7 @@ console.log("Hello World!");
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {debugState.data.stack?.map((frame, i) => {
+                    {(debugState.data.stack || []).map((frame, i) => {
                       var isActiveFrame = activeFrameIndex === i;
 
                       var start = frame?.base;
@@ -1605,12 +1666,12 @@ console.log("Hello World!");
                 >
                   Frame:{" "}
                   <strong style={{ color: "white" }}>
-                    {debugState.data.frame.name}(
-                    {debugState.data.frame.params.length + " params"})
+                    {debugState.data.frame?.name}(
+                    {debugState.data.frame?.params?.length + " params"})
                   </strong>{" "}
                   this=
                   <strong style={{ color: "white" }}>
-                    {debugState.data.frame.thisValue?.value}
+                    {debugState.data.frame?.thisValue?.value}
                   </strong>
                 </Typography>
               )}

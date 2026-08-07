@@ -59,6 +59,26 @@ function EditorNavItem({
     }
   }
 
+  var [resolvedItems, setResolvedItems] = useState(
+    Array.isArray(subItem.items) ? subItem.items : null,
+  );
+  var [loadingItems, setLoadingItems] = useState(false);
+
+  useEffect(() => {
+    if (open && typeof subItem.items === "function") {
+      setResolvedItems(null);
+      setLoadingItems(true);
+
+      async function fn() {
+        var items = await subItem.items();
+        setResolvedItems(items);
+        setLoadingItems(false);
+      }
+
+      fn();
+    }
+  }, [open, subItem.itemDeps]);
+
   return (
     <React.Fragment>
       {subItem.items ? (
@@ -79,7 +99,10 @@ function EditorNavItem({
             sx: { py: 0 },
           }}
         >
-          {subItem.items.map((subSubItem, index) => {
+          {loadingItems ? (
+            <MenuItem disabled={true}>Loading...</MenuItem>
+          ) : null}
+          {(resolvedItems || []).map((subSubItem, index) => {
             return (
               <EditorNavItem
                 key={index}
@@ -128,7 +151,7 @@ function EditorNavItem({
           if (subItem.type === "input") {
             var newValue = prompt(
               "Enter a new value for " + subItem.label,
-              editorOptions[subItem.key]
+              editorOptions[subItem.key],
             );
             if (newValue === null) return;
 
@@ -140,8 +163,6 @@ function EditorNavItem({
             });
             return;
           }
-
-          if (subItem.keepOpen) return;
 
           handleParentClose();
         }}
@@ -247,14 +268,14 @@ export default function EditorNav({
   };
 
   var [recentFiles, setRecentFiles] = useState([]);
-  useEffect(() => {
-    async function load() {
-      var files = await listAllFiles();
-      setRecentFiles(files);
-    }
+  var [rerenderRecentFiles, setRerenderRecentFiles] = useState();
 
-    load();
-  }, []);
+  async function loadRecentFiles() {
+    var files = await listAllFiles();
+    setRecentFiles(files);
+
+    return files;
+  }
 
   const aiValue = useContext(AIContext);
 
@@ -296,29 +317,34 @@ export default function EditorNav({
         },
         {
           label: "Open Recent",
-          items: [
-            ...recentFiles.map((file) => {
-              return {
-                label: file,
-                onClick: async () => {
-                  editorComponent.newTabFromFile(file);
+          items: async () => {
+            var recentFiles = await loadRecentFiles();
+            return [
+              ...recentFiles.map((file) => {
+                return {
+                  label: file,
+                  onClick: async () => {
+                    editorComponent.newTabFromFile(file);
+                  },
+                  onRemove: async () => {
+                    await deleteFileFromIndexedDB(file);
+                    setRecentFiles((files) => files.filter((f) => f !== file));
+
+                    setRerenderRecentFiles({});
+                  },
+                };
+              }),
+              {
+                label: "Clear All Recent Files",
+                onClick: () => {
+                  setRecentFiles([]);
+                  clearAllFiles();
                 },
-                onRemove: async () => {
-                  await deleteFileFromIndexedDB(file);
-                  setRecentFiles((files) => files.filter((f) => f !== file));
-                },
-              };
-            }),
-            {
-              label: "Clear All Recent Files",
-              onClick: () => {
-                setRecentFiles([]);
-                clearAllFiles();
+                disabled: !recentFiles.length,
               },
-              disabled: !recentFiles.length,
-              keepOpen: true,
-            },
-          ],
+            ];
+          },
+          itemDeps: rerenderRecentFiles,
         },
 
         {
@@ -415,7 +441,7 @@ export default function EditorNav({
               label: "Pre-Obfuscation Analysis",
               onClick: () => {
                 editorComponent.JSConfuser.preObfuscationAnalysis(
-                  editorComponent.getActiveModel().getValue()
+                  editorComponent.getActiveModel().getValue(),
                 )
                   .then((data) => {
                     var map = new Map(data.nodes);
@@ -430,7 +456,7 @@ export default function EditorNav({
 
                     editorComponent.newTab(
                       JSON.stringify(display, null, 2),
-                      "PreObfuscation.json"
+                      "PreObfuscation.json",
                     );
                   })
                   .catch((err) => {
@@ -443,11 +469,11 @@ export default function EditorNav({
               label: "Apply Transformation",
               onClick: async () => {
                 var names = await editorComponent.JSConfuser.getTransformations(
-                  editorComponent.optionsJS
+                  editorComponent.optionsJS,
                 );
                 var name = prompt(
                   "Enter the transformation name:\n" +
-                    names.map((name, i) => `${i + 1}. ${name}`).join("\n")
+                    names.map((name, i) => `${i + 1}. ${name}`).join("\n"),
                 );
 
                 if (name && !isNaN(name)) {
@@ -464,7 +490,7 @@ export default function EditorNav({
                   await editorComponent.JSConfuser.applyTransformations(
                     activeTab.getValue(),
                     editorComponent.optionsJS,
-                    [name]
+                    [name],
                   );
                 activeTab.setValue(code);
               },

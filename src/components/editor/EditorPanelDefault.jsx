@@ -201,7 +201,7 @@ export default function EditorPanelDefault({
           mt: 2,
           textTransform: "none",
           bgcolor: isCustomPreset ? "primary.alpha" : "transparent",
-          fontWeight: isCustomPreset ? "bold" : "normal",
+          fontWeight: isCustomPreset ? "bold" : undefined,
         }}
         onClick={() => {
           openOptionsDialog();
@@ -219,7 +219,7 @@ export default function EditorPanelDefault({
           editorComponent.openOptionsFile();
         }}
       >
-        Edit JS-Confuser Options
+        Edit Options as JavaScript
         <span style={{ flexGrow: 1 }} />
       </Button>
     </>

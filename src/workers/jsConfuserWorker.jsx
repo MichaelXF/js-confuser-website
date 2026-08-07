@@ -7,7 +7,8 @@ import { Buffer } from "buffer";
 self.Buffer = Buffer;
 
 function getByteSize(str) {
-  return new Blob([str]).size;
+  const encoder = new TextEncoder();
+  return encoder.encode(str).length;
 }
 
 /**
@@ -58,7 +59,7 @@ function obfuscateCode(requestID, code, optionsJS, editorOptions = {}) {
   const reportProgress = (log, entry, ast) => {
     if (captureInsights) {
       // Calculate the size of the code
-      var code = JsConfuser.Obfuscator.generateCode(ast);
+      var { code } = JsConfuser.Obfuscator.generateCode(ast);
       entry.fileSize = getByteSize(code);
 
       // Calculate the execution time (if enabled)
@@ -142,8 +143,8 @@ function obfuscateCode(requestID, code, optionsJS, editorOptions = {}) {
             captureInsights,
             capturePerformanceInsights: capturePerformanceInsights,
             ...insightFields,
-            originalSize: getByteSize(code),
-            newSize: getByteSize(resultObject.code),
+            inputFileSize: getByteSize(code),
+            outputFileSize: getByteSize(resultObject.code),
           },
         },
       });

@@ -47,14 +47,14 @@ export default function EditorPanelDownload({ evaluateCode, editorComponent }) {
     avgTransformTime =
       Object.keys(transforms).reduce(
         (a, b) => transforms[b].transformTime + a,
-        0
+        0,
       ) / Object.keys(transforms).length;
 
     // Sort the keys based on obfuscation time
     const sortedKeys = Object.keys(transforms);
 
     sortedKeys.sort(
-      (a, b) => transforms[b].transformTime - transforms[a].transformTime
+      (a, b) => transforms[b].transformTime - transforms[a].transformTime,
     );
 
     for (const transformName of sortedKeys) {
@@ -70,8 +70,8 @@ export default function EditorPanelDownload({ evaluateCode, editorComponent }) {
   };
 
   const fileSizeIncrease = getPercentChange(
-    profileData?.originalSize,
-    profileData?.newSize
+    profileData?.inputFileSize,
+    profileData?.outputFileSize,
   );
 
   const [showInsights, setShowInsights] = useState(false);
@@ -156,11 +156,11 @@ export default function EditorPanelDownload({ evaluateCode, editorComponent }) {
         },
         {
           label: "Original file size",
-          value: formatSize(profileData?.originalSize),
+          value: formatSize(profileData?.inputFileSize),
         },
         {
           label: "New file size",
-          value: formatSize(profileData?.newSize),
+          value: formatSize(profileData?.outputFileSize),
         },
         {
           label: "File size increase",
@@ -178,14 +178,14 @@ export default function EditorPanelDownload({ evaluateCode, editorComponent }) {
                     label: "Original performance",
                     value: formatTimeDuration(
                       profileData?.originalExecutionTime,
-                      true
+                      true,
                     ),
                   },
                   {
                     label: "New performance",
                     value: formatTimeDuration(
                       profileData?.newExecutionTime,
-                      true
+                      true,
                     ),
                   },
                   {
@@ -193,8 +193,8 @@ export default function EditorPanelDownload({ evaluateCode, editorComponent }) {
                     value: formatPercentage(
                       -getPercentChange(
                         profileData?.originalExecutionTime,
-                        profileData?.newExecutionTime
-                      )
+                        profileData?.newExecutionTime,
+                      ),
                     ),
                   },
                 ]
@@ -241,7 +241,7 @@ export default function EditorPanelDownload({ evaluateCode, editorComponent }) {
               let beforeTransformInfo =
                 transformNameIndex === 0
                   ? {
-                      fileSize: profileData.originalSize,
+                      fileSize: profileData.inputFileSize,
                       executionTime: profileData.originalExecutionTime,
                     }
                   : profileData.transforms?.[
@@ -260,7 +260,7 @@ export default function EditorPanelDownload({ evaluateCode, editorComponent }) {
                 originalValue,
                 newValue,
                 formatFn,
-                flipPercent = false
+                flipPercent = false,
               ) => {
                 let percentChange = getPercentChange(originalValue, newValue);
                 if (flipPercent) {
@@ -304,7 +304,7 @@ export default function EditorPanelDownload({ evaluateCode, editorComponent }) {
                     "File size",
                     beforeTransformInfo.fileSize,
                     transformInfo.fileSize,
-                    formatSize
+                    formatSize,
                   )}
 
                   {profileData?.capturePerformanceInsights &&
@@ -313,7 +313,7 @@ export default function EditorPanelDownload({ evaluateCode, editorComponent }) {
                       beforeTransformInfo.executionTime,
                       transformInfo.executionTime,
                       (ms) => formatTimeDuration(ms, true),
-                      true
+                      true,
                     )}
                 </>
               );

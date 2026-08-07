@@ -5,7 +5,8 @@ import { Buffer } from "buffer";
 self.Buffer = Buffer;
 
 function getByteSize(str) {
-  return new Blob([str]).size;
+  const encoder = new TextEncoder();
+  return encoder.encode(str).length;
 }
 
 // Export functions for Vite worker compatibility
@@ -45,8 +46,8 @@ function obfuscateCode(requestID, code, options, editorOptions = {}) {
           code: resultObject.code,
           profileData: {
             ...resultObject.profileData,
-            originalSize: getByteSize(code),
-            newSize: getByteSize(resultObject.code),
+            inputFileSize: getByteSize(code),
+            outputFileSize: getByteSize(resultObject.code),
           },
           disassembled: disassembled,
         },

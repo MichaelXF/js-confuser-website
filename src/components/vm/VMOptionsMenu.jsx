@@ -55,6 +55,7 @@ export default function VMOptionsMenu({ sx, options }) {
               sx={{
                 minWidth: "200px",
               }}
+              disabled={entry.disabled === true}
             >
               {entry.label}
             </MenuItem>

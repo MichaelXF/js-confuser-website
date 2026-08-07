@@ -20,16 +20,29 @@ function msToSeconds(ms) {
   return Math.floor((ms / 1000) * 10) / 10;
 }
 
-function createObfuscationTimesChart(profileData, theme) {
+export function createObfuscationTimesChart(profileData, theme) {
   const categories = [];
-  const times = [];
+  let times = [];
+  let formatAsSeconds = false;
 
   Object.keys(profileData?.transforms ?? {}).forEach((transformName) => {
     var transform = profileData.transforms[transformName];
 
     categories.push(transformName);
-    times.push(msToSeconds(transform.transformTime));
+    times.push(transform.transformTime);
+
+    if (transform.transformTime > 2000) {
+      // 2 seconds
+      formatAsSeconds = true;
+    }
   });
+
+  if (formatAsSeconds) {
+    times = times.map(msToSeconds);
+  } else {
+    times = times.map(Math.round);
+  }
+
   // Chart options
   return {
     title: {
@@ -62,12 +75,12 @@ function createObfuscationTimesChart(profileData, theme) {
     },
     yAxis: {
       type: "value",
-      name: "Time (s)", // Add unit to the axis name
+      name: formatAsSeconds ? "Time (s)" : "Time (ms)", // Add unit to the axis name
       nameTextStyle: {
         color: theme.palette.text.secondary_darker,
       },
       axisLabel: {
-        formatter: "{value}s", // Append "S" to each label
+        formatter: formatAsSeconds ? "{value}s" : "{value}ms", // Append "S" to each label
         color: theme.palette.text.secondary,
       },
       textStyle: {
@@ -95,7 +108,7 @@ function createObfuscationTimesChart(profileData, theme) {
         label: {
           show: true,
           position: "top",
-          formatter: "{c}s", // Add "S" to the bar labels
+          formatter: formatAsSeconds ? "{c}s" : "{c}ms", // Add "S" to the bar labels
           color: theme.palette.text.primary,
         },
       },
@@ -109,13 +122,15 @@ function createObfuscationTimesChart(profileData, theme) {
   };
 }
 
-function createFileSizeChart(profileData, theme) {
+export function createFileSizeChart(profileData, theme) {
   const transforms = [
-    { name: "Source Code", fileSize: profileData.originalSize },
-    ...Object.entries(profileData.transforms).map(([key, value]) => ({
-      name: key,
-      fileSize: value.fileSize,
-    })),
+    { name: "Source Code", fileSize: profileData.inputFileSize },
+    ...Object.entries(profileData.transforms)
+      .filter(([_, value]) => typeof value.fileSize === "number")
+      .map(([key, value]) => ({
+        name: key,
+        fileSize: value.fileSize,
+      })),
   ];
 
   // Determine the largest file size to decide the unit

@@ -66,6 +66,12 @@ export default function VMDocsDialog({
 ${schema?.description}
   `;
 
+  let suffix = schema?.outputBytecode
+    ? " (Bytecode)"
+    : schema?.outputDisassembled
+      ? " (Disassembled)"
+      : "";
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle sx={{ fontWeight: "bold" }}>
@@ -85,14 +91,14 @@ ${schema?.description}
 
             <Box mt={1}>
               <MarkdownCodeBlock
-                header="Before"
+                header={"Before" + suffix}
                 code={output?.before || "// Loading"}
                 language="js"
               />
             </Box>
             <Box mt={1}>
               <MarkdownCodeBlock
-                header="After"
+                header={"After" + suffix}
                 code={output?.after || "// Loading"}
                 language="js"
               />

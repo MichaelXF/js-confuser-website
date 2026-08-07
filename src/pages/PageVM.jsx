@@ -1,18 +1,28 @@
 import {
   Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Fade,
-  Paper,
+  IconButton,
+  Menu,
+  MenuItem,
+  Tab,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Tabs,
+  TextField,
+  Tooltip,
   Typography,
   useTheme,
 } from "@mui/material";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { rgbToHex } from "../utils/color-utils";
 import Editor from "@monaco-editor/react";
 import useSEO from "../hooks/useSEO";
@@ -22,16 +32,32 @@ import ConsoleDialog from "../components/dialogs/ConsoleDialog";
 import useJSConfuser from "../hooks/useJSConfuser.jsx";
 import useJSConfuserVM from "../hooks/useJSConfuserVM.jsx";
 import {
+  ArrowDownward,
+  ArrowUpward,
   BugReport,
+  Check,
+  Close,
   DataObject,
+  Edit,
+  KeyboardArrowDown,
   KeyboardArrowRight,
   Lock,
+  PlayArrow,
+  RedoOutlined,
   SkipNext,
+  Stop,
+  Visibility,
 } from "@mui/icons-material";
 import useVMDebugger from "../hooks/useVMDebugger.jsx";
 import { useLocalStorage } from "usehooks-ts";
 import VMOptionsMenu from "../components/vm/VMOptionsMenu.jsx";
 import { useNavigate } from "react-router-dom";
+import ErrorDialog from "../components/dialogs/ErrorDialog.jsx";
+import ReactECharts from "echarts-for-react";
+import {
+  createFileSizeChart,
+  createObfuscationTimesChart,
+} from "../components/dialogs/InsightsDialog.jsx";
 
 const defaultCode = `/**
  * GitHub: https://github.com/MichaelXF/js-confuser-vm
@@ -56,6 +82,368 @@ function greet(name) {
 
 greet('Internet User');`;
 
+function DisassembledDialog({ open, onClose, pc, code }) {
+  var ref = useRef({});
+  var [rerender, setRerender] = useState();
+
+  const sourceHighlightDecorations = useRef([]);
+
+  const handleEditorDidMount = (key) => (editor, monaco) => {
+    ref.current[key] = { editor, monaco };
+
+    setRerender({});
+  };
+
+  function convertPCToLineNumber(pc) {
+    if (typeof pc !== "number" || !code) return null;
+
+    const lines = code.split("\n");
+    for (let i = 0; i < lines.length; i++) {
+      const match = lines[i].match(/\[(\d+),(\d+)\]\s*$/);
+      if (!match) continue;
+
+      const start = parseInt(match[1], 10);
+      const end = parseInt(match[2], 10);
+      if (pc >= start && pc <= end) return i + 1;
+    }
+
+    return null;
+  }
+
+  function highlightLine(lineNumber, scrollIntoView) {
+    const { editor, monaco } = ref.current.code;
+    if (!editor || !monaco) return;
+
+    const model = editor.getModel();
+    if (!model) return;
+
+    if (typeof lineNumber === "number") {
+      const lineContent = model.getLineContent(lineNumber);
+      const startLine = lineNumber;
+      const startCol = 1; // Monaco columns are 1-indexed
+      const endLine = lineNumber;
+      const endCol = lineContent.length; // Monaco columns are 1-indexed
+
+      editor.revealPositionInCenter(
+        {
+          lineNumber: startLine,
+          column: startCol,
+        },
+        monaco.editor.ScrollType.Immediate,
+      );
+
+      sourceHighlightDecorations.current = editor.deltaDecorations(
+        sourceHighlightDecorations.current,
+        [
+          {
+            range: new monaco.Range(startLine, startCol, endLine, endCol),
+            options: {
+              isWholeLine: true,
+              className: "source-location-highlight",
+              linesDecorationsClassName: "source-location-glyph",
+            },
+          },
+        ],
+      );
+    } else {
+      if (sourceHighlightDecorations.current.length > 0) {
+        sourceHighlightDecorations.current = editor.deltaDecorations(
+          sourceHighlightDecorations.current,
+          [],
+        );
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (!open) return;
+    if (!ref.current.code?.editor) return;
+
+    highlightLine(convertPCToLineNumber(pc));
+  }, [open, pc, ref.current.code?.editor]);
+
+  // TODO: Don't read 'code' because obfuscationResult is when user clicks Obfuscate button
+  // but I also want to support users dropping in obfuscated code into right-side and it should call
+  // disassemble() for you
+  return (
+    <Dialog
+      open={!!open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      disableRestoreFocus={true}
+    >
+      <DialogTitle>Disassembled</DialogTitle>
+      <DialogContent>
+        <Editor
+          defaultLanguage="javascript"
+          defaultValue={code}
+          theme="myCustomTheme"
+          height="400px"
+          options={{
+            wordWrap: "on",
+            minimap: { enabled: false },
+          }}
+          onMount={handleEditorDidMount("code")}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Close</Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+function InsightsDialog({ open, onClose, profileData }) {
+  const theme = useTheme();
+
+  const [tab, setTab] = useState(0);
+
+  const chartOptions = {
+    0: createObfuscationTimesChart,
+    1: createFileSizeChart,
+  }[tab]?.(profileData, theme);
+
+  return (
+    <Dialog
+      open={!!open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      disableRestoreFocus={true}
+    >
+      <DialogTitle component="div">
+        <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
+          <Tabs value={tab} onChange={(e, newValue) => setTab(newValue)}>
+            <Tab label="Obfuscation Times" />
+            <Tab label="File Size" />
+          </Tabs>
+        </Box>
+      </DialogTitle>
+      <DialogContent>
+        {chartOptions ? (
+          <ReactECharts
+            option={chartOptions}
+            style={{ height: "440px", width: "100%" }}
+          />
+        ) : null}
+
+        <Typography fontFamily="monospace" component="pre">
+          {JSON.stringify(profileData, null, 2)}
+        </Typography>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Close</Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+function RegisterTypeMenu({ onChange }) {
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  return (
+    <>
+      <IconButton
+        aria-label="dropdown"
+        aria-controls={open ? "demo-positioned-menu" : undefined}
+        aria-haspopup="true"
+        aria-expanded={open}
+        onClick={handleClick}
+        size="small"
+        sx={{ width: "24px", height: "24px" }}
+      >
+        <KeyboardArrowDown sx={{ fontSize: "1rem" }} />
+      </IconButton>
+
+      <Menu
+        id="demo-positioned-menu"
+        aria-labelledby="demo-positioned-button"
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "left",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "left",
+        }}
+      >
+        {[
+          "string",
+          "number",
+          "boolean",
+          "object",
+          "function",
+          "undefined",
+          "null",
+        ].map((optionType, i) => (
+          <MenuItem
+            onClick={() => {
+              handleClose();
+              onChange(optionType);
+            }}
+            key={i}
+          >
+            {optionType}
+          </MenuItem>
+        ))}
+      </Menu>
+    </>
+  );
+}
+
+function RegisterRow({ regItem, regKey, vmDebugger }) {
+  var [editing, setEditing] = useState(false);
+  var inputRef = useRef();
+
+  var absRegKey = regItem.regKey || regKey;
+
+  const setValue = (newValue, newType) => {
+    switch (newType || regItem.type) {
+      case "boolean":
+        newValue =
+          newValue?.toLowerCase().trim() === "true" || newValue === "1";
+        break;
+      case "number":
+        newValue = parseFloat(newValue);
+        break;
+      case "object":
+      case "array":
+        try {
+          newValue = JSON.parse(newValue);
+        } catch (err) {
+          newValue = {};
+        }
+        break;
+      case "undefined":
+      case "null":
+        if (newValue === "null") newValue = null;
+        else if (newValue === "undefined") newValue = undefined;
+        // Force change when user selects from dropdown
+        else if (newType === "null") newValue = null;
+        else if (newType === "undefined") newValue = undefined;
+
+        break;
+
+      case "function":
+        newValue = eval(newValue);
+        break;
+    }
+
+    vmDebugger.action("setRegister", absRegKey, newValue);
+    setEditing(false);
+  };
+
+  return (
+    <TableRow
+      sx={{
+        "&:last-child td, &:last-child th": { border: 0 },
+        "& .hover-button": {
+          opacity: 0,
+          transition: "opacity 0.3s ease",
+        },
+        "&:hover .hover-button": {
+          opacity: 1,
+        },
+      }}
+    >
+      <TableCell>regs[{regKey}]</TableCell>
+      <TableCell sx={{ whiteSpace: "nowrap" }}>
+        <Box alignItems="center" display="flex">
+          {"" + regItem.type}
+
+          <Box ml={1} className={editing ? "" : "hover-button"}>
+            <RegisterTypeMenu
+              onChange={(newType) => {
+                setValue("" + regItem.value, newType);
+              }}
+            />
+          </Box>
+        </Box>
+      </TableCell>
+      <TableCell>
+        <Box alignItems="center" display="flex">
+          {editing ? (
+            <TextField
+              variant="standard"
+              defaultValue={"" + regItem.value}
+              inputRef={inputRef}
+              InputProps={{
+                sx: {
+                  fontSize: "0.9rem",
+                  padding: 0,
+                },
+              }}
+            />
+          ) : (
+            "" + regItem.value
+          )}
+
+          <Box
+            ml={1}
+            className={editing ? "" : "hover-button"}
+            display="inline-flex"
+            gap={"4px"}
+          >
+            {editing ? (
+              <>
+                <IconButton
+                  aria-label="confirm"
+                  size="small"
+                  sx={{ width: "24px", height: "24px" }}
+                  onClick={() => {
+                    // Smartly convert user input into a JS value
+                    let newValue = inputRef.current.value;
+
+                    setValue(newValue);
+                  }}
+                >
+                  <Check sx={{ fontSize: "0.9rem" }} />
+                </IconButton>
+                <IconButton
+                  aria-label="cancel"
+                  size="small"
+                  sx={{ width: "24px", height: "24px" }}
+                  onClick={() => {
+                    setEditing(false);
+                  }}
+                >
+                  <Close sx={{ fontSize: "0.9rem" }} />
+                </IconButton>
+              </>
+            ) : (
+              <IconButton
+                aria-label="edit"
+                size="small"
+                sx={{ width: "24px", height: "24px" }}
+                onClick={() => {
+                  setEditing(true);
+
+                  setTimeout(() => {
+                    inputRef.current?.focus?.();
+                  }, 100);
+                }}
+              >
+                <Edit sx={{ fontSize: "0.9rem" }} />
+              </IconButton>
+            )}
+          </Box>
+        </Box>
+      </TableCell>
+    </TableRow>
+  );
+}
+
 export default function PageVM() {
   useSEO(
     "VM Obfuscator | JS-Confuser",
@@ -66,36 +454,51 @@ export default function PageVM() {
 
   const JsConfuser = useJSConfuser({
     onError: (message) => {
-      alert(message);
+      setError({
+        errorString: message,
+      });
+      setShowErrorDialog(true);
     },
   });
 
   const JsConfuserVM = useJSConfuserVM({
     onError: (message) => {
-      alert(message);
+      setError({
+        errorString: message,
+      });
+      setShowErrorDialog(true);
     },
   });
 
   var [debugState, setDebugState] = useState();
   var [logs, setLogs] = useState([]);
 
-  var [activeFrame, setActiveFrame] = useState();
+  // { index, fp } - the frame pointer is re-verified against the stack after every
+  // step, as the same index can refer to a different frame once the stack moves
+  var [activeFrame, setActiveFrame] = useState(null);
+
+  var activeFrameIndex = null;
+  if (activeFrame) {
+    var candidate = debugState?.data?.stack?.[activeFrame.index];
+    if (candidate && candidate.fp === activeFrame.fp) {
+      activeFrameIndex = activeFrame.index;
+    }
+  }
 
   var activeFrameRegisters;
-  if (typeof activeFrame === "number") {
-    var frame = debugState?.data?.stack[activeFrame];
-    if (frame) {
-      var end = frame?.fp + frame?.size || 0;
+  if (activeFrameIndex !== null) {
+    var frame = debugState.data.stack[activeFrameIndex];
+    var end = frame?.fp + frame?.size || 0;
 
-      var frameRegisters = {};
-      if (frame) {
-        for (var i = frame.base; i < end; i++) {
-          frameRegisters[i - frame.base] = debugState?.data?.registers[i];
-        }
-      }
-
-      activeFrameRegisters = frameRegisters;
+    var frameRegisters = {};
+    for (var i = frame.base; i < end; i++) {
+      frameRegisters[i - frame.base] = {
+        ...debugState?.data?.registers[i],
+        regKey: i,
+      };
     }
+
+    activeFrameRegisters = frameRegisters;
   }
 
   var [liveObfuscation, setLiveObfuscation] = useLocalStorage(
@@ -108,7 +511,7 @@ export default function PageVM() {
   var stateRef = useRef();
   stateRef.current = debugState;
 
-  function highlightLineFromOutput(lineNumber) {
+  function highlightLineFromOutput(lineNumber, scrollIntoView) {
     const { editor, monaco } = ref.current.output;
     if (!editor || !monaco) return;
 
@@ -134,10 +537,13 @@ export default function PageVM() {
       const endLine = parseInt(match[3], 10);
       const endCol = parseInt(match[4], 10) + 1; // Monaco columns are 1-indexed
 
-      inputEditor.revealPositionInCenter({
-        lineNumber: startLine,
-        column: startCol,
-      });
+      inputEditor.revealPositionInCenter(
+        {
+          lineNumber: startLine,
+          column: startCol,
+        },
+        monaco.editor.ScrollType.Immediate,
+      );
 
       sourceHighlightDecorations.current = inputEditor.deltaDecorations(
         sourceHighlightDecorations.current,
@@ -164,6 +570,14 @@ export default function PageVM() {
     if (lineContent.includes("// ")) {
       const outputLine = lineNumber;
       const outputEndCol = model.getLineMaxColumn(outputLine);
+
+      if (scrollIntoView) {
+        editor.revealLineInCenterIfOutsideViewport(
+          outputLine,
+          monaco.editor.ScrollType.Immediate,
+        );
+      }
+
       outputActiveDecorations.current = editor.deltaDecorations(
         outputActiveDecorations.current,
         [
@@ -199,7 +613,10 @@ export default function PageVM() {
       if (event.event === "done") {
         // remove the highlight
         highlightLineFromOutput(-1);
-      } else if (typeof event.data?.pc === "number") {
+      } else if (
+        typeof event.data?.pc === "number" ||
+        event?.event === "ready"
+      ) {
         const { editor, monaco } = ref.current.output;
         if (!editor || !monaco) return;
 
@@ -210,7 +627,7 @@ export default function PageVM() {
         const outputText = model.getValue();
         const lines = outputText.split("var CONSTANTS")[0].split("\n");
 
-        let pc = event.data.pc;
+        let pc = event?.event === "ready" ? 0 : event.data.pc;
 
         let lineNumber = 0;
         let targetLineText;
@@ -239,7 +656,7 @@ export default function PageVM() {
         // Monaco editor starts at line 1
         const targetLine = lineNumber + 1;
 
-        highlightLineFromOutput(targetLine);
+        highlightLineFromOutput(targetLine, true);
       }
 
       if (event.event === "log") {
@@ -547,6 +964,7 @@ console.log("Hello World!");
         ...optionsRef.current,
         minify: false, // The Google Closure Compiler isn't available for browsers :(
         profile: true, // capture more detailed 'profileData' object
+        disassemble: true, // "worker only" option for getting disassembled output added
       };
     }
 
@@ -573,20 +991,19 @@ console.log("Hello World!");
 
     try {
       let result = await obfuscate(sourceCode);
-      console.log(result);
-      let { code, profileData } = result;
 
       if (options.minify) {
         // Use API for Google Closure API
 
         const minifiedCode = await minify(code);
-        code =
+        result.code =
           "// Minified by https://jscompressor.treblereel.dev/\n" +
           minifiedCode;
       }
 
-      console.log(profileData);
-      outputEditor.setValue(code);
+      setObfuscationResult(result);
+
+      outputEditor.setValue(result.code);
     } catch (error) {
       outputEditor.setValue(
         `// Error: ${error?.stack || error?.errorStack || error}`,
@@ -633,6 +1050,95 @@ console.log("Hello World!");
   const [showOptionsDialog, setShowOptionsDialog] = useState(false);
   const [showConsoleDialog, setShowConsoleDialog] = useState(false);
 
+  const step = (runMode) => {
+    vmDebugger.next(runMode).catch((error) => {
+      console.error("VM Debugger error", error);
+    });
+  };
+
+  const isDone = debugState?.event === "done";
+  const canStepOut = (debugState?.data?.stack?.length ?? 0) > 1;
+
+  const debuggerControls = [
+    {
+      runMode: "instruction",
+      label: "Step Instruction",
+      icon: <SkipNext />,
+      color: "success.main",
+    },
+    {
+      runMode: "stepOverJump",
+      label: "Step Over",
+      shortcut: "F10",
+      icon: <RedoOutlined />,
+      color: "warning.main",
+    },
+    {
+      runMode: "stepInJump",
+      label: "Step In",
+      shortcut: "F11",
+      icon: <ArrowDownward />,
+      color: "warning.main",
+    },
+    {
+      runMode: "stepOut",
+      label: "Step Out",
+      shortcut: "Shift+F11",
+      icon: <ArrowUpward />,
+      color: "warning.main",
+      disabled: !canStepOut,
+    },
+    // {
+    //   runMode: "jump",
+    //   label: "Step Jump",
+    //   icon: <FastForward />,
+    //   color: "info.main",
+    // },
+    {
+      runMode: "all",
+      label: "Resume",
+      shortcut: "F8",
+      icon: <PlayArrow />,
+      color: "primary.main",
+    },
+  ];
+
+  var [showErrorDialog, setShowErrorDialog] = useState();
+  var [error, setError] = useState({ errorString: "", errorStack: "" });
+
+  var [showInsightsDialog, setShowInsightsDialog] = useState(false);
+
+  var [showDisassembledDialog, setShowDisassembledDialog] = useState(false);
+  var [disassembledDialogPC, setDisassembledDialogPC] = useState(null);
+  var [obfuscationResult, setObfuscationResult] = useState();
+
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      const state = stateRef.current;
+      if (!state) return;
+
+      var runMode;
+      if (event.key === "F10") {
+        runMode = "stepOverJump";
+      } else if (event.key === "F11") {
+        runMode = event.shiftKey ? "stepOut" : "stepInJump";
+      } else if (event.key === "F8") {
+        runMode = "all";
+      } else return;
+
+      event.preventDefault();
+
+      if (state.event === "done") return;
+      if (runMode === "stepOut" && !((state.data?.stack?.length ?? 0) > 1))
+        return;
+
+      step(runMode);
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   const toggleDebugger = () => {
     if (debugState) {
       setDebugState(null);
@@ -641,11 +1147,12 @@ console.log("Hello World!");
         (optName) => options[optName],
       );
       if (enabledOptions.length) {
-        alert(
-          "Warning: You have option(s) enabled (" +
-            enabledOptions.join(", ") +
-            ") which will most likely break the debugger. Disable all options for the best results.",
-        );
+        // TODO: Figure out better warning for this
+        // alert(
+        //   "Warning: You have option(s) enabled (" +
+        //     enabledOptions.join(", ") +
+        //     ") which will most likely break the debugger. Disable all options for the best results.",
+        // );
       }
       handleStartDebugger();
     }
@@ -690,6 +1197,32 @@ console.log("Hello World!");
           margin-left: 5px;
         }
       `}</style>
+
+      <ErrorDialog
+        error={error}
+        open={showErrorDialog}
+        onClose={() => {
+          setShowErrorDialog(false);
+        }}
+      />
+
+      <InsightsDialog
+        open={showInsightsDialog}
+        onClose={() => {
+          setShowInsightsDialog(false);
+        }}
+        profileData={obfuscationResult?.profileData}
+      />
+
+      <DisassembledDialog
+        open={showDisassembledDialog}
+        pc={disassembledDialogPC}
+        onClose={() => {
+          setShowDisassembledDialog(false);
+        }}
+        code={obfuscationResult?.disassembled}
+      />
+
       <ConsoleDialog
         open={showConsoleDialog}
         getEditorOptions={() => {
@@ -764,6 +1297,11 @@ console.log("Hello World!");
                     onClick: () => setShowOptionsDialog(true),
                   },
                   {
+                    label: "View Obfuscator Insights",
+                    onClick: () => setShowInsightsDialog(true),
+                    disabled: !obfuscationResult?.profileData,
+                  },
+                  {
                     icon: (
                       <KeyboardArrowRight sx={{ transform: "scale(1.1)" }} />
                     ),
@@ -824,55 +1362,55 @@ console.log("Hello World!");
 
           {/* Debugger controls - only show once a program is loaded (state !== undefined) */}
           {debugState ? (
-            <>
-              <Button
-                sx={{
-                  fontWeight: "bold",
-                  width: "160px",
-                  minHeight: "42px",
-                  bgcolor: "divider",
-                  color: "success.main",
-                  flexShrink: 0,
-                }}
-                startIcon={<SkipNext />}
-                color="inherit"
-                onClick={() => vmDebugger.next("instruction")}
-                disabled={debugState?.event === "done"}
-              >
-                Step
-              </Button>
-              <Button
-                sx={{
-                  fontWeight: "bold",
-                  width: "160px",
-                  minHeight: "42px",
-                  bgcolor: "divider",
-                  color: "warning.main",
-                  flexShrink: 0,
-                }}
-                startIcon={<SkipNext />}
-                color="inherit"
-                onClick={() => vmDebugger.next("jump")}
-                disabled={debugState?.event === "done"}
-              >
-                Step Jump
-              </Button>
-              <Button
-                sx={{
-                  fontWeight: "bold",
-                  width: "160px",
-                  minHeight: "42px",
-                  bgcolor: "divider",
-                  color: "primary.main",
-                  flexShrink: 0,
-                }}
-                startIcon={<BugReport />}
-                color="inherit"
-                onClick={() => toggleDebugger()}
-              >
-                Stop
-              </Button>
-            </>
+            <Box
+              display="flex"
+              alignItems="center"
+              gap={0.5}
+              px={0.5}
+              py={0.5}
+              sx={{
+                bgcolor: "divider",
+                borderRadius: 1,
+                flexShrink: 0,
+              }}
+            >
+              {debuggerControls.map(
+                ({ runMode, label, shortcut, icon, color, disabled }) => (
+                  <Tooltip
+                    key={runMode}
+                    title={shortcut ? `${label} (${shortcut})` : label}
+                  >
+                    <span>
+                      <IconButton
+                        aria-label={label}
+                        sx={{ color, width: "36px", height: "36px" }}
+                        onClick={() => step(runMode)}
+                        disabled={isDone || !!disabled}
+                      >
+                        {icon}
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                ),
+              )}
+
+              <Box
+                width="1px"
+                height="24px"
+                mx={0.5}
+                sx={{ bgcolor: "text.disabled", opacity: 0.4 }}
+              />
+
+              <Tooltip title="Stop Debugging">
+                <IconButton
+                  aria-label="Stop Debugging"
+                  sx={{ color: "error.main", width: "36px", height: "36px" }}
+                  onClick={() => toggleDebugger()}
+                >
+                  <Stop />
+                </IconButton>
+              </Tooltip>
+            </Box>
           ) : null}
         </Box>
       </Fade>
@@ -913,16 +1451,12 @@ console.log("Hello World!");
                       activeFrameRegisters || debugState?.data?.registers || {},
                     ).map(([key, regItem], i) => {
                       return (
-                        <TableRow
+                        <RegisterRow
                           key={key}
-                          sx={{
-                            "&:last-child td, &:last-child th": { border: 0 },
-                          }}
-                        >
-                          <TableCell>regs[{key}]: </TableCell>
-                          <TableCell>{"" + regItem.type}</TableCell>
-                          <TableCell>{"" + regItem.value}</TableCell>
-                        </TableRow>
+                          regItem={regItem}
+                          regKey={key}
+                          vmDebugger={vmDebugger}
+                        />
                       );
                     })}
                   </TableBody>
@@ -951,8 +1485,8 @@ console.log("Hello World!");
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {debugState.data.stack.map((frame, i) => {
-                      var isActiveFrame = activeFrame === i;
+                    {debugState.data.stack?.map((frame, i) => {
+                      var isActiveFrame = activeFrameIndex === i;
 
                       var start = frame?.base;
                       var end = frame?.fp + frame?.size || 0;
@@ -971,7 +1505,22 @@ console.log("Hello World!");
                             <strong>#{i}</strong> {frame.isNew ? "new " : ""}
                             {frame.name}
                           </TableCell>
-                          <TableCell>{frame.pc ?? ""}</TableCell>
+                          <TableCell>
+                            <Box display="flex" alignItems="center">
+                              {frame.pc ?? ""}
+
+                              <IconButton
+                                size="small"
+                                ml={1}
+                                onClick={() => {
+                                  setShowDisassembledDialog(true);
+                                  setDisassembledDialogPC(frame.pc);
+                                }}
+                              >
+                                <Visibility sx={{ fontSize: "0.9rem" }} />
+                              </IconButton>
+                            </Box>
+                          </TableCell>
                           <TableCell>{frame.returnPc ?? ""}</TableCell>
                           <TableCell>
                             {frame.returnReg ? (
@@ -981,7 +1530,7 @@ console.log("Hello World!");
                             )}
                           </TableCell>
                           <TableCell>
-                            {end - start} registers ({start} - {end})
+                            {end - start} registers ({start} - {end - 1})
                           </TableCell>
                           <TableCell>{frame.handlerCount ?? ""}</TableCell>
                           <TableCell align="right">
@@ -990,7 +1539,7 @@ console.log("Hello World!");
                                 if (isActiveFrame) {
                                   setActiveFrame(null);
                                 } else {
-                                  setActiveFrame(i);
+                                  setActiveFrame({ index: i, fp: frame.fp });
                                 }
                               }}
                             >

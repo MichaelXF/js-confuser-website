@@ -48,13 +48,14 @@ function loadProgram(program) {
       ) {
         // Make it a generator
         right.generator = true;
-        // Push `yield this;` at the end of the while loop body
+        // Push `yield this;` at the start of the while loop body, so the VM pauses
+        // before dispatching each instruction rather than after
         // The while loop is the first statement in the function body
         var body = right.body.body;
 
         var whileStatement = body.find((x) => x.type === "WhileStatement");
 
-        whileStatement.body.body.push(
+        whileStatement.body.body.unshift(
           t.expressionStatement(t.yieldExpression(t.thisExpression())),
         );
       }
@@ -124,6 +125,21 @@ function loadProgram(program) {
 
   currentVM = self._vm;
   currentIterator = iterator;
+
+  // Calling a generator runs none of its body - advance to the first yield so the
+  // entry frame is pushed and the initial state is inspectable
+  try {
+    currentIterator.next();
+  } catch (err) {
+    console.error("VM Debugger load error", err);
+    return {
+      event: "error",
+      error: "" + (err?.stack || err),
+      data: getData(),
+      isDebugger: true,
+    };
+  }
+
   return {
     event: "ready",
     data: getData(),
@@ -222,52 +238,116 @@ function getData() {
   return data;
 }
 
-// runMode: "instruction" | "jump" | "all"
-function next(runMode) {
-  if (!currentIterator) return null;
+function frameDepth(runtime) {
+  var regs = runtime._regs;
+  var depth = 0;
 
-  var stepResult;
+  for (var fp = runtime._f; fp && depth < 256; fp = regs[fp + SLOTS.CALLER]) {
+    depth++;
+  }
+
+  return depth;
+}
+
+function currentOp(runtime) {
+  if (!runtime._f) return null;
+  return runtime.bytecode[runtime._regs[runtime._f + SLOTS.PC]];
+}
+
+// _f only moves on CALL/RETURN/throw, so only re-walk the caller chain when it does
+function makeDepthTracker(runtime) {
+  var lastFp = runtime._f;
+  var depth = frameDepth(runtime);
+
+  return function (rt) {
+    if (rt._f !== lastFp) {
+      lastFp = rt._f;
+      depth = frameDepth(rt);
+    }
+    return depth;
+  };
+}
+
+const STEP_BUDGET = 5_000_000;
+
+function stepUntil(shouldStop) {
+  var trackDepth = makeDepthTracker(currentVM);
+  var budget = STEP_BUDGET;
+
   try {
-    stepResult = currentIterator.next();
+    for (;;) {
+      var stepResult = currentIterator.next();
+      if (stepResult.done) {
+        return { event: "done", data: getData(), isDebugger: true };
+      }
+
+      if (--budget <= 0) {
+        return { event: "budget", data: getData(), isDebugger: true };
+      }
+
+      var runtime = stepResult.value;
+      if (runtime._f && shouldStop(runtime, trackDepth(runtime))) break;
+    }
   } catch (err) {
     console.error("VM Debugger Step error", err);
     return {
       event: "error",
       error: "" + (err?.stack || err),
       data: getData(),
+      isDebugger: true,
     };
   }
-  if (stepResult.done) {
-    return { event: "done", data: getData(), isDebugger: true };
+
+  return { event: "step", data: getData(), isDebugger: true };
+}
+
+function atJump(runtime) {
+  return allJumpOpCodes.has(currentOp(runtime));
+}
+
+// runMode: "instruction" | "jump" | "all" | "stepInJump" | "stepOverJump" | "stepOut"
+function next(runMode) {
+  if (!currentIterator) return null;
+
+  var startDepth = frameDepth(currentVM);
+
+  switch (runMode) {
+    case "all":
+      return stepUntil(() => false);
+
+    case "jump":
+      return stepUntil(atJump);
+
+    // Entering a callee always wins over the jump boundary
+    case "stepInJump":
+      return stepUntil((rt, depth) => depth > startDepth || atJump(rt));
+
+    // Anything deeper than the starting frame is skipped over
+    case "stepOverJump":
+      return stepUntil((rt, depth) => depth <= startDepth && atJump(rt));
+
+    // Runs until the starting frame (or an ancestor, when unwinding) has returned
+    case "stepOut":
+      return stepUntil((rt, depth) => depth < startDepth);
+
+    default:
+      return stepUntil(() => true);
+  }
+}
+
+function action(actionType, ...args) {
+  var runtime = currentVM;
+
+  switch (actionType) {
+    case "setRegister":
+      runtime._regs[args[0]] = args[1];
+      break;
+    default:
+      console.error("No action found for", actionType);
   }
 
-  var runtime = stepResult.value;
-
-  if (runMode === "all") {
-    // Run to completion
-    while (!stepResult.done) {
-      stepResult = currentIterator.next();
-    }
-    return { event: "done", data: getData(), isDebugger: true };
-  }
-
-  if (runMode === "jump") {
-    // Step until we hit a jump opcode or done
-    while (!stepResult.done) {
-      var frame = getFrame(stepResult.value, stepResult.value._f);
-      var op = frame ? stepResult.value.bytecode[frame.pc] : null;
-
-      if (allJumpOpCodes.has(op)) break;
-      stepResult = currentIterator.next();
-    }
-    if (stepResult.done)
-      return { event: "done", data: getData(), isDebugger: true };
-    runtime = stepResult.value;
-  }
-
-  // "instruction" mode or after stopping at a jump
   return {
-    event: "step",
+    event: "action",
     data: getData(),
     isDebugger: true,
   };
@@ -294,6 +374,10 @@ self.onmessage = async function (event) {
 
       case "disassemble":
         response = await disassemble(...args);
+        break;
+
+      case "action":
+        response = action(...args);
         break;
 
       default:

@@ -55,6 +55,10 @@ export default function useVMDebugger({ onEvent } = {}) {
     return call("disassemble", outputCode);
   }
 
+  function action(actionType, ...actionArgs) {
+    return call("action", actionType, ...actionArgs);
+  }
+
   function cancel() {
     if (workerRef.current) {
       workerRef.current.terminate();
@@ -72,6 +76,8 @@ export default function useVMDebugger({ onEvent } = {}) {
     loadProgram,
     next,
     cancel,
+
+    action,
 
     // disassemble
     disassemble,

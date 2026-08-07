@@ -982,7 +982,9 @@ Tamper Protection requires the script to run in non-strict mode. Detection of th
             {
               code: `
               function checkChrome(){
-                return navigator.userAgent.includes("Chrome")
+                return typeof window === "object" && 
+                  !!navigator.userAgentData && 
+                  navigator.userAgentData.brands.some(b => b.brand === "Google Chrome");
               }
 
               if(!checkChrome()){
